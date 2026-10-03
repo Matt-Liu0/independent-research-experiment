@@ -1,10 +1,160 @@
 rules_version = '2';
 
-// Placeholder: deny everything. The real rules are written in Phase 10.
+// Participants write only their own data. Researchers read through the console or the
+// Admin SDK, which bypasses these rules. The same rules cover the study collections and
+// their pilot_ copies.
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if false;
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function docPath(col, id) {
+      return /databases/$(database)/documents/$(col)/$(id);
+    }
+
+    // ---- Participant records ----
+
+    // Fields a participant can never change after creating the record.
+    function lockedFields() {
+      return ['prolificPid', 'studyId', 'sessionId', 'appVersion', 'createdAt', 'withdrawn'];
+    }
+
+    function validNewParticipant(uid, pidCol) {
+      let d = request.resource.data;
+      return d.prolificPid is string
+        && d.studyId is string
+        && d.sessionId is string
+        && d.friction == null
+        && d.taskOrder == null
+        && d.withdrawn == false
+        && d.stage == 'device'
+        && d.createdAt == request.time
+        // The record must belong to the Prolific ID this user claimed.
+        && get(docPath(pidCol, d.prolificPid)).data.uid == uid;
+    }
+
+    // Friction and task order are set once, in the same transaction that increments the
+    // matching counter in <meta>/assignment.
+    function validAssignment(uid, metaCol) {
+      let before = resource.data;
+      let after = request.resource.data;
+      let f = after.friction;
+      let meta = docPath(metaCol, 'assignment');
+      return before.friction == null
+        && (f == 'nudged' || f == 'neutral')
+        && after.taskOrder is list
+        && after.taskOrder.size() == 6
+        && (
+          (exists(meta) && getAfter(meta).data[f] == get(meta).data[f] + 1)
+          || (!exists(meta) && getAfter(meta).data[f] == 1)
+        );
+    }
+
+    function validParticipantUpdate(uid, metaCol) {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return !changed.hasAny(lockedFields())
+        && (!changed.hasAny(['friction', 'taskOrder']) || validAssignment(uid, metaCol));
+    }
+
+    function participantRead(uid) {
+      return isOwner(uid);
+    }
+
+    function eventCreate(uid) {
+      let d = request.resource.data;
+      return isOwner(uid)
+        && d.type is string
+        && d.clientT is number
+        && d.t == request.time
+        && d.keys().size() <= 40;
+    }
+
+    match /participants/{uid} {
+      allow get: if participantRead(uid);
+      allow create: if isOwner(uid) && validNewParticipant(uid, 'pids');
+      allow update: if isOwner(uid) && validParticipantUpdate(uid, 'meta');
+
+      match /events/{eventId} {
+        allow create: if eventCreate(uid);
+      }
+    }
+
+    match /pilot_participants/{uid} {
+      allow get: if participantRead(uid);
+      allow create: if isOwner(uid) && validNewParticipant(uid, 'pilot_pids');
+      allow update: if isOwner(uid) && validParticipantUpdate(uid, 'pilot_meta');
+
+      match /events/{eventId} {
+        allow create: if eventCreate(uid);
+      }
+    }
+
+    // ---- One record per Prolific ID ----
+
+    function validPidClaim() {
+      let d = request.resource.data;
+      return signedIn()
+        && d.keys().hasOnly(['uid', 'createdAt'])
+        && d.uid == request.auth.uid
+        && d.createdAt == request.time;
+    }
+
+    match /pids/{pid} {
+      allow get: if signedIn() && resource.data.uid == request.auth.uid;
+      allow create: if validPidClaim();
+    }
+
+    match /pilot_pids/{pid} {
+      allow get: if signedIn() && resource.data.uid == request.auth.uid;
+      allow create: if validPidClaim();
+    }
+
+    // ---- Balanced assignment counters ----
+
+    // The caller's own record must go from no level to level f in the same write.
+    function assignsTo(f, participantCol) {
+      let p = docPath(participantCol, request.auth.uid);
+      return get(p).data.friction == null && getAfter(p).data.friction == f;
+    }
+
+    function validCounterCreate(participantCol) {
+      let d = request.resource.data;
+      return signedIn()
+        && d.keys().hasOnly(['nudged', 'neutral'])
+        && (
+          (d.nudged == 1 && d.neutral == 0 && assignsTo('nudged', participantCol))
+          || (d.nudged == 0 && d.neutral == 1 && assignsTo('neutral', participantCol))
+        );
+    }
+
+    // One counter goes up by exactly 1, and only the smaller (or tied) group can grow.
+    function validCounterUpdate(participantCol) {
+      let b = resource.data;
+      let a = request.resource.data;
+      return signedIn()
+        && a.keys().hasOnly(['nudged', 'neutral'])
+        && (
+          (a.nudged == b.nudged + 1 && a.neutral == b.neutral && b.nudged <= b.neutral && assignsTo('nudged', participantCol))
+          || (a.neutral == b.neutral + 1 && a.nudged == b.nudged && b.neutral <= b.nudged && assignsTo('neutral', participantCol))
+        );
+    }
+
+    match /meta/assignment {
+      allow get: if signedIn();
+      allow create: if validCounterCreate('participants');
+      allow update: if validCounterUpdate('participants');
+    }
+
+    match /pilot_meta/assignment {
+      allow get: if signedIn();
+      allow create: if validCounterCreate('pilot_participants');
+      allow update: if validCounterUpdate('pilot_participants');
     }
   }
 }
