@@ -9,23 +9,19 @@ interface Props extends StageProps {
 }
 
 export function DeviceCheck({ detect, mode, update, advance }: Props) {
-  const [failed, setFailed] = useState(false)
+  const [device] = useState(detect)
+  // Demo links are for researchers, who may preview on a computer.
+  const failed = !device.passedCheck && mode !== 'demo'
   const [qr, setQr] = useState<string | null>(null)
   const ran = useRef(false)
 
   useEffect(() => {
     if (ran.current) return
     ran.current = true
-    const device = detect()
     logEvent('stage', { name: 'device_check', passed: device.passedCheck })
-    // Demo links are for researchers, who may preview on a computer.
-    if (device.passedCheck || mode === 'demo') {
-      advance({ device })
-    } else {
-      update({ device })
-      setFailed(true)
-    }
-  }, [detect, mode, update, advance])
+    if (failed) update({ device })
+    else advance({ device })
+  }, [device, failed, update, advance])
 
   useEffect(() => {
     if (!failed) return

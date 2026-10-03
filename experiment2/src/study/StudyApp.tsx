@@ -39,8 +39,8 @@ const STAGE_COMPONENTS: Record<Exclude<Stage, 'device'>, ComponentType<StageProp
 export function StudyApp({ entry, store, detect = detectDevice }: Props) {
   const [boot, setBoot] = useState<Boot>(entry.params ? { state: 'loading' } : { state: 'blocked', reason: 'missing_params' })
   const [participant, setParticipant] = useState<ParticipantDoc | null>(null)
+  // Mirrors `participant` so `advance` can read the latest stage without re-creating callbacks.
   const participantRef = useRef<ParticipantDoc | null>(null)
-  participantRef.current = participant
   const started = useRef(false)
 
   useEffect(() => {
@@ -56,6 +56,7 @@ export function StudyApp({ entry, store, detect = detectDevice }: Props) {
         }
         if (result.kind === 'resumed') logEvent('resume', { stage: result.participant.stage })
         else logEvent('stage', { name: 'entry', mode: entry.mode })
+        participantRef.current = result.participant
         setParticipant(result.participant)
         setBoot({ state: 'ready' })
       })
@@ -68,6 +69,7 @@ export function StudyApp({ entry, store, detect = detectDevice }: Props) {
   const update = useCallback(
     (fields: Partial<ParticipantDoc>, stamp: TimestampField[] = []) => {
       store.update(fields, stamp)
+      if (participantRef.current) participantRef.current = { ...participantRef.current, ...fields }
       setParticipant((p) => (p ? { ...p, ...fields } : p))
     },
     [store],
@@ -79,9 +81,7 @@ export function StudyApp({ entry, store, detect = detectDevice }: Props) {
       if (!current) return
       const stage = nextStage(current.stage)
       logEvent('stage', { from: current.stage, to: stage })
-      const next = { ...fields, stage }
-      participantRef.current = { ...current, ...next }
-      update(next, stamp)
+      update({ ...fields, stage }, stamp)
     },
     [update],
   )
