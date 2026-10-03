@@ -1,0 +1,74 @@
+export type Friction = 'nudged' | 'neutral'
+
+export const FLOW_IDS = [
+  'store_location',
+  'store_precise',
+  'courier_live',
+  'checkout_partner_offers',
+  'bg_during_order',
+  'sam_share',
+  'bg_between_orders',
+  'deals_personalized',
+  'deals_partner_offers',
+  'reward_keel',
+  'reward_university',
+  'reward_data_partners',
+] as const
+
+export type FlowId = (typeof FLOW_IDS)[number]
+
+export type TaskNumber = 1 | 2 | 3 | 4 | 5 | 6
+
+export type ScreenId = 'shop' | 'find_store' | 'checkout' | 'orders' | 'deals' | 'rewards' | 'account'
+
+/**
+ * prompt: a one-time question answered with a single tap (e.g. "Allow once").
+ * setting: a control that stays on screen and can be changed until it settles.
+ */
+export type FlowKind = 'prompt' | 'setting'
+
+/**
+ * When a flow's first choice is fixed ("settled"):
+ * choice: the tap itself. commit: an action on the same screen (e.g. Place order).
+ * leave: when the participant leaves the screen or finishes the task.
+ */
+export type SettleOn = 'choice' | 'commit' | 'leave'
+
+export type Control = 'switch' | 'checkbox' | 'buttons'
+
+export interface LevelDef {
+  control: Control
+  /** Preset value; null means nothing is selected. */
+  default: string | null
+  /** Option drawn as the filled button, with the others as text links; null = equal buttons. */
+  emphasis: string | null
+  /** The participant can't continue on this screen until they choose. */
+  required?: boolean
+}
+
+export interface FlowDef {
+  id: FlowId
+  /** Task this flow is expected to fall in (events log the actual task). */
+  task: TaskNumber
+  screen: ScreenId
+  kind: FlowKind
+  settleOn: SettleOn
+  options: readonly string[]
+  /** Button / control labels, identical in both levels. */
+  labels: Record<string, string>
+  title: string
+  description: string
+  /** The option that shares least. Used by the decline-everything test and exports. */
+  privacyOption: string
+  dependsOn: { flowId: FlowId; equals?: string; notEquals?: string } | null
+  /** Points paid for choosing the first option (Rewards offers only). */
+  points?: number
+  account: { label: string; labels: Record<string, string> }
+  nudged: LevelDef
+  neutral: LevelDef
+}
+
+export type FlowValues = Record<FlowId, string | null>
+
+/** Export status of a flow for one participant. */
+export type FlowStatus = 'chosen' | 'shown_not_settled' | 'not_shown' | 'not_applicable'
