@@ -252,3 +252,30 @@ website/
 ## Out of scope
 
 Part 2 / Experiment 1, the norming survey, coding the suspicion answers, the analysis scripts, and IRB documents.
+
+## Changes made during implementation (Oct 3, 2026)
+
+These refine the design above; where they conflict, this section wins.
+
+**Flow model**
+- `control` is `switch`, `checkbox` or `buttons`. A sheet is a container that screens wrap around a flow, not a control type.
+- Each flow also has `kind` (`prompt`: a one-tap question; `setting`: a control that stays on screen), `settleOn`, shared `labels`, `title` and `description`, `privacyOption`, `points` and Account-page labels.
+- A flow's first choice is fixed when it **settles**. Prompts settle on the tap. #2 settles when #1 is answered with an Allow. #3 and #4 settle on Place order. #8 and #9 settle when the participant leaves Deals or finishes the task.
+- Export statuses are `chosen`, `not_applicable`, `shown_not_settled` (seen but never settled, e.g. opened Checkout but never ordered) and `not_shown`.
+- In `nudged`, the option that shares least is drawn as a text link, the emphasized option is filled, and any other option is outlined. For #1 this means "Allow once" is outlined.
+
+**Behavior**
+- In `neutral`, the two Allow buttons on the location sheet stay disabled until exact or general is chosen; "Don't allow" never waits. Allowing therefore takes two taps in `neutral` and one in `nudged`.
+- The order is delivered after both #5 and #6 are answered, not just #6, so #7 can depend on #5.
+- The Rewards section heading is "Offers" in both levels (the mockup's "Earn more points" was a nudge).
+- The Account page is identical in both levels: a segmented control per flow. A flow becomes editable there once it has settled, or for settings once it has been shown. Changes there never pay points.
+- Researcher demo links: `?demo=nudged` or `?demo=neutral` work on any device and save nothing.
+
+**Data**
+- Event types: `stage`, `task`, `screen`, `prompt_shown`, `decision`, `settled`, `action`, `points`, `visibility`, `resume`, `error`. Changes on the Account page are `decision` events with `source: "account_page"` (there is no separate `setting_change`), and `dismissed` was dropped because prompts can't be dismissed.
+- `settled` events carry `value`, `defaultShown`, `changedFromDefault`, `msSincePrompt` (visible time only) and `toggleCount`.
+- `action` events record participant actions without personal text: `store_set`, `zip_search` (no ZIP), `cart_add`, `order_placed`, `order_delivered`, `deal_toggled`, `delivery_redeemed`, `address_saved` (only `matches`).
+- The participant record also has `consentDeclined`, `taskIndex`, `taskPhase`, and `appState.shown` / `appState.settled`.
+- `completedAt` is stamped when the settings check is submitted.
+- Consent text is a TypeScript module (`src/study/consentText.ts`), not markdown.
+- The export orders events by server time, then `clientT`, because `clientT` restarts after a reload. It is tested on fixtures and against seeded emulator data.
