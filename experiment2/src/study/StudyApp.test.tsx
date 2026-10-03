@@ -81,7 +81,7 @@ describe('StudyApp', () => {
     const existing = { ...newParticipant({ prolificPid: 'pid123', studyId: 'study1', sessionId: 'sess1' }), stage: 'sus' as const }
     const store = new MemoryStore({ existing })
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} detect={phone} />)
-    expect(await screen.findByRole('heading', { name: /usability survey|how much do you agree/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /what did you think of bramble/i })).toBeInTheDocument()
     expect(store.participant?.resumeCount).toBe(1)
     expect(store.events.find((e) => e.type === 'resume')).toMatchObject({ stage: 'sus' })
   })

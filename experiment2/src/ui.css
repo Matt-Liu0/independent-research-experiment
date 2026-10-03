@@ -195,3 +195,182 @@
   font-size: 11px;
   pointer-events: none;
 }
+
+/* Task frame: task bar above the practice app, filling the screen. */
+.task-frame {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+.task-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: calc(8px + env(safe-area-inset-top)) 12px 8px;
+  background: var(--ink);
+  color: #fff;
+}
+
+.task-bar-label {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  text-align: left;
+}
+
+.task-bar-count {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.task-bar-short {
+  max-width: 100%;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-bar-done {
+  width: auto;
+  min-height: 40px;
+  padding: 6px 16px;
+  border-color: rgb(255 255 255 / 0.5);
+  font-size: 15px;
+}
+
+.task-card-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgb(29 36 32 / 0.5);
+}
+
+.task-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(100%, 440px);
+  padding: 22px 20px;
+  border-radius: var(--radius-card);
+  background: var(--cream);
+}
+
+.task-card p {
+  margin: 0;
+}
+
+.task-card-text {
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.task-progress {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 5px;
+}
+
+.task-progress span {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.task-progress span.filled {
+  background: var(--green);
+}
+
+/* Rating scales (ease rating, SUS) */
+.scale {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.scale-5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.scale-point {
+  min-height: 48px;
+  border: 1.5px solid #8d928e;
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.scale-point[aria-checked='true'] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+}
+
+.scale-anchors {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Survey pages */
+.survey-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.survey-item {
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+
+.survey-help {
+  margin: -4px 0 10px;
+}
+
+.option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.option {
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 1.5px solid #8d928e;
+  border-radius: 12px;
+  background: var(--surface);
+  text-align: left;
+}
+
+.option[aria-checked='true'] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+  font-weight: 600;
+}
+
+a.btn {
+  text-decoration: none;
+}
+
+a.btn[aria-disabled='true'] {
+  opacity: 0.45;
+}
