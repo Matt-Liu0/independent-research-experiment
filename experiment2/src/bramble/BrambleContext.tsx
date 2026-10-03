@@ -1,0 +1,191 @@
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { visibleMs } from '../log/clock'
+import { logEvent, setLogContext } from '../log/logEvent'
+import { appReducer, type AppAction, type AppState } from './appState'
+import { FLOWS, getFlow, isApplicable, levelOf } from './flows'
+import type { FlowId, Friction, ScreenId } from './types'
+
+export type DecisionSource = 'prompt' | 'account_page'
+
+export interface Bramble {
+  state: AppState
+  friction: Friction
+  dispatch: (action: AppAction) => void
+  navigate: (screen: ScreenId) => void
+  /** Log a named participant action (store set, order placed, …). */
+  act: (name: string, fields?: Record<string, unknown>) => void
+  /** A flow's prompt or control is on screen. Logs prompt_shown once per page load and applies its preset. */
+  showFlow: (id: FlowId) => void
+  /** The participant picked a value. Prompts settle immediately; Rewards offers pay their points. */
+  chooseFlow: (id: FlowId, value: string, source?: DecisionSource) => void
+  /** Fix a flow's first choice (commit and leave flows). No-op if already settled or not applicable. */
+  settleFlow: (id: FlowId) => void
+  /** Called when a task ends: settles flows that settle on leaving, and closes Account-page timing. */
+  leaveScreen: () => void
+}
+
+const BrambleContext = createContext<Bramble | null>(null)
+
+export function useBramble(): Bramble {
+  const ctx = useContext(BrambleContext)
+  if (!ctx) throw new Error('useBramble outside BrambleProvider')
+  return ctx
+}
+
+interface Props {
+  friction: Friction
+  initialState: AppState
+  onChange?: (state: AppState) => void
+  children: ReactNode
+}
+
+export function BrambleProvider({ friction, initialState, onChange, children }: Props) {
+  const [state, setState] = useState(initialState)
+  // Synchronous mirror, so a choice and the settle that follows it see the same state.
+  const stateRef = useRef(initialState)
+  const shownAt = useRef(new Map<FlowId, number>())
+  const decisions = useRef(new Map<FlowId, number>())
+  const accountEnteredAt = useRef<number | null>(null)
+
+  const dispatch = useCallback((action: AppAction) => {
+    stateRef.current = appReducer(stateRef.current, action)
+    setState(stateRef.current)
+  }, [])
+
+  useEffect(() => {
+    setLogContext({ screen: stateRef.current.screen })
+  }, [])
+
+  useEffect(() => {
+    onChange?.(state)
+  }, [state, onChange])
+
+  const presetOf = useCallback((id: FlowId) => levelOf(getFlow(id), friction).default, [friction])
+
+  const msSincePrompt = (id: FlowId): number | null => {
+    const at = shownAt.current.get(id)
+    return at === undefined ? null : visibleMs() - at
+  }
+
+  const settleWith = useCallback(
+    (id: FlowId, value: string) => {
+      const s = stateRef.current
+      if (s.settled.includes(id)) return
+      const preset = presetOf(id)
+      logEvent('settled', {
+        flowId: id,
+        value,
+        defaultShown: preset,
+        changedFromDefault: preset !== null && value !== preset,
+        msSincePrompt: msSincePrompt(id),
+        toggleCount: decisions.current.get(id) ?? 0,
+      })
+      dispatch({ type: 'settle', flowId: id })
+    },
+    [dispatch, presetOf],
+  )
+
+  const settleFlow = useCallback(
+    (id: FlowId) => {
+      const s = stateRef.current
+      const value = s.flows[id]
+      if (value === null || !s.shown.includes(id) || !isApplicable(id, s.flows)) return
+      settleWith(id, value)
+    },
+    [settleWith],
+  )
+
+  const showFlow = useCallback(
+    (id: FlowId) => {
+      const s = stateRef.current
+      if (shownAt.current.has(id) || s.settled.includes(id)) return
+      shownAt.current.set(id, visibleMs())
+      const preset = presetOf(id)
+      logEvent('prompt_shown', { flowId: id, defaultShown: preset })
+      dispatch({ type: 'show', flowId: id, preset })
+    },
+    [dispatch, presetOf],
+  )
+
+  const chooseFlow = useCallback(
+    (id: FlowId, value: string, source: DecisionSource = 'prompt') => {
+      const flow = getFlow(id)
+      const before = stateRef.current
+      const wasSettled = before.settled.includes(id)
+      decisions.current.set(id, (decisions.current.get(id) ?? 0) + 1)
+      logEvent('decision', {
+        flowId: id,
+        value,
+        previous: before.flows[id],
+        defaultShown: presetOf(id),
+        source,
+        msSincePrompt: source === 'prompt' ? msSincePrompt(id) : null,
+        pointsBefore: before.points,
+      })
+      dispatch({ type: 'set', flowId: id, value })
+
+      if (source !== 'prompt' || wasSettled) return
+      if (flow.points && value === flow.options[0]) {
+        logEvent('points', { flowId: id, amount: flow.points, pointsBefore: before.points })
+        dispatch({ type: 'addPoints', amount: flow.points })
+      }
+      if (flow.settleOn === 'choice') settleWith(id, value)
+    },
+    [dispatch, presetOf, settleWith],
+  )
+
+  const settleLeaveFlows = useCallback(
+    (screen: ScreenId) => {
+      for (const flow of FLOWS) {
+        if (flow.screen === screen && flow.settleOn === 'leave') settleFlow(flow.id)
+      }
+    },
+    [settleFlow],
+  )
+
+  const closeAccountTiming = useCallback(() => {
+    if (accountEnteredAt.current === null) return
+    dispatch({ type: 'accountLeave', ms: visibleMs() - accountEnteredAt.current })
+    accountEnteredAt.current = null
+  }, [dispatch])
+
+  const navigate = useCallback(
+    (screen: ScreenId) => {
+      const from = stateRef.current.screen
+      if (from === screen) return
+      settleLeaveFlows(from)
+      if (from === 'account') closeAccountTiming()
+      if (screen === 'account') {
+        accountEnteredAt.current = visibleMs()
+        dispatch({ type: 'accountVisit' })
+      }
+      setLogContext({ screen })
+      logEvent('screen', { from, to: screen })
+      dispatch({ type: 'navigate', screen })
+    },
+    [dispatch, settleLeaveFlows, closeAccountTiming],
+  )
+
+  const leaveScreen = useCallback(() => {
+    settleLeaveFlows(stateRef.current.screen)
+    closeAccountTiming()
+  }, [settleLeaveFlows, closeAccountTiming])
+
+  // Opening the app on the Account page (e.g. after a reload) counts as a visit.
+  useEffect(() => {
+    if (stateRef.current.screen === 'account' && accountEnteredAt.current === null) {
+      accountEnteredAt.current = visibleMs()
+    }
+  }, [])
+
+  const act = useCallback((name: string, fields: Record<string, unknown> = {}) => {
+    logEvent('action', { name, ...fields })
+  }, [])
+
+  const value = useMemo<Bramble>(
+    () => ({ state, friction, dispatch, navigate, act, showFlow, chooseFlow, settleFlow, leaveScreen }),
+    [state, friction, dispatch, navigate, act, showFlow, chooseFlow, settleFlow, leaveScreen],
+  )
+
+  return <BrambleContext.Provider value={value}>{children}</BrambleContext.Provider>
+}
