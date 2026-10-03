@@ -151,7 +151,7 @@ describe('decline everything', () => {
   it.each(LEVELS)('%s: logs each shown flow once before its decisions, and settles each once', async (friction) => {
     const { app } = await declineEverything(friction)
     const shown = app.eventsOf('prompt_shown').map((e) => e.flowId)
-    const settled = app.eventsOf('settled').map((e) => e.flowId)
+    const settled = app.eventsOf('settled').map((e) => String(e.flowId))
 
     // #2 appears in the location sheet but is never settled once location is refused; #7 never appears.
     expect(new Set(shown).size).toBe(shown.length)

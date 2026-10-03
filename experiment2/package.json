@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "test:rules": "firebase emulators:exec --only firestore,auth --project demo-bramble \"vitest run --config vitest.rules.config.ts\"",
     "emulators": "firebase emulators:start --project demo-bramble",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "export": "tsx scripts/export.ts"
   },
   "dependencies": {
     "firebase": "^12.19.0",
