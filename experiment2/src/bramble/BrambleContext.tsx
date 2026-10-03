@@ -22,6 +22,8 @@ export interface Bramble {
   settleFlow: (id: FlowId) => void
   /** Called when a task ends: settles flows that settle on leaving, and closes Account-page timing. */
   leaveScreen: () => void
+  /** The latest state, including changes made earlier in the same event handler. */
+  getState: () => AppState
 }
 
 const BrambleContext = createContext<Bramble | null>(null)
@@ -182,9 +184,11 @@ export function BrambleProvider({ friction, initialState, onChange, children }: 
     logEvent('action', { name, ...fields })
   }, [])
 
+  const getState = useCallback(() => stateRef.current, [])
+
   const value = useMemo<Bramble>(
-    () => ({ state, friction, dispatch, navigate, act, showFlow, chooseFlow, settleFlow, leaveScreen }),
-    [state, friction, dispatch, navigate, act, showFlow, chooseFlow, settleFlow, leaveScreen],
+    () => ({ state, friction, dispatch, navigate, act, showFlow, chooseFlow, settleFlow, leaveScreen, getState }),
+    [state, friction, dispatch, navigate, act, showFlow, chooseFlow, settleFlow, leaveScreen, getState],
   )
 
   return <BrambleContext.Provider value={value}>{children}</BrambleContext.Provider>
