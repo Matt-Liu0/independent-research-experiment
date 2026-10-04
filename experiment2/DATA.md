@@ -1,0 +1,276 @@
+# Data dictionary: Experiment 2 (Part 1, Bramble site)
+
+What every stored field means and the values it can take. It covers the Firestore records and the CSVs from `npm run export`.
+
+**Conventions**
+- `null` means "not happened yet" or "doesn't apply". It never means "declined"; declining is always an explicit value.
+- **Server time** fields (`createdAt`, `consentAt`, `completedAt`, event `t`) are Firestore timestamps. The CSVs show them as ISO strings in UTC, e.g. `2026-11-01T12:20:00.000Z`.
+- **Visible time** leaves out time the app was in the background (phone locked, switched apps). Decision times use it.
+- **Per page load:** `clientT` and visible time start at 0 every time the page loads. After a reload (`resume` event) they start again.
+
+---
+
+## 1. `participants/{uid}`: one document per participant
+
+`{uid}` is the browser's anonymous login ID, not the Prolific ID. Pilot runs (`&pilot=1`) use `pilot_participants` with the same fields.
+
+### Identity and assignment
+
+| Field | Meaning | Values |
+|---|---|---|
+| `prolificPid` | Prolific participant ID from the link | text (Prolific IDs are 24 hex characters) |
+| `studyId` | Prolific study ID | text |
+| `sessionId` | Prolific session ID | text |
+| `appVersion` | App build the person saw | e.g. `0.1.0` (see `CHANGELOG.md`) |
+| `consentVersion` | Version of the consent text agreed to | e.g. `v0-draft`; `null` before consent |
+| `consentDeclined` | Tapped "I do not agree" | `true` / `false` |
+| `friction` | Assigned level, set right after consent | `nudged` (high friction: sharing preset and emphasized) · `neutral` (low friction: nothing preset, equal buttons) · `null` before consent |
+| `taskOrder` | Order the six tasks were shown in | list of 6 task numbers, e.g. `[4, 1, 2, 3, 5, 6]`; 3 always follows 2, and 6 is always last; `null` before consent |
+| `withdrawn` | Asked to withdraw their Part 1 data (set by the Part 2 debrief) | `true` / `false`; withdrawn people are left out of every export |
+
+### Device and context
+
+| Field | Meaning | Values |
+|---|---|---|
+| `device.os` | Phone type, from the browser | `ios` · `android` · `other` (computers, tablets, unknown) |
+| `device.screenW`, `device.screenH` | Screen size in CSS pixels | numbers, e.g. `390`, `844` |
+| `device.touch` | Has a touch screen | `true` / `false` |
+| `device.userAgent` | Browser's full identification string | text |
+| `device.passedCheck` | Passed the phone-only check | `true` (continued) · `false` (stopped and shown a QR code) |
+| `tzOffset` | Time zone, as minutes behind UTC | e.g. `240` = US Eastern daylight time, `300` = Eastern standard time |
+| `localStartHour` | Local hour when the record was created | `0`–`23` |
+| `resumeCount` | Times the page was reloaded or reopened mid-study | `0`, `1`, `2`, … |
+
+### Progress
+
+| Field | Meaning | Values |
+|---|---|---|
+| `stage` | Furthest stage reached | `device` → `consent` → `welcome` → `tasks` → `sus` → `suspicion` → `settings` → `done` |
+| `taskIndex` | Position in `taskOrder` currently on | `0`–`5` (0 = first task shown) |
+| `taskPhase` | Within that task | `doing` (using the app) · `rating` (ease question showing) |
+| `createdAt` | Arrived from Prolific | server time |
+| `consentAt` | Agreed to consent | server time; missing if never agreed |
+| `completedAt` | Submitted the settings check, the last question | server time; missing if unfinished |
+
+### Answers
+
+| Field | Meaning | Values |
+|---|---|---|
+| `ease.t1` … `ease.t6` | "How easy was that task?", keyed by **task number** (not position) | `1` (very hard) – `7` (very easy) |
+| `sus` | System Usability Scale, items 1–10 in standard order | list of 10 numbers, each `1` (strongly disagree) – `5` (strongly agree); `null` until submitted |
+| `suspicion` | "In one sentence, what do you think this study is about?" | free text (up to 1,000 characters) |
+| `settingsCheck.q1` … `q7` | The settings check; see section 5 | see section 5 |
+
+### Task outcomes: `taskOutcome.t1` … `t6`
+
+Computed when the participant taps **Done** on a task. They show whether the task was actually completed, not just whether Done was tapped.
+
+| Field | Meaning | Values |
+|---|---|---|
+| `t1.done` | Set a store that has oat milk | `true` / `false` |
+| `t1.storeId` | Store chosen | see store IDs (section 6); `null` if none |
+| `t1.usedZipSearch` | Searched by ZIP (happens after refusing location) | `true` / `false` |
+| `t1.storesViewed` | Most ZIP results shown | `0`, `6`, or `24` (after "Show 18 more") |
+| `t1.msToFind` | Visible ms from first opening Find a store to setting a store | number; `null` if no store set. Unreliable if the page reloaded in between |
+| `t2.done` | Ordered both oat milk and sourdough | `true` / `false` |
+| `t3.done`, `t3.samNotified` | Answered the "Let Sam know" prompt | `true` / `false` |
+| `t4.done` | Saved at least two deals | `true` / `false` |
+| `t4.dealsSaved` | Deals saved at that moment | `0`–`4` |
+| `t5.done`, `t5.deliveryRedeemed` | Redeemed free delivery with points | `true` / `false` |
+| `t6.done`, `t6.addressMatches` | Saved address is "40 Oak Street" (case, spacing, "St" and punctuation ignored) | `true` / `false` |
+
+### `appState`: the practice app as the participant left it
+
+Saved about every 0.3 s while using the app, and at the end of each task.
+
+| Field | Meaning | Values |
+|---|---|---|
+| `appState.flows.<flowId>` | **Current** value of each of the 12 flows, including Account-page changes | see section 3; `null` = never set, or not applicable |
+| `appState.shown` | Flows whose prompt or control has appeared | list of flow IDs |
+| `appState.settled` | Flows whose **first choice** is fixed | list of flow IDs |
+| `appState.points` | Points balance | starts at `420`; −300 for free delivery; +200 / +100 / +150 for accepted offers |
+| `appState.deliveryRedeemed` | Redeemed free delivery | `true` / `false` |
+| `appState.storeId` | Current store | store ID or `null` |
+| `appState.cart` | Items in the cart now | list of product IDs (section 6) |
+| `appState.order` | Order status | `none` · `on_the_way` · `delivered` |
+| `appState.orderItems` | Items in the placed order | list of product IDs |
+| `appState.savedDeals` | Deals saved (hearted) | list of deal IDs (section 6) |
+| `appState.address` | Delivery address. Starts as the practice address; changes only when the participant types a new one in Task 6 (participants are told to use the practice address, but **could** type a real one) | text |
+| `appState.storeSearch.usedZipSearch` | Searched by ZIP. The ZIP itself is never stored | `true` / `false` |
+| `appState.storeSearch.storesViewed` | Most ZIP results shown | `0`, `6`, `24` |
+| `appState.storeSearch.firstVisitMs` | Visible-clock time of first visit to Find a store | number or `null` |
+| `appState.storeSearch.msToFind` | See `t1.msToFind` | number or `null` |
+| `appState.accountPageVisits` | Times the Account tab was opened | `0`, `1`, … |
+| `appState.accountPageMs` | Total visible ms on the Account page | number |
+| `appState.screen` | Screen open when last saved | `shop` · `find_store` · `checkout` · `orders` · `deals` · `rewards` · `account` |
+
+> ⚠️ `appState.address` is the one place a participant's own typing is stored as written. The plan was to store only `addressMatches`. Since the address field holds whatever they type, someone could enter their real address. If that matters to the IRB, the app can stop saving the typed text and keep only whether it matches.
+
+---
+
+## 2. `participants/{uid}/events/{id}`: one document per event
+
+Append-only: once written, an event can't be changed or deleted by the participant. **The emulator UI lists events by random ID, not by time.** Sort by `t`, then `clientT`, or use `events.csv`, which is already sorted.
+
+### Fields on every event
+
+| Field | Meaning | Values |
+|---|---|---|
+| `type` | Kind of event | `prompt_shown` · `decision` · `settled` · `screen` · `task` · `action` · `points` · `stage` · `visibility` · `resume` · `error` |
+| `t` | When the server received it | server time |
+| `clientT` | ms since this page load, on the phone | number (restarts after a reload) |
+| `taskId` | Task in progress | `1`–`6`, or `null` outside a task (consent, surveys, ease ratings) |
+| `screen` | App screen open at the time | screen ID (section 1, `appState.screen`) or `null` before the app opens |
+
+### Flow events: the core measures
+
+| Type | When | Extra fields |
+|---|---|---|
+| `prompt_shown` | A flow's prompt or control first comes on screen (once per page load; at least half of it must be visible) | `flowId`; `defaultShown`: the preset value (e.g. `share` in nudged), or `null` if nothing was preset |
+| `decision` | Every tap that changes a flow, including each switch toggle | `flowId`; `value` (new value); `previous` (value before the tap, `null` if none); `defaultShown`; `source`: `prompt` (on the app screen) or `account_page`; `msSincePrompt`: visible ms since `prompt_shown` (`null` for Account-page changes); `pointsBefore`: balance at the moment of choosing |
+| `settled` | The flow's **first choice** is fixed (see "When flows settle" below). Happens at most once per flow | `flowId`; `value`: the first choice; `defaultShown`; `changedFromDefault`: `true` if a preset existed and they moved off it, `false` otherwise (always `false` when there was no preset); `msSincePrompt`: visible ms from appearing to settling; `toggleCount`: taps on this flow before it settled, in this page load (1 for a one-tap prompt; 0 for a preset switch never touched) |
+
+**When flows settle**
+
+| Flows | Settles when |
+|---|---|
+| #1 location, #5–#7 background and Sam, #10–#12 offers | The tap itself |
+| #2 precise location | #1 is answered with an Allow (if #1 is "Don't allow", #2 never settles: not applicable) |
+| #3 courier, #4 partner-offers box | Place order |
+| #8, #9 Deals settings | Leaving the Deals screen, or tapping Done on the task |
+
+### Other events
+
+| Type | Extra fields and values |
+|---|---|
+| `screen` | `from`, `to`: screen IDs |
+| `task` | `event`: `start` (with `task`, `position` 1–6) · `reopen` (tapped the task bar to reread; `task`) · `finish` (tapped Done; `task`, `position`, `outcome`: same object as `taskOutcome.tN`) · `ease` (`task`, `value` 1–7) |
+| `action` | `name`, one of: `store_set` (`storeId`, `hasOatMilk`) · `zip_search` (no ZIP stored) · `zip_show_more` · `cart_add` / `cart_remove` (`productId`) · `order_placed` (`items`: product IDs; `freeDelivery`: `true`/`false`) · `order_delivered` · `deal_toggled` (`dealId`, `saved`: `true` = hearted, `false` = un-hearted) · `delivery_redeemed` · `address_saved` (`matches`: `true`/`false`; the typed text is not logged) |
+| `points` | `amount` (`+200`, `+100`, `+150`, or `-300`); `pointsBefore`; and either `flowId` (offer accepted) or `reason: redeem_delivery` |
+| `stage` | Moving through the study. Either `from` / `to` (stage names), or `name` with details: `entry` (`mode`: `study` / `pilot` / `demo`) · `device_check` (`passed`) · `consent` (`agreed`, `version`) · `sus_submitted` · `suspicion_submitted` · `settings_check_submitted` |
+| `visibility` | `state`: `hidden` (left the browser, locked the phone) · `visible` (came back) |
+| `resume` | Page reopened mid-study; `stage`: where they resumed |
+| `error` | `where`: `window` · `promise` · `render` · `assign` (level assignment failed, usually a lost connection); `message`; `stack` (render errors only) |
+
+---
+
+## 3. The 12 flows: IDs and values
+
+The first value listed shares more; ★ marks the option that shares least (`privacyOption`).
+
+| # | `flowId` | Task | Values | Nudged preset or emphasis | Neutral |
+|---|---|---|---|---|---|
+| 1 | `store_location` | 1 | `while_using` (Allow while using) · `once` (Allow once) · `dont_allow` ★ | "Allow while using" filled | 3 equal buttons |
+| 2 | `store_precise` | 1 | `exact` · `general` ★ | switch starts `exact` | must choose; Allow waits for it |
+| 3 | `courier_live` | 2 | `share` · `dont_share` ★ | switch starts `share` | must choose before ordering |
+| 4 | `checkout_partner_offers` | 2 | `checked` · `unchecked` ★ | box starts `checked` | box starts `unchecked` |
+| 5 | `bg_during_order` | 3 | `allow` · `not_now` ★ | "Allow in background" filled | equal buttons |
+| 6 | `sam_share` | 3 | `live_location` · `arrival_only` ★ | "Share my live location" filled | equal buttons |
+| 7 | `bg_between_orders` | 3 | `keep_on` · `turn_off` ★ | "Keep it on" filled | equal buttons |
+| 8 | `deals_personalized` | 4 | `on` · `off` ★ | switch starts `on` | must choose before deals show |
+| 9 | `deals_partner_offers` | 4 | `on` · `off` ★ | switch starts `on` | must choose before deals show |
+| 10 | `reward_keel` | 5 | `accept` (+200 pts) · `decline` ★ | "Link" filled | equal buttons |
+| 11 | `reward_university` | 5 | `accept` (+100 pts) · `decline` ★ | "Donate" filled | equal buttons |
+| 12 | `reward_data_partners` | 5 | `accept` (+150 pts) · `decline` ★ | "Share" filled | equal buttons |
+
+**Dependent flows:** #2 applies only if #1 is not `dont_allow`. #7 applies only if #5 is `allow`. Otherwise they're `null` and never settle.
+
+**Where the prompt appears:** a flow appears the first time the participant reaches its screen, whatever task they're on. The `taskId` on its events says which task that was.
+
+---
+
+## 4. Other collections
+
+| Document | Fields | Meaning |
+|---|---|---|
+| `pids/{prolificPid}` | `uid`, `createdAt` | Which browser login claimed this Prolific ID. Stops a second attempt from another browser |
+| `meta/assignment` | `nudged`, `neutral` | How many people have been assigned to each level (including people who later dropped out) |
+
+Pilot runs use `pilot_pids` and `pilot_meta`.
+
+---
+
+## 5. Settings check answers (`settingsCheck`)
+
+| Q | Question (short) | Values |
+|---|---|---|
+| `q1` | Apps used at least monthly (choose all) | list of: `grocery_delivery` · `maps` · `weather` · `ride_hailing` · `none` (`none` can't be combined) |
+| `q2` | Location setting of their most-used grocery/food app | `never` · `ask_next_time` · `while_using` · `always` · `couldnt_find` · `dont_use_one` |
+| `q3` | Precise location on for that app | `on` · `off` · `couldnt_find` |
+| `q4` | Any app allowed location all the time | `yes` · `no` · `not_sure` |
+| `q5` | Personalized ads on | `on` · `off` · `couldnt_find` |
+| `q6` | Browser "don't sell or share" setting (e.g. Global Privacy Control) | `yes` · `no` · `dont_know` |
+| `q7` | Changed any setting while answering | `yes` · `no` |
+
+---
+
+## 6. Fixed IDs used in the app
+
+| Kind | IDs |
+|---|---|
+| Stores (nearby, with location on) | `elm` (Elm Street, oat milk in stock) · `riverside` (out of stock) |
+| Stores (ZIP list, 24 A–Z) | `alder-road`, `bay-street`, `cedar-plaza`, `dover-avenue`, `elm`, `fenwick-commons`, `garden-row`, `harbor-point`, `ivy-lane`, `juniper-court`, `kestrel-way`, `linden-square`, `maple-crossing`, `north-gate`, `orchard-hill`, `pine-street`, `quarry-road`, `riverside`, `spruce-avenue`, `tanner-mill`, `union-place`, `vale-street`, `willow-park`, `york-commons`. Oat milk is in stock only at `elm`, `harbor-point` and `maple-crossing` |
+| Products | `oat_milk` · `sourdough` · `apples` · `yogurt` · `eggs` · `bananas` |
+| Deals | `oat_milk` · `apples` · `sourdough` · `yogurt` |
+
+---
+
+## 7. Export CSVs (`npm run export`)
+
+Every row uses a **study code** (`P001`, `P002`, … or `PL001`, … for pilots) instead of the Prolific ID. Codes go in order of arrival. Withdrawn participants are left out.
+
+### `flows.csv`: one row per participant × flow (12 rows each). The main Experiment 2 table
+
+Only participants who were assigned a level have rows.
+
+| Column | Meaning | Values |
+|---|---|---|
+| `studyCode`, `friction` | Who, and their level | `P001`…; `nudged` / `neutral` |
+| `flowId`, `expectedTask` | Which flow, and the task it belongs to | section 3; `1`–`6` |
+| `taskId` | Task actually in progress when it settled | `1`–`6`, or empty |
+| `status` | What happened | `chosen` (first choice recorded) · `not_applicable` (#2 after refusing location; #7 after refusing background location) · `shown_not_settled` (saw it but never committed, e.g. opened checkout and never ordered) · `not_shown` (never reached that screen) |
+| `firstChoice` | Value when it settled: **the behavior measure** | flow value, or empty |
+| `finalValue` | Value at the end, after any Account-page changes | flow value, or empty |
+| `privacyOption` | That flow's least-sharing option | flow value |
+| `firstChoiceIsPrivacy` | `firstChoice` = `privacyOption` | `true` / `false` / empty |
+| `defaultShown` | Preset when it appeared | flow value, or empty (no preset) |
+| `changedFromDefault` | Moved off a preset | `true` / `false` / empty |
+| `msSincePrompt` | Decision time: visible ms from appearing to settling | number |
+| `toggleCount` | Taps on the flow (on the app screen) up to settling, across reloads | `0`, `1`, … (high values suggest "testing" rather than "using") |
+| `changedOnAccountPage` | Changed later on the Account page | `true` / `false` |
+
+### `participants.csv`: one row per participant
+
+Includes everyone who arrived, also people who declined consent or failed the device check.
+
+| Columns | Meaning |
+|---|---|
+| `studyCode`, `pilot`, `appVersion`, `consentVersion`, `consentDeclined`, `friction`, `taskOrder` (e.g. `4-1-2-3-5-6`), `stage`, `completed` (`stage` = `done`) | Identity, assignment and progress |
+| `os`, `screenW`, `screenH`, `passedDeviceCheck`, `userAgent`, `tzOffset`, `localStartHour`, `resumeCount` | Device and context |
+| `createdAt`, `consentAt`, `completedAt`, `minutesToComplete` (consent → completion) | Timing |
+| `ease_t1` … `ease_t6` | Ease ratings by task number |
+| `sus_1` … `sus_10`, `susScore` | SUS answers and the standard 0–100 score |
+| `suspicion` | Suspicion answer |
+| `settings_q1` … `settings_q7` | Settings check (`q1` joined with `;`) |
+| `t1_done`, `t1_storeId`, `t1_usedZipSearch`, `t1_storesViewed`, `t1_msToFind`, `t2_done`, `t3_done`, `t3_samNotified`, `t4_done`, `t4_dealsSaved`, `t5_done`, `t5_deliveryRedeemed`, `t6_done`, `t6_addressMatches` | Task outcomes |
+| `finalPoints`, `bonusUSD` (points ÷ 1,000), `deliveryRedeemed` | Points and bonus to pay |
+| `accountPageVisits`, `accountPageMs`, `taskCardReopens`, `timesHidden`, `errors`, `eventCount` | Behavior and data-quality flags |
+
+### `events.csv`: one row per event, sorted by time
+
+`studyCode`, then every event field from section 2. Lists are joined with `;`, and nested objects (such as a task `outcome`) are written as JSON.
+
+### `id-map.csv`: study code → Prolific ID
+
+`studyCode`, `prolificPid`, `uid`. Use it to pay bonuses and link Part 1 with Part 2. **Keep it separate from the other files and off shared drives.**
+
+---
+
+## Quick checks when reading a participant
+
+1. **Did they finish?** `stage` = `done` and `completedAt` is set.
+2. **Which level?** `friction`.
+3. **What did they choose at each flow?** The `settled` events, or `flows.csv` → `firstChoice`.
+4. **Did they change anything later?** `decision` events with `source: account_page`, or `flows.csv` → `changedOnAccountPage`; `appState.flows` gives the final values.
+5. **Did they really do the tasks?** `taskOutcome.tN.done`.
+6. **Data quality:** `resumeCount`, `timesHidden`, high `toggleCount`, `errors`, `device.passedCheck`, `suspicion`.

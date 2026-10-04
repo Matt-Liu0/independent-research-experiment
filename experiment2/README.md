@@ -1,6 +1,6 @@
 # Experiment 2: Bramble site (Part 1)
 
-Phone web app for Part 1 of the location-privacy study. Design: `../docs/superpowers/specs/2026-10-01-experiment2-bramble-site-design.md`. Plan: `../docs/superpowers/plans/2026-10-03-experiment2-bramble-site-plan.md`.
+Phone web app for Part 1 of the location-privacy study. What every stored field means: `DATA.md`. Design: `../docs/superpowers/specs/2026-10-01-experiment2-bramble-site-design.md`. Plan: `../docs/superpowers/plans/2026-10-03-experiment2-bramble-site-plan.md`.
 
 ## Commands
 
