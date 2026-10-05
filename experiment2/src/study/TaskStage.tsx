@@ -21,7 +21,8 @@ export function TaskStage({ participant, update, advance }: StageProps) {
   const task = order[taskIndex]
   const total = order.length
   // The app keeps its own state across tasks; the record only saves copies of it.
-  const [initialState] = useState<AppState>(() => participant.appState ?? initialAppState())
+  // Saved state is laid over the defaults, so records from older app versions gain any new fields.
+  const [initialState] = useState<AppState>(() => ({ ...initialAppState(), ...participant.appState }))
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const latest = useRef<AppState>(initialState)
 
