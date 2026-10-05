@@ -105,3 +105,61 @@ describe('task splash', () => {
     expect(screen.getByRole('navigation', { name: 'Bramble' })).toBeInTheDocument()
   })
 })
+
+describe('order timeline', () => {
+  const placed = { storeId: 'elm', order: 'placed' as const, orderItems: ['oat_milk', 'sourdough'], orderPlacedAt: Date.UTC(2026, 9, 4, 19, 0) }
+  const advanceBy = async (ms: number) => {
+    // In half-second ticks, as the app's timer runs.
+    for (let t = 0; t < ms; t += TIMING.orderTick) await advance(TIMING.orderTick)
+  }
+
+  it('starts when Orders opens, and shows the order prompts only once it is on the way', async () => {
+    const app = renderApp('nudged', { ...placed, screen: 'shop' })
+    await advanceBy(30_000)
+    expect(app.state().orderElapsedMs).toBe(0)
+
+    await click(tab('Orders'))
+    await advance(TIMING.dataSkeleton)
+    expect(screen.getByText("We've got your order.")).toBeInTheDocument()
+    expect(app.eventsOf('prompt_shown')).toHaveLength(0)
+
+    await advanceBy(TIMING.orderPacked)
+    expect(screen.getByText('Your groceries are packed and waiting for a courier.')).toBeInTheDocument()
+    await advanceBy(TIMING.orderOnTheWay - TIMING.orderPacked)
+    expect(screen.getByText('Dana picked up your order.')).toBeInTheDocument()
+    expect(app.eventsOf('prompt_shown').map((e) => e.flowId)).toEqual(['bg_during_order', 'sam_share'])
+    expect(app.eventsOf('action').filter((e) => e.name === 'order_status').map((e) => e.step)).toEqual(['packed', 'on_the_way'])
+  })
+
+  it('keeps going on other tabs, and delivers only after both prompts and the minimum time', async () => {
+    const app = renderApp('neutral', { ...placed, screen: 'orders', orderTrackingStarted: true, orderElapsedMs: TIMING.orderOnTheWay })
+    await advance(TIMING.orderTick)
+    expect(app.state().order).toBe('on_the_way')
+
+    await click(screen.getByRole('button', { name: 'Not now' }))
+    await click(screen.getByRole('button', { name: 'Send arrival time only' }))
+    expect(screen.getByText('Arriving soon…')).toBeInTheDocument()
+    expect(app.state().order).toBe('on_the_way')
+
+    await click(tab('Deals'))
+    await advanceBy(TIMING.orderMinOnTheWay)
+    expect(app.state().order).toBe('delivered')
+    await click(tab('Orders'))
+    await advance(TIMING.dataSkeleton)
+    expect(screen.getByRole('heading', { name: /^Delivered at / })).toBeInTheDocument()
+  })
+
+  it('never delivers while a prompt is unanswered', async () => {
+    const app = renderApp('nudged', { ...placed, screen: 'orders', orderTrackingStarted: true, orderElapsedMs: TIMING.orderOnTheWay })
+    await advance(TIMING.orderTick)
+    await click(screen.getByRole('button', { name: 'Allow in background' }))
+    await advanceBy(120_000)
+    expect(app.state().order).toBe('on_the_way')
+  })
+
+  it('shows times from the clock when the order was placed', async () => {
+    renderApp('nudged', { ...placed, screen: 'orders', orderTrackingStarted: true })
+    const expected = new Date(placed.orderPlacedAt + 20 * 60_000).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+    expect(screen.getByText(expected)).toBeInTheDocument()
+  })
+})

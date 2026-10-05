@@ -5,6 +5,7 @@ import { FlowChoice } from '../FlowChoice'
 import { FLOWS, levelOf } from '../flows'
 import { BackIcon } from '../icons'
 import { Spinner } from '../Loading'
+import { deliveryWindow } from '../orderTimeline'
 import { useBusy } from '../useBusy'
 
 const CHECKOUT_FLOWS = FLOWS.filter((f) => f.screen === 'checkout')
@@ -29,7 +30,7 @@ export function Checkout() {
     const freeDelivery = state.deliveryRedeemed
     run('placeOrder', () => {
       act('order_placed', { items, freeDelivery })
-      dispatch({ type: 'placeOrder' })
+      dispatch({ type: 'placeOrder', at: Date.now() })
     })
   }
 
@@ -73,7 +74,7 @@ export function Checkout() {
       <div className="card">
         <div className="eyebrow-small">Deliver to</div>
         <div className="strong">{displayAddress(state.address)}</div>
-        <div className="muted small">Today, 5:30–6:00 PM</div>
+        <div className="muted small">{deliveryWindow(Date.now())}</div>
         {store ? (
           <div className="muted small">From {store.name}</div>
         ) : (

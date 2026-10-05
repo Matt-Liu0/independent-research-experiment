@@ -98,7 +98,7 @@ async function declineEverything(friction: Friction) {
   await user.click(tab('Orders'))
   await user.click(screen.getByRole('button', { name: 'Not now' }))
   await user.click(screen.getByRole('button', { name: 'Send arrival time only' }))
-  await screen.findByText('Delivered at 5:44 PM', {}, { timeout: 3000 })
+  await screen.findByRole('heading', { name: /^Delivered at / }, { timeout: 3000 })
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   finish(3)
 
@@ -185,7 +185,7 @@ describe('accepting everything (nudged)', () => {
     await user.click(tab('Orders'))
     await user.click(screen.getByRole('button', { name: 'Allow in background' }))
     await user.click(screen.getByRole('button', { name: 'Share my live location with Sam' }))
-    await screen.findByText('Delivered at 5:44 PM', {}, { timeout: 3000 })
+    await screen.findByRole('heading', { name: /^Delivered at / }, { timeout: 3000 })
     await user.click(screen.getByRole('button', { name: 'Keep it on' }))
 
     expect(app.eventsOf('settled').map((e) => [e.flowId, e.value])).toEqual([

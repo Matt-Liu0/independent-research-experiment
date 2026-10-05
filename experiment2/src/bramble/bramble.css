@@ -668,3 +668,63 @@
     animation-duration: 3s;
   }
 }
+
+/* Order tracking */
+.order-status {
+  margin: 10px 0 0;
+  font-weight: 600;
+}
+
+.progress-step.current .progress-bar {
+  animation: shimmer 1.2s ease-in-out infinite;
+  background: linear-gradient(90deg, var(--green) 0%, #5f9a7d 50%, var(--green) 100%);
+  background-size: 200% 100%;
+}
+
+.courier-map {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 12px;
+}
+
+.courier-dot.smooth {
+  transition: transform 0.5s linear;
+}
+
+.live-dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--green);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.message-preview {
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 16px 16px 4px 16px;
+  background: var(--green-tint);
+}
+
+.tab-badge {
+  position: absolute;
+  top: 6px;
+  margin-left: 18px;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--berry);
+}
+
+.tab {
+  position: relative;
+}

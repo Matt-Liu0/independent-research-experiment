@@ -58,15 +58,36 @@ describe('appReducer', () => {
   })
 
   it('places one order, only with a store and items', () => {
-    let s = run([{ type: 'addToCart', productId: 'oat_milk' }, { type: 'placeOrder' }])
+    let s = run([{ type: 'addToCart', productId: 'oat_milk' }, { type: 'placeOrder', at: 1 }])
     expect(s.order).toBe('none')
-    s = run([{ type: 'setStore', storeId: 'elm', atMs: 0 }, { type: 'addToCart', productId: 'sourdough' }, { type: 'placeOrder' }], s)
-    expect(s.order).toBe('on_the_way')
+    s = run([{ type: 'setStore', storeId: 'elm', atMs: 0 }, { type: 'addToCart', productId: 'sourdough' }, { type: 'placeOrder', at: 5000 }], s)
+    expect(s.order).toBe('placed')
+    expect(s.orderPlacedAt).toBe(5000)
     expect(s.orderItems).toEqual(['oat_milk', 'sourdough'])
     expect(s.cart).toEqual([])
-    s = run([{ type: 'addToCart', productId: 'eggs' }, { type: 'placeOrder' }, { type: 'deliver' }], s)
+    s = run([{ type: 'addToCart', productId: 'eggs' }, { type: 'placeOrder', at: 9000 }], s)
     expect(s.orderItems).toEqual(['oat_milk', 'sourdough'])
+    expect(s.orderPlacedAt).toBe(5000)
+  })
+
+  it('only counts tracking time once tracking has started, and steps only forward', () => {
+    let s = run([
+      { type: 'setStore', storeId: 'elm', atMs: 0 },
+      { type: 'addToCart', productId: 'oat_milk' },
+      { type: 'placeOrder', at: 0 },
+      { type: 'orderTick', ms: 5000 },
+    ])
+    expect(s.orderElapsedMs).toBe(0)
+    s = run([{ type: 'startTracking' }, { type: 'orderTick', ms: 5000 }, { type: 'orderTick', ms: 12000 }], s)
+    expect(s.orderElapsedMs).toBe(17000)
+    s = run([{ type: 'orderStep', step: 'on_the_way' }], s)
+    expect(s.order).toBe('on_the_way')
+    expect(s.orderOnTheWayAtMs).toBe(17000)
+    s = run([{ type: 'orderStep', step: 'packed' }], s)
+    expect(s.order).toBe('on_the_way')
+    s = run([{ type: 'orderStep', step: 'delivered' }, { type: 'orderTick', ms: 9999 }], s)
     expect(s.order).toBe('delivered')
+    expect(s.orderElapsedMs).toBe(17000)
   })
 
   it('measures time to find a store from the first visit', () => {

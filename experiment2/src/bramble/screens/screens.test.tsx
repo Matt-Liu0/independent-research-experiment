@@ -114,7 +114,7 @@ describe('Orders', () => {
     await user.click(screen.getByRole('button', { name: 'Allow in background' }))
     await user.click(screen.getByRole('button', { name: 'Send arrival time only' }))
 
-    expect(await screen.findByText('Delivered at 5:44 PM', {}, { timeout: 3000 })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /^Delivered at / }, { timeout: 3000 })).toBeInTheDocument()
     const sheet = screen.getByRole('dialog', { name: 'Keep background location on?' })
     await user.click(within(sheet).getByRole('button', { name: 'Turn it off' }))
     expect(app.state().flows.bg_between_orders).toBe('turn_off')
@@ -126,7 +126,7 @@ describe('Orders', () => {
     renderApp('neutral', onTheWay)
     await user.click(screen.getByRole('button', { name: 'Not now' }))
     await user.click(screen.getByRole('button', { name: 'Share my live location with Sam' }))
-    expect(await screen.findByText('Delivered at 5:44 PM', {}, { timeout: 3000 })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /^Delivered at / }, { timeout: 3000 })).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

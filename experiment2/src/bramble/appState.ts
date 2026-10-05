@@ -2,7 +2,7 @@ import { MOVE_ADDRESS, PRACTICE_ADDRESS, REDEEM_COST, START_POINTS } from './dat
 import { dependentsOf, emptyFlowValues, isApplicable } from './flows'
 import type { FlowId, FlowValues, ScreenId } from './types'
 
-export type OrderStatus = 'none' | 'on_the_way' | 'delivered'
+export type OrderStatus = 'none' | 'placed' | 'packed' | 'on_the_way' | 'delivered'
 
 /** Everything the practice app remembers. Saved to the participant record after each change. */
 export interface AppState {
@@ -17,6 +17,14 @@ export interface AppState {
   cart: string[]
   order: OrderStatus
   orderItems: string[]
+  /** Phone clock (epoch ms) when the order was placed; delivery times are shown from it. */
+  orderPlacedAt: number | null
+  /** Tracking starts the first time Orders is opened after ordering (normally in Task 3). */
+  orderTrackingStarted: boolean
+  /** Visible ms of tracking so far. Drives Placed → Packed → On the way. */
+  orderElapsedMs: number
+  /** orderElapsedMs when the order went On the way. */
+  orderOnTheWayAtMs: number | null
   deliveryRedeemed: boolean
   address: string
   savedDeals: string[]
@@ -42,6 +50,10 @@ export function initialAppState(): AppState {
     cart: [],
     order: 'none',
     orderItems: [],
+    orderPlacedAt: null,
+    orderTrackingStarted: false,
+    orderElapsedMs: 0,
+    orderOnTheWayAtMs: null,
     deliveryRedeemed: false,
     address: PRACTICE_ADDRESS,
     savedDeals: [],
@@ -62,14 +74,18 @@ export type AppAction =
   | { type: 'setStore'; storeId: string; atMs: number }
   | { type: 'addToCart'; productId: string }
   | { type: 'removeFromCart'; productId: string }
-  | { type: 'placeOrder' }
-  | { type: 'deliver' }
+  | { type: 'placeOrder'; at: number }
+  | { type: 'startTracking' }
+  | { type: 'orderTick'; ms: number }
+  | { type: 'orderStep'; step: 'packed' | 'on_the_way' | 'delivered' }
   | { type: 'toggleDeal'; dealId: string }
   | { type: 'redeem' }
   | { type: 'addPoints'; amount: number }
   | { type: 'saveAddress'; address: string }
   | { type: 'accountVisit' }
   | { type: 'accountLeave'; ms: number }
+
+export const ORDER_STEPS: OrderStatus[] = ['none', 'placed', 'packed', 'on_the_way', 'delivered']
 
 const addOnce = <T,>(list: T[], item: T): T[] => (list.includes(item) ? list : [...list, item])
 
@@ -138,10 +154,21 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'placeOrder':
       if (state.order !== 'none' || state.cart.length === 0 || state.storeId === null) return state
-      return { ...state, order: 'on_the_way', orderItems: state.cart, cart: [] }
+      return { ...state, order: 'placed', orderItems: state.cart, cart: [], orderPlacedAt: action.at }
 
-    case 'deliver':
-      return state.order === 'on_the_way' ? { ...state, order: 'delivered' } : state
+    case 'startTracking':
+      return state.order === 'none' || state.orderTrackingStarted ? state : { ...state, orderTrackingStarted: true }
+
+    case 'orderTick':
+      if (!state.orderTrackingStarted || state.order === 'none' || state.order === 'delivered') return state
+      return { ...state, orderElapsedMs: state.orderElapsedMs + Math.max(0, Math.round(action.ms)) }
+
+    case 'orderStep': {
+      const order = ORDER_STEPS.indexOf(action.step) > ORDER_STEPS.indexOf(state.order) ? action.step : state.order
+      if (order === state.order) return state
+      const onTheWay = order === 'on_the_way' ? { orderOnTheWayAtMs: state.orderElapsedMs } : {}
+      return { ...state, order, ...onTheWay }
+    }
 
     case 'toggleDeal':
       return {
