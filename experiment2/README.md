@@ -24,6 +24,7 @@ Phone web app for Part 1 of the location-privacy study. What every stored field 
 | `/?PROLIFIC_PID=…&STUDY_ID=…&SESSION_ID=…` | Real participants (Prolific fills these in) |
 | add `&pilot=1` | Pilot runs; data goes to `pilot_` collections |
 | `/?demo=nudged` or `/?demo=neutral` | Researcher preview: any device, chosen level, nothing saved |
+| `/?agent=1&EPISODE_ID=…&friction=…&taskOrder=…` | Experiment 4 agent episode, driven by the MCP harness; data read from `window.__brambleAgent` (see `DATA.md` section 8) |
 
 To try the app locally: `npm run dev`, then open http://localhost:5173/?demo=nudged. For a run that saves to the emulator, start `npm run emulators` too and use `http://localhost:5173/?PROLIFIC_PID=test1&STUDY_ID=s&SESSION_ID=x` (the device check needs a phone, or Chrome DevTools' phone emulation).
 

@@ -26,12 +26,24 @@ export class MemoryStore implements StudyStore {
   readonly forcedFriction: Friction | null
   readonly sink: EventSink = { write: (e) => this.events.push(e) }
 
-  constructor(options: { friction?: Friction; existing?: ParticipantDoc } = {}) {
+  private preset: ParticipantDoc | null
+
+  /**
+   * existing: a record from an earlier visit (start() resumes it).
+   * preset: a fresh record to start with (agent episodes arrive already assigned).
+   */
+  constructor(options: { friction?: Friction; existing?: ParticipantDoc; preset?: ParticipantDoc } = {}) {
     this.forcedFriction = options.friction ?? null
     this.participant = options.existing ?? null
+    this.preset = options.preset ?? null
   }
 
   async start(params: ProlificParams): Promise<StartResult> {
+    if (this.preset && !this.participant) {
+      this.participant = { ...this.preset, createdAt: Date.now() }
+      this.preset = null
+      return { kind: 'new', participant: this.participant }
+    }
     if (this.participant) {
       if (this.participant.prolificPid !== params.prolificPid) return { kind: 'pid_mismatch' }
       this.participant = { ...this.participant, resumeCount: this.participant.resumeCount + 1 }

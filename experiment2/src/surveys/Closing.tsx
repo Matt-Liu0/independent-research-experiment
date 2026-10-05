@@ -25,6 +25,15 @@ export function Closing({ participant, store, mode }: StageProps) {
 
   const points = participant.appState?.points ?? 0
 
+  if (mode === 'agent') {
+    return (
+      <main className="page">
+        <h1>All tasks finished</h1>
+        <p>You kept {points} Bramble points.</p>
+      </main>
+    )
+  }
+
   return (
     <main className="page">
       <h1>Thanks, that's Part 1</h1>

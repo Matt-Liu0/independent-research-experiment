@@ -18,7 +18,7 @@ import { Welcome } from './Welcome'
 type Boot =
   | { state: 'loading' }
   | { state: 'ready' }
-  | { state: 'blocked'; reason: 'missing_params' | 'taken' | 'pid_mismatch' | 'error' }
+  | { state: 'blocked'; reason: 'missing_params' | 'invalid_agent' | 'taken' | 'pid_mismatch' | 'error' }
 
 interface Props {
   entry: Entry
@@ -37,7 +37,11 @@ const STAGE_COMPONENTS: Record<Exclude<Stage, 'device'>, ComponentType<StageProp
 }
 
 export function StudyApp({ entry, store, detect = detectDevice }: Props) {
-  const [boot, setBoot] = useState<Boot>(entry.params ? { state: 'loading' } : { state: 'blocked', reason: 'missing_params' })
+  const [boot, setBoot] = useState<Boot>(
+    entry.params
+      ? { state: 'loading' }
+      : { state: 'blocked', reason: entry.mode === 'agent' ? 'invalid_agent' : 'missing_params' },
+  )
   const [participant, setParticipant] = useState<ParticipantDoc | null>(null)
   // Mirrors `participant` so `advance` can read the latest stage without re-creating callbacks.
   const participantRef = useRef<ParticipantDoc | null>(null)
@@ -79,11 +83,11 @@ export function StudyApp({ entry, store, detect = detectDevice }: Props) {
     (fields: Partial<ParticipantDoc> = {}, stamp: TimestampField[] = []) => {
       const current = participantRef.current
       if (!current) return
-      const stage = nextStage(current.stage)
+      const stage = nextStage(current.stage, entry.mode)
       logEvent('stage', { from: current.stage, to: stage })
       update({ ...fields, stage }, stamp)
     },
-    [update],
+    [update, entry.mode],
   )
 
   if (boot.state === 'loading') {
@@ -92,6 +96,12 @@ export function StudyApp({ entry, store, detect = detectDevice }: Props) {
 
   if (boot.state === 'blocked') {
     switch (boot.reason) {
+      case 'invalid_agent':
+        return (
+          <Message title="Invalid agent link">
+            <p>{entry.invalid}</p>
+          </Message>
+        )
       case 'missing_params':
         return (
           <Message title="Please open this study from Prolific">

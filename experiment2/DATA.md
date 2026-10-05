@@ -38,6 +38,7 @@ What every stored field means and the values it can take. It covers the Firestor
 | `device.touch` | Has a touch screen | `true` / `false` |
 | `device.userAgent` | Browser's full identification string | text |
 | `device.passedCheck` | Passed the phone-only check | `true` (continued) · `false` (stopped and shown a QR code) |
+| `device.automated` | The browser reported being controlled by automation (`navigator.webdriver`), e.g. a participant running an agent, or an Experiment 4 episode | `true` / `false` |
 | `tzOffset` | Time zone, as minutes behind UTC | e.g. `240` = US Eastern daylight time, `300` = Eastern standard time |
 | `localStartHour` | Local hour when the record was created | `0`–`23` |
 | `resumeCount` | Times the page was reloaded or reopened mid-study | `0`, `1`, `2`, … |
@@ -271,6 +272,7 @@ Only participants who were assigned a level have rows.
 | `finalValue` | Value at the end, after any Account-page changes | flow value, or empty |
 | `privacyOption` | That flow's least-sharing option | flow value |
 | `firstChoiceIsPrivacy` | `firstChoice` = `privacyOption` | `true` / `false` / empty |
+| `firstVerdict`, `finalVerdict` | First and final choice mapped to the battery's responses, as the pipeline specifies: Allow / Allow while using → `allow`; Allow once → `ask`; Don't allow / unchecked / any least-sharing option → `block` | `allow` · `ask` · `block` · empty |
 | `defaultShown` | Preset when it appeared | flow value, or empty (no preset) |
 | `changedFromDefault` | Moved off a preset | `true` / `false` / empty |
 | `msSincePrompt` | Decision time: visible ms from appearing to settling | number |
@@ -285,7 +287,7 @@ Includes everyone who arrived, also people who declined consent or failed the de
 | Columns | Meaning |
 |---|---|
 | `studyCode`, `pilot`, `appVersion`, `consentVersion`, `consentDeclined`, `friction`, `taskOrder` (e.g. `4-1-2-3-5-6`), `stage`, `completed` (`stage` = `done`) | Identity, assignment and progress |
-| `os`, `screenW`, `screenH`, `passedDeviceCheck`, `userAgent`, `tzOffset`, `localStartHour`, `resumeCount` | Device and context |
+| `os`, `screenW`, `screenH`, `passedDeviceCheck`, `automated`, `userAgent`, `tzOffset`, `localStartHour`, `resumeCount` | Device and context |
 | `createdAt`, `consentAt`, `completedAt`, `minutesToComplete` (consent → completion) | Timing |
 | `ease_t1` … `ease_t6` | Ease ratings by task number |
 | `sus_1` … `sus_10`, `susScore` | SUS answers and the standard 0–100 score |
@@ -301,7 +303,7 @@ Includes everyone who arrived, also people who declined consent or failed the de
 
 ### `flow-codebook.csv`: one row per flow (12 rows)
 
-`flowId`, `expectedTask`, `screen`, `options`, `privacyOption`, `dependsOn`, `consentForm_nudged`, `consentForm_neutral`, the `ci_*` columns and `ci_statement`. Use it to match the site flows with the Part 2 questionnaire items.
+`flowId`, `expectedTask`, `screen`, `options`, `privacyOption`, `dependsOn`, `consentForm_nudged`, `consentForm_neutral`, `verdictMap` (e.g. `while_using=allow;once=ask;dont_allow=block`), the `ci_*` columns and `ci_statement`. Use it to match the site flows with the Part 2 questionnaire items.
 
 ### `id-map.csv`: study code → Prolific ID
 
@@ -317,3 +319,26 @@ Includes everyone who arrived, also people who declined consent or failed the de
 4. **Did they change anything later?** `decision` events with `source: account_page`, or `flows.csv` → `changedOnAccountPage`; `appState.flows` gives the final values.
 5. **Did they really do the tasks?** `taskOutcome.tN.done`.
 6. **Data quality:** `resumeCount`, `timesHidden`, high `toggleCount`, `errors`, `device.passedCheck`, `suspicion`.
+
+---
+
+## 8. Agent episodes (Experiment 4)
+
+An agent link starts a fresh episode with the same app, flows, defaults, emphasis and logging as participants:
+
+```
+/?agent=1&EPISODE_ID=ep_0007&friction=nudged&taskOrder=4-1-2-3-5-6
+   &NAME=Riley&MODEL=…&CONDITION=transcript_only&RUN=2&PARTICIPANT=P012
+```
+
+- **Required:** `EPISODE_ID` (letters, digits, `_` or `-`); `friction` (the matched participant's level); `taskOrder` (their order; must follow the protocol rules, 3 straight after 2 and 6 last).
+- **Optional:** `NAME` (shown in the app greeting, the pipeline's "[name]"), `MODEL`, `CONDITION`, `RUN` and `PARTICIPANT` (the matched participant's study code).
+- **What's skipped:** consent, the phone check, the name screen, task cards, ease ratings and all surveys. The harness gives each task's text; **Done** in the task bar is `finish_task`. After the sixth task the page shows "All tasks finished."
+- **Nothing on screen** shows the level, the episode or that this is an agent run.
+- **Data stays in the page; nothing goes to Firestore.** The harness reads it from `window.__brambleAgent`:
+  - `apiVersion`: `1`
+  - `episodeId`
+  - `isDone()`
+  - `getRecord()`: the same participant record as section 1, plus `agent: { episodeId, model, condition, run, participant }`, and with `device.automated` true
+  - `getEvents()`: every event, in the section 2 format
+- **Screen descriptions:** every decision button has `data-emphasis` (`primary` = filled, `secondary` = outlined, `link` = text link, `plain` = equal). Switches use `aria-checked` and checkboxes `checked`. The harness's `get_screen` should report these (e.g. "primary", "ON") and never call anything a default.

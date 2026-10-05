@@ -15,7 +15,9 @@ import type { TaskOutcome } from './types'
 const SAVE_DELAY_MS = 300
 
 /** Runs the six tasks: task bar + practice app, then an ease rating after each. */
-export function TaskStage({ participant, update, advance }: StageProps) {
+export function TaskStage({ participant, mode, update, advance }: StageProps) {
+  // Agent episodes: the harness gives each task's text, and there are no ease ratings.
+  const agent = mode === 'agent'
   const order = participant.taskOrder ?? [1, 2, 3, 4, 5, 6]
   const { taskIndex, taskPhase } = participant
   const task = order[taskIndex]
@@ -54,11 +56,13 @@ export function TaskStage({ participant, update, advance }: StageProps) {
     saveTimer.current = null
     logEvent('task', { event: 'finish', task, position: taskIndex + 1, outcome })
     setLogContext({ taskId: null })
-    update({
+    const fields = {
       appState: storableAppState(state),
       taskOutcome: { ...participant.taskOutcome, [`t${task}`]: outcome },
-      taskPhase: 'rating',
-    })
+    }
+    if (!agent) update({ ...fields, taskPhase: 'rating' })
+    else if (taskIndex + 1 < total) update({ ...fields, taskIndex: taskIndex + 1, taskPhase: 'doing' })
+    else advance(fields)
   }
 
   const rate = (value: number) => {
@@ -73,7 +77,7 @@ export function TaskStage({ participant, update, advance }: StageProps) {
       {taskPhase === 'rating' ? (
         <EaseRating key={task} taskNumber={taskIndex + 1} total={total} onSubmit={rate} />
       ) : (
-        <TaskRunner key={task} task={task} position={taskIndex + 1} total={total} onFinish={finishTask} />
+        <TaskRunner key={task} task={task} position={taskIndex + 1} total={total} showCard={!agent} onFinish={finishTask} />
       )}
     </BrambleProvider>
   )
@@ -83,17 +87,22 @@ function TaskRunner({
   task,
   position,
   total,
+  showCard,
   onFinish,
 }: {
   task: TaskNumber
   position: number
   total: number
+  /** Participants see the task card first; agents get the task text from the harness. */
+  showCard: boolean
   onFinish: (outcome: TaskOutcome, state: AppState) => void
 }) {
   const { leaveScreen, getState } = useBramble()
   const logged = useRef(false)
   // card: task card open, app not mounted yet. splash: the app "opening". app: in use.
-  const [phase, setPhase] = useState<'card' | 'splash' | 'app'>('card')
+  const [phase, setPhase] = useState<'card' | 'splash' | 'app'>(() =>
+    showCard ? 'card' : delayFor('splash') > 0 ? 'splash' : 'app',
+  )
 
   useEffect(() => {
     if (logged.current) return
@@ -118,7 +127,7 @@ function TaskRunner({
 
   return (
     <div className="task-frame">
-      <TaskBar task={task} position={position} total={total} startOpen onStart={start} onFinish={finish} />
+      <TaskBar task={task} position={position} total={total} startOpen={showCard} onStart={start} onFinish={finish} />
       {/* The app mounts only once the task card is closed, so no prompt opens (or starts timing) behind it. */}
       {phase === 'app' ? <BrambleApp /> : phase === 'splash' ? <Splash /> : <div className="splash" />}
     </div>

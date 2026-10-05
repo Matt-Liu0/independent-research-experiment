@@ -4,13 +4,31 @@ import type { Friction, TaskNumber } from '../bramble/types'
 export const STAGES = ['device', 'consent', 'welcome', 'tasks', 'sus', 'suspicion', 'settings', 'done'] as const
 export type Stage = (typeof STAGES)[number]
 
-export function nextStage(stage: Stage): Stage {
-  const i = STAGES.indexOf(stage)
-  return STAGES[Math.min(i + 1, STAGES.length - 1)]
+/** Agent episodes (Experiment 4) do only the tasks: no consent, phone check, name or surveys. */
+const AGENT_STAGES: Stage[] = ['tasks', 'done']
+
+export function nextStage(stage: Stage, mode: Mode = 'study'): Stage {
+  const order = mode === 'agent' ? AGENT_STAGES : [...STAGES]
+  const i = order.indexOf(stage)
+  return order[Math.min(i + 1, order.length - 1)]
 }
 
-/** study: real data. pilot: separate pilot_ collections. demo: nothing saved, level chosen in the URL. */
-export type Mode = 'study' | 'pilot' | 'demo'
+/**
+ * study: real data. pilot: separate pilot_ collections. demo: nothing saved, level chosen in the URL.
+ * agent: an Experiment 4 episode driven by the MCP harness; data kept in the page for the harness.
+ */
+export type Mode = 'study' | 'pilot' | 'demo' | 'agent'
+
+/** Who ran an agent episode, from the harness's link. Never shown on screen. */
+export interface AgentMeta {
+  episodeId: string
+  model: string | null
+  /** e.g. transcript_only / transcript_plus_policy (pipeline, Experiment 4). */
+  condition: string | null
+  run: number | null
+  /** Study code of the participant whose transcript the agent acts on. */
+  participant: string | null
+}
 
 export interface ProlificParams {
   prolificPid: string
@@ -59,6 +77,8 @@ export interface ParticipantDoc extends ProlificParams {
   settingsCheck: Record<string, string | string[]> | null
   taskOutcome: Partial<Record<`t${TaskNumber}`, TaskOutcome>>
   appState: AppState | null
+  /** Set only for agent episodes. */
+  agent?: AgentMeta | null
   /** Server timestamps in Firestore; epoch ms in the memory store. */
   createdAt?: unknown
   consentAt?: unknown

@@ -2,6 +2,15 @@
 
 Every build participants see has a version (`appVersion` on each record). Bump `version` in `package.json` and add an entry here for any change made once data collection starts.
 
+## 0.8.0 (2026-10-05)
+
+Groundwork for Experiment 4 (agents acting on the site), from the research pipeline.
+
+- **Verdicts:** `flows.csv` gains `firstVerdict` and `finalVerdict`, mapping choices to allow / ask / block as the pipeline specifies (Allow once → ask), and the codebook gains `verdictMap`.
+- **Machine-readable controls:** decision buttons carry `data-emphasis` (`primary` / `secondary` / `link` / `plain`), so an agent harness can describe the screen as participants see it.
+- **Automation flag:** every record logs `device.automated` (`navigator.webdriver`), and `participants.csv` has an `automated` column. This also flags a human participant running an agent.
+- **Agent mode:** `?agent=1&EPISODE_ID=…&friction=…&taskOrder=…` starts a fresh episode straight at the tasks, with the given level and order and no consent, ratings or surveys. Data stays in the page and is exposed on `window.__brambleAgent`. See `DATA.md` section 8.
+
 ## 0.7.1 (2026-10-05)
 
 - **Fix:** zooming the map all the way out no longer turns it blank gray. The minimum zoom could fall just below the lowest downloaded tile level (11), leaving only the pins; it's now never below that level.

@@ -314,3 +314,7 @@ Back navigation: a ‹ button on Find a store and Checkout, and the phone's Back
 ## Version 0.7.0 change (Oct 5, 2026)
 
 Each flow carries a GKC-CI coding (`src/bramble/ci.ts`): sender, recipient and recipient type, subject, information type, and a transmission principle split into aim, condition, temporal and consideration. The friction level changes only the derived **consent form** (opt_out, opt_in, nudged_choice, active_choice). Exported in `flows.csv` and `flow-codebook.csv`.
+
+## Version 0.8.0 change (Oct 5, 2026)
+
+Groundwork for Experiment 4: pipeline verdict mapping in the export, `data-emphasis` on decision controls, a `navigator.webdriver` flag on every record, and an agent mode (`?agent=1&…`) that runs the tasks only, with the matched participant's level and order. Agent data is exposed on `window.__brambleAgent`. The MCP harness itself isn't built yet.
