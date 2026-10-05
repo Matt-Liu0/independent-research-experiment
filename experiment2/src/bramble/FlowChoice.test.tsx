@@ -39,6 +39,18 @@ describe('FlowChoice', () => {
     expect(screen.getByRole('button', { name: "Don't allow" })).toHaveClass('btn-link')
   })
 
+  it('marks how prominent each option is, for the agent harness', () => {
+    renderFlow('nudged', 'store_location')
+    const emphasis = (name: string) => screen.getByRole('button', { name }).getAttribute('data-emphasis')
+    expect([emphasis('Allow while using Bramble'), emphasis('Allow once'), emphasis("Don't allow")]).toEqual(['primary', 'secondary', 'link'])
+  })
+
+  it('marks neutral options as plain', () => {
+    renderFlow('neutral', 'reward_keel')
+    expect(screen.getByRole('button', { name: 'Link' })).toHaveAttribute('data-emphasis', 'plain')
+    expect(screen.getByRole('button', { name: 'No thanks' })).toHaveAttribute('data-emphasis', 'plain')
+  })
+
   it('neutral prompt: equal buttons with the same labels', () => {
     renderFlow('neutral', 'store_location')
     for (const name of ['Allow while using Bramble', 'Allow once', "Don't allow"]) {

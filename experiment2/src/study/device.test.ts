@@ -5,7 +5,7 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebK
 const ANDROID = 'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 Chrome/130.0 Mobile Safari/537.36'
 const MAC = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 Safari/605.1.15'
 
-const nav = (userAgent: string, maxTouchPoints: number) => ({ userAgent, maxTouchPoints }) as Navigator
+const nav = (userAgent: string, maxTouchPoints: number, webdriver = false) => ({ userAgent, maxTouchPoints, webdriver }) as Navigator
 const scr = (width: number, height: number) => ({ width, height }) as Screen
 
 describe('device check', () => {
@@ -22,6 +22,11 @@ describe('device check', () => {
 
   it('passes a phone held sideways (the short side is what counts)', () => {
     expect(detectDevice(nav(IPHONE, 5), scr(844, 390)).passedCheck).toBe(true)
+  })
+
+  it('flags browsers driven by automation', () => {
+    expect(detectDevice(nav(IPHONE, 5), scr(390, 844)).automated).toBe(false)
+    expect(detectDevice(nav(IPHONE, 5, true), scr(390, 844)).automated).toBe(true)
   })
 
   it('fails computers and tablets', () => {

@@ -14,6 +14,7 @@ const phone = (): DeviceInfo => ({
   userAgent: 'iPhone',
   touch: true,
   passedCheck: true,
+  automated: false,
 })
 const computer = (): DeviceInfo => ({ ...phone(), os: 'other', touch: false, passedCheck: false })
 

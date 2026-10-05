@@ -158,6 +158,7 @@ function participantRow(code: string, collection: string, data: Record<string, u
     screenW: scalar(get(data, 'device.screenW')),
     screenH: scalar(get(data, 'device.screenH')),
     passedDeviceCheck: scalar(get(data, 'device.passedCheck')),
+    automated: scalar(get(data, 'device.automated')),
     userAgent: scalar(get(data, 'device.userAgent')),
     tzOffset: scalar(data.tzOffset),
     localStartHour: scalar(data.localStartHour),

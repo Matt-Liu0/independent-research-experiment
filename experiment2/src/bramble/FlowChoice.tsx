@@ -3,6 +3,9 @@ import { useBramble, type DecisionSource } from './BrambleContext'
 import { getFlow, levelOf } from './flows'
 import type { FlowDef, FlowId, LevelDef } from './types'
 
+/** Visual prominence of a choice button (see data-emphasis). */
+export type Emphasis = 'primary' | 'secondary' | 'link' | 'plain'
+
 /** Logs prompt_shown when the element first scrolls into view (immediately where IntersectionObserver is missing). */
 export function useShownWhenVisible(id: FlowId) {
   const { showFlow } = useBramble()
@@ -100,12 +103,16 @@ function PromptButtons({
   disabledOptions: string[]
   onChoose: (value: string) => void
 }) {
-  const classFor = (option: string) => {
-    if (level.emphasis === null) return 'btn btn-equal'
-    if (option === level.emphasis) return `btn btn-${tone}`
-    if (option === flow.privacyOption) return 'btn btn-link'
-    return 'btn btn-outline'
+  // How prominent each option looks. Also written to data-emphasis, so the Experiment 4
+  // harness can describe the screen ("primary" button) without reading visual styles.
+  const emphasisFor = (option: string): Emphasis => {
+    if (level.emphasis === null) return 'plain'
+    if (option === level.emphasis) return 'primary'
+    if (option === flow.privacyOption) return 'link'
+    return 'secondary'
   }
+  const classFor = (option: string) =>
+    ({ primary: `btn btn-${tone}`, secondary: 'btn btn-outline', link: 'btn btn-link', plain: 'btn btn-equal' })[emphasisFor(option)]
   // Nudged puts the emphasized option first; neutral keeps the config order.
   const options =
     level.emphasis === null ? flow.options : [level.emphasis, ...flow.options.filter((o) => o !== level.emphasis)]
@@ -116,6 +123,7 @@ function PromptButtons({
           key={option}
           type="button"
           className={classFor(option)}
+          data-emphasis={emphasisFor(option)}
           disabled={disabledOptions.includes(option)}
           onClick={() => onChoose(option)}
         >
@@ -189,6 +197,7 @@ function SelectSetting({ flow, value, onChoose }: { flow: FlowDef; value: string
             key={option}
             type="button"
             className="btn btn-equal"
+            data-emphasis="plain"
             aria-pressed={value === option}
             onClick={() => onChoose(option)}
           >

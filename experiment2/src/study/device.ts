@@ -13,5 +13,7 @@ export function detectDevice(nav: Navigator = navigator, scr: Screen = screen): 
   const screenW = scr.width
   const screenH = scr.height
   const passedCheck = touch && os !== 'other' && Math.min(screenW, screenH) <= 500
-  return { os, screenW, screenH, userAgent: nav.userAgent, touch, passedCheck }
+  // Flags a browser driven by automation tools, e.g. a participant running an agent.
+  const automated = nav.webdriver === true
+  return { os, screenW, screenH, userAgent: nav.userAgent, touch, passedCheck, automated }
 }

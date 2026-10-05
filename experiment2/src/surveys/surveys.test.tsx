@@ -13,7 +13,7 @@ import { Suspicion } from './Suspicion'
 function props(os: DeviceOs = 'ios') {
   const participant = {
     ...newParticipant({ prolificPid: 'p', studyId: 's', sessionId: 'x' }),
-    device: { os, screenW: 390, screenH: 844, userAgent: '', touch: true, passedCheck: true },
+    device: { os, screenW: 390, screenH: 844, userAgent: '', touch: true, passedCheck: true, automated: false },
   }
   const advance = vi.fn<StageProps['advance']>()
   const base: StageProps = { participant, mode: 'study', store: new MemoryStore(), update: vi.fn(), advance }

@@ -27,6 +27,8 @@ export interface DeviceInfo {
   userAgent: string
   touch: boolean
   passedCheck: boolean
+  /** navigator.webdriver: the browser is controlled by automation (e.g. an agent). */
+  automated: boolean
 }
 
 export interface TaskOutcome {
