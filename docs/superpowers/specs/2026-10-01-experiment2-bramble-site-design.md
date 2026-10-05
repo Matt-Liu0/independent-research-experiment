@@ -291,3 +291,7 @@ The store finder, loading and order tracking were reworked as set out in `2026-1
 - **Stored address:** only the practice address, `40 Oak Street` or `other`.
 
 `experiment2/DATA.md` is the field-level reference.
+
+## Version 0.3.0 change (Oct 4, 2026)
+
+The nearby-stores map is a real OpenStreetMap street map, self-hosted (`experiment2/public/map/`, made by `npm run build:map`). This keeps the no-third-party rule: tiles and fonts come from our own site. The simulated location is a fixed spot in Clintonville, Columbus, Ohio. Business and place labels are hidden, and the view doesn't pan. Phones without WebGL fall back to the drawn map, logged as `map_shown`.

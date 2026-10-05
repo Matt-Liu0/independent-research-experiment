@@ -2,6 +2,12 @@
 
 Every build participants see has a version (`appVersion` on each record). Bump `version` in `package.json` and add an entry here for any change made once data collection starts.
 
+## 0.3.0 (2026-10-04)
+
+- **Real street map in the store finder:** MapLibre with an OpenStreetMap extract of one neighborhood (Clintonville, Columbus, OH). It's self-hosted in `public/map/` (about 7 MB on the server; a phone loads only the few tiles in view), so there are no third-party requests and no cost. Business and place labels are hidden, and the view is fixed (no panning). Exact location shows as a dot and general area as a circle. Phones without WebGL get the drawn map, and the new `map_shown` action records which.
+- Map code loads only when Find a store opens.
+- The researcher-only demo label now sits above the tab bar.
+
 ## 0.2.0 (2026-10-04)
 
 More realistic app, from review feedback (`docs/superpowers/specs/2026-10-04-bramble-realism-proposals.md`). Still before piloting.

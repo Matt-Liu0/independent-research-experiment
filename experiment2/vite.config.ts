@@ -8,6 +8,8 @@ const { version } = JSON.parse(readFileSync(new URL('./package.json', import.met
 
 export default defineConfig({
   plugins: [react()],
+  // MapLibre's tile worker is an ES module.
+  worker: { format: 'es' },
   define: {
     __APP_VERSION__: JSON.stringify(version),
   },

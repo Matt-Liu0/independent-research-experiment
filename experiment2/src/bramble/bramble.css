@@ -833,3 +833,56 @@ button.store-row {
 .stock-list .stock-out {
   color: var(--ink-muted);
 }
+
+/* Real map (MapLibre) */
+.real-map {
+  width: 100%;
+  height: 230px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #e8ebe6;
+}
+
+.map-pin-marker {
+  width: 30px;
+  height: 38px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.map-pin-marker::before {
+  content: '';
+  display: block;
+  width: 26px;
+  height: 26px;
+  margin: 0 auto;
+  border: 3px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  background: var(--green);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.3);
+  transform: rotate(-45deg);
+}
+
+.map-pin-marker.selected::before {
+  background: var(--berry);
+}
+
+.map-you-dot {
+  width: 16px;
+  height: 16px;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  background: #3b7dd8;
+  box-shadow: 0 0 0 8px rgb(59 125 216 / 0.2);
+}
+
+.map-you-area {
+  width: 1px;
+  height: 1px;
+}
+
+.maplibregl-ctrl-attrib {
+  font-size: 10px;
+}

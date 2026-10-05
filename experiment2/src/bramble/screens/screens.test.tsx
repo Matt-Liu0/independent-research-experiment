@@ -41,7 +41,9 @@ describe('Find a store', () => {
     await user.click(within(elm).getByRole('button', { name: 'Set as my store' }))
     expect(app.state().storeId).toBe('elm')
     expect(within(elm).getByRole('button', { name: 'Your store ✓' })).toBeInTheDocument()
-    expect(app.eventsOf('action').map((e) => e.name)).toEqual(['store_card_opened', 'store_card_opened', 'store_set'])
+    expect(app.eventsOf('action').map((e) => e.name)).toEqual(['map_shown', 'store_card_opened', 'store_card_opened', 'store_set'])
+    // No WebGL in tests, so the drawn map is the one shown.
+    expect(app.eventsOf('action')[0]).toMatchObject({ name: 'map_shown', kind: 'drawn' })
   })
 
   it('opens the same card from a map pin', async () => {

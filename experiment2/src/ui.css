@@ -186,7 +186,8 @@
 .demo-tag {
   position: fixed;
   left: 8px;
-  bottom: calc(8px + env(safe-area-inset-bottom));
+  /* Above the app's tab bar, so it never covers the tab labels. */
+  bottom: calc(68px + env(safe-area-inset-bottom));
   z-index: 900;
   padding: 3px 8px;
   border-radius: 6px;

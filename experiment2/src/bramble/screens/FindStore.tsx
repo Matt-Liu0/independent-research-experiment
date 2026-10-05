@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { visibleMs } from '../../log/clock'
 import { useBramble } from '../BrambleContext'
 import {
@@ -16,6 +16,18 @@ import { PinIcon, SearchIcon } from '../icons'
 import { LoadingBlock, Spinner } from '../Loading'
 import { Sheet } from '../Sheet'
 import { useBusy } from '../useBusy'
+
+const RealStoreMap = lazy(() => import('./RealStoreMap'))
+
+/** Real maps need WebGL. Phones without it (and the test environment) get the drawn map. */
+function webglAvailable(): boolean {
+  try {
+    const canvas = document.createElement('canvas')
+    return Boolean(canvas.getContext('webgl2') ?? canvas.getContext('webgl'))
+  } catch {
+    return false
+  }
+}
 
 export function FindStore() {
   const { state, dispatch, friction, settleFlow } = useBramble()
@@ -76,8 +88,34 @@ function NearbyStores() {
   )
 }
 
+/** Real street map, or the drawn one where the phone can't show it. Logs which was shown. */
+function StoreMap(props: { precise: boolean; selected: string | null; onSelect: (id: string, via: 'pin') => void }) {
+  const { act } = useBramble()
+  const [real, setReal] = useState(webglAvailable)
+  const logged = useRef<string | null>(null)
+  const kind = real ? 'real' : 'drawn'
+
+  useEffect(() => {
+    if (logged.current === kind) return
+    logged.current = kind
+    act('map_shown', { kind })
+  }, [kind, act])
+
+  const onPin = (id: string) => {
+    act('store_card_opened', { storeId: id, via: 'pin' })
+    props.onSelect(id, 'pin')
+  }
+
+  if (!real) return <DrawnStoreMap {...props} />
+  return (
+    <Suspense fallback={<div className="real-map skeleton" aria-hidden="true" />}>
+      <RealStoreMap precise={props.precise} selected={props.selected} onSelect={onPin} onFail={() => setReal(false)} />
+    </Suspense>
+  )
+}
+
 /** Drawn neighborhood map: streets, a park, the river, store pins and the shared location. */
-function StoreMap({
+function DrawnStoreMap({
   precise,
   selected,
   onSelect,

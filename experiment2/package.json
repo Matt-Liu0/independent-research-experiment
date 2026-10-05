@@ -1,7 +1,7 @@
 {
   "name": "experiment2",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,10 +15,13 @@
     "typecheck": "tsc -b",
     "export": "tsx scripts/export.ts",
     "dev:phone": "vite --host",
-    "emulators:phone": "firebase emulators:start --only auth,firestore --project demo-bramble --config firebase.phone.json"
+    "emulators:phone": "firebase emulators:start --only auth,firestore --project demo-bramble --config firebase.phone.json",
+    "build:map": "tsx scripts/build-map.ts"
   },
   "dependencies": {
+    "@protomaps/basemaps": "^5.7.2",
     "firebase": "^12.19.0",
+    "maplibre-gl": "^6.12.0",
     "qrcode": "^1.5.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
@@ -28,6 +31,7 @@
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
+    "@types/geojson": "^7946.0.16",
     "@types/node": "^24.13.3",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.18",
@@ -37,6 +41,7 @@
     "firebase-tools": "^15.32.1",
     "jsdom": "^28.1.0",
     "oxlint": "^1.81.0",
+    "pmtiles": "^4.5.0",
     "tsx": "^4.23.15",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
