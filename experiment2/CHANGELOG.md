@@ -2,6 +2,10 @@
 
 Every build participants see has a version (`appVersion` on each record). Bump `version` in `package.json` and add an entry here for any change made once data collection starts.
 
+## 0.4.1 (2026-10-04)
+
+- The map now drags with one finger and pinch-zooms with two, like a phone app (was two-finger dragging). Swiping outside the map still scrolls the page.
+
 ## 0.4.0 (2026-10-04)
 
 - **The map can be dragged and zoomed:** two fingers on phones (one finger scrolls the page, with an on-screen hint), and mouse drag or Ctrl/⌘ + scroll on computers. Movement stays inside the downloaded neighborhood, with no rotation or tilt. A recenter button returns to the starting view. New actions `map_moved` (`gesture`: `drag` / `zoom`) and `map_recentered`; `participants.csv` gains `mapShown`, `mapMoves` and `mapRecenters`.

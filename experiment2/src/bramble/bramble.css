@@ -906,10 +906,3 @@ button.store-row {
   color: var(--ink);
   box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
 }
-
-/* MapLibre's "use two fingers to move the map" hint, in the app's font. */
-.maplibregl-cooperative-gesture-screen {
-  font-family: var(--font-body);
-  font-size: 17px;
-  border-radius: 18px;
-}

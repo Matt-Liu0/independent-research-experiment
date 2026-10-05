@@ -299,3 +299,4 @@ The nearby-stores map is a real OpenStreetMap street map, self-hosted (`experime
 ## Version 0.4.0 change (Oct 4, 2026)
 
 This reverses the earlier "no panning" decision: the real map can be dragged and zoomed. It uses cooperative gestures (two fingers on phones) and is limited to the downloaded area, with a recenter button. Each move is logged as `map_moved`, so exploring is measured rather than prevented. Loading delays are about a third shorter (`src/bramble/timing.ts`).
+One-finger dragging replaced two-finger in 0.4.1 (Oct 4, 2026).

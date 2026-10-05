@@ -109,8 +109,7 @@ export default function RealStoreMap({ precise, selected, onSelect, onFail, onGe
         // Drag and zoom stay inside the downloaded neighborhood, so there are no blank edges.
         maxBounds: MAP_BOUNDS,
         maxZoom: 17,
-        // One finger scrolls the page; two fingers (or Ctrl/⌘ + scroll) move the map.
-        cooperativeGestures: true,
+        // Like an app: one finger drags, two fingers pinch-zoom. Swiping outside the map scrolls the page.
         dragRotate: false,
         pitchWithRotate: false,
         touchPitch: false,

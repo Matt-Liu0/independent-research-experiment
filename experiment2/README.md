@@ -40,7 +40,7 @@ Open `http://<that address>/?PROLIFIC_PID=phone1&STUDY_ID=s&SESSION_ID=x` on the
 
 ## Store-finder map
 
-The map is a real OpenStreetMap street map of one neighborhood (Clintonville, Columbus, Ohio), the same for every participant. Its tiles and fonts are files in `public/map/`, served from our own site, so **participants' phones never contact a map company**, and it costs nothing. Business labels, house numbers and place names are hidden, so the only stores shown are Bramble's. Participants can drag and zoom it (two fingers on phones) within that neighborhood, and recenter with the button. Phones that can't run WebGL get the simpler drawn map instead (`map_shown` records which).
+The map is a real OpenStreetMap street map of one neighborhood (Clintonville, Columbus, Ohio), the same for every participant. Its tiles and fonts are files in `public/map/`, served from our own site, so **participants' phones never contact a map company**, and it costs nothing. Business labels, house numbers and place names are hidden, so the only stores shown are Bramble's. Participants can drag it with one finger and pinch-zoom within that neighborhood, and recenter with the button. Phones that can't run WebGL get the simpler drawn map instead (`map_shown` records which).
 
 To change the area, edit `src/bramble/mapConfig.ts` (location, store pins, `MAP_BOUNDS`) and run `npm run build:map`. The attribution (© OpenStreetMap, required by its license) appears in the map's corner, and the details are in `public/map/ATTRIBUTION.txt`.
 
