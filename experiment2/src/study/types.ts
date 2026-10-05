@@ -30,10 +30,18 @@ export interface AgentMeta {
   participant: string | null
 }
 
+/** How the participant was recruited: Prolific link, or a participant code we handed out (e.g. students). */
+export type Recruitment = 'prolific' | 'code'
+
+/**
+ * Who the participant is. For code entries, prolificPid holds the participant code (it is the
+ * one-record-per-person key either way), and studyId / sessionId are "CODE".
+ */
 export interface ProlificParams {
   prolificPid: string
   studyId: string
   sessionId: string
+  recruitment?: Recruitment
 }
 
 export type DeviceOs = 'ios' | 'android' | 'other'

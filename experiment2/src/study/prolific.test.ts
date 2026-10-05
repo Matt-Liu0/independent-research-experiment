@@ -7,7 +7,7 @@ describe('parseEntry', () => {
   it('reads Prolific parameters', () => {
     expect(parseEntry(full)).toEqual({
       mode: 'study',
-      params: { prolificPid: '5f1a2b3c4d5e6f7a8b9c0d1e', studyId: 'study1', sessionId: 'sess1' },
+      params: { prolificPid: '5f1a2b3c4d5e6f7a8b9c0d1e', studyId: 'study1', sessionId: 'sess1', recruitment: 'prolific' },
       demoFriction: null,
     })
   })
@@ -40,5 +40,25 @@ describe('parseEntry', () => {
 describe('completionUrl', () => {
   it('builds the Prolific completion link', () => {
     expect(completionUrl('C1A2B3')).toBe('https://app.prolific.com/submissions/complete?cc=C1A2B3')
+  })
+})
+
+describe('participant codes', () => {
+  it('accepts a code instead of Prolific IDs', () => {
+    expect(parseEntry('?code=S0123')).toEqual({
+      mode: 'study',
+      params: { prolificPid: 'S0123', studyId: 'CODE', sessionId: 'CODE', recruitment: 'code' },
+      demoFriction: null,
+    })
+    expect(parseEntry('?code=S0123&pilot=1').mode).toBe('pilot')
+  })
+
+  it('rejects unsafe codes', () => {
+    expect(parseEntry('?code=a/b').params).toBeNull()
+    expect(parseEntry('?code=').params).toBeNull()
+  })
+
+  it('marks Prolific entries as such', () => {
+    expect(parseEntry('?PROLIFIC_PID=p1&STUDY_ID=s&SESSION_ID=x').params?.recruitment).toBe('prolific')
   })
 })

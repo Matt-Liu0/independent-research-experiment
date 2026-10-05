@@ -103,6 +103,15 @@ describe('Closing', () => {
     expect(link).toHaveAttribute('href', 'https://app.prolific.com/submissions/complete?cc=TEST-COMPLETE')
   })
 
+  it('ends without Prolific for participant-code entries', async () => {
+    const p = props()
+    p.participant = { ...p.participant, recruitment: 'code' }
+    render(<Closing {...p} />)
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+    expect(screen.getByText(/paid as described in your invitation/)).toBeInTheDocument()
+    expect(await screen.findByText("You're all done for today. You can close this page.")).toBeInTheDocument()
+  })
+
   it('has no Prolific link in demo mode', () => {
     render(<Closing {...props()} mode="demo" />)
     expect(screen.queryByRole('link')).not.toBeInTheDocument()

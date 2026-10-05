@@ -147,6 +147,7 @@ function participantRow(code: string, collection: string, data: Record<string, u
   const row: Row = {
     studyCode: code,
     pilot: collection.startsWith('pilot_'),
+    recruitment: scalar(data.recruitment ?? 'prolific'),
     appVersion: scalar(data.appVersion),
     consentVersion: scalar(data.consentVersion),
     consentDeclined: scalar(data.consentDeclined),

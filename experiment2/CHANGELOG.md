@@ -2,6 +2,13 @@
 
 Every build participants see has a version (`appVersion` on each record). Bump `version` in `package.json` and add an entry here for any change made once data collection starts.
 
+## 0.9.0 (2026-10-05)
+
+Decisions on the pipeline conflicts (Oct 5): keep 12 site flows, keep the "try a new app" framing, keep friction as defaults and emphasis only (no points cost for declining), drop the Day 15 retest, and support both recruitment routes.
+
+- **Participant-code entry:** `/?code=…` lets directly recruited participants (e.g. students) take part with a code. Same app and data; the endings don't mention Prolific, and the bonus is "paid as described in your invitation". Records have `recruitment` (`prolific` / `code`), also in `participants.csv`.
+- Messages for a broken link or a used browser no longer assume Prolific.
+
 ## 0.8.0 (2026-10-05)
 
 Groundwork for Experiment 4 (agents acting on the site), from the research pipeline.

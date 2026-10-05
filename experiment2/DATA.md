@@ -19,7 +19,8 @@ What every stored field means and the values it can take. It covers the Firestor
 
 | Field | Meaning | Values |
 |---|---|---|
-| `prolificPid` | Prolific participant ID from the link | text (Prolific IDs are 24 hex characters) |
+| `prolificPid` | Prolific participant ID from the link, or the **participant code** for code entries (`?code=…`); one record per value either way | text |
+| `recruitment` | How the participant arrived | `prolific` (Prolific link) · `code` (a code handed out, e.g. to students; then `studyId` and `sessionId` are `CODE`) |
 | `studyId` | Prolific study ID | text |
 | `sessionId` | Prolific session ID | text |
 | `appVersion` | App build the person saw | e.g. `0.1.0` (see `CHANGELOG.md`) |
@@ -286,7 +287,7 @@ Includes everyone who arrived, also people who declined consent or failed the de
 
 | Columns | Meaning |
 |---|---|
-| `studyCode`, `pilot`, `appVersion`, `consentVersion`, `consentDeclined`, `friction`, `taskOrder` (e.g. `4-1-2-3-5-6`), `stage`, `completed` (`stage` = `done`) | Identity, assignment and progress |
+| `studyCode`, `pilot`, `recruitment`, `appVersion`, `consentVersion`, `consentDeclined`, `friction`, `taskOrder` (e.g. `4-1-2-3-5-6`), `stage`, `completed` (`stage` = `done`) | Identity, assignment and progress |
 | `os`, `screenW`, `screenH`, `passedDeviceCheck`, `automated`, `userAgent`, `tzOffset`, `localStartHour`, `resumeCount` | Device and context |
 | `createdAt`, `consentAt`, `completedAt`, `minutesToComplete` (consent → completion) | Timing |
 | `ease_t1` … `ease_t6` | Ease ratings by task number |

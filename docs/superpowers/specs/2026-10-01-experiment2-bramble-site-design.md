@@ -318,3 +318,7 @@ Each flow carries a GKC-CI coding (`src/bramble/ci.ts`): sender, recipient and r
 ## Version 0.8.0 change (Oct 5, 2026)
 
 Groundwork for Experiment 4: pipeline verdict mapping in the export, `data-emphasis` on decision controls, a `navigator.webdriver` flag on every record, and an agent mode (`?agent=1&…`) that runs the tasks only, with the matched participant's level and order. Agent data is exposed on `window.__brambleAgent`. The MCP harness itself isn't built yet.
+
+## Version 0.9.0 change (Oct 5, 2026)
+
+Pipeline conflicts resolved with the user: keep 12 flows, keep the "try a new app" framing, friction is defaults and emphasis only, no Day 15 retest (stability comes from reworded repeats of the 12 site flows in Part 2), and both Prolific and participant-code recruitment (`?code=…`). The pipeline document was edited to match.

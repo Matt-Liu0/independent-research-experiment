@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { bonusDollars } from '../bramble/appState'
-import { COMPLETION_CODE, completionUrl } from '../study/prolific'
+import { COMPLETION_CODE, completionUrl, fromProlific } from '../study/prolific'
 import type { StageProps } from '../study/stageProps'
 
 /** Give up waiting for the server after this long; the offline queue keeps trying in the background. */
@@ -38,8 +38,10 @@ export function Closing({ participant, store, mode }: StageProps) {
     <main className="page">
       <h1>Thanks, that's Part 1</h1>
       <p>
-        You kept {points} Bramble points, so your bonus is ${bonusDollars(points).toFixed(2)}. Your points bonus will be
-        paid within 3 days.
+        You kept {points} Bramble points, so your bonus is ${bonusDollars(points).toFixed(2)}.{' '}
+        {fromProlific(participant.recruitment)
+          ? 'Your points bonus will be paid within 3 days.'
+          : 'Your points bonus will be paid as described in your invitation.'}
       </p>
       <p>
         Part 2 opens in 7 days, and we'll send you a message when it does. It takes about 45 minutes on a computer.
@@ -57,6 +59,8 @@ export function Closing({ participant, store, mode }: StageProps) {
       )}
       {mode === 'demo' ? (
         <p className="notice">Demo: nothing was saved, and there is no Prolific code.</p>
+      ) : !fromProlific(participant.recruitment) ? (
+        <p role="status">{saving === 'saving' ? 'Saving your answers…' : "You're all done for today. You can close this page."}</p>
       ) : (
         <a
           className="btn btn-study"

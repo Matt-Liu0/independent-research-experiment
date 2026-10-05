@@ -79,17 +79,36 @@ export function parseEntry(search: string): Entry {
     return { mode: 'demo', params: DEMO_PARAMS, demoFriction: demo }
   }
   const mode: Mode = q.get('pilot') === '1' ? 'pilot' : 'study'
+  // Participant codes handed out directly (e.g. to students), instead of a Prolific link.
+  const code = q.get('code')
+  if (code !== null) {
+    const valid = SAFE_ID.test(code)
+    return {
+      mode,
+      params: valid ? { prolificPid: code, studyId: 'CODE', sessionId: 'CODE', recruitment: 'code' } : null,
+      demoFriction: null,
+    }
+  }
   const prolificPid = q.get('PROLIFIC_PID') ?? ''
   const studyId = q.get('STUDY_ID') ?? ''
   const sessionId = q.get('SESSION_ID') ?? ''
   const valid = [prolificPid, studyId, sessionId].every((v) => SAFE_ID.test(v))
-  return { mode, params: valid ? { prolificPid, studyId, sessionId } : null, demoFriction: null }
+  return {
+    mode,
+    params: valid ? { prolificPid, studyId, sessionId, recruitment: 'prolific' } : null,
+    demoFriction: null,
+  }
 }
 
 const env = import.meta.env
 export const COMPLETION_CODE: string = env.VITE_PROLIFIC_COMPLETION_CODE || 'TEST-COMPLETE'
 /** For participants who can't continue because of a technical problem. */
 export const RETURN_CODE: string = env.VITE_PROLIFIC_RETURN_CODE || 'TEST-RETURN'
+
+/** True when the participant came from Prolific (so endings send them back there). */
+export function fromProlific(recruitment: string | undefined): boolean {
+  return recruitment !== 'code'
+}
 
 export function completionUrl(code: string): string {
   return `https://app.prolific.com/submissions/complete?cc=${encodeURIComponent(code)}`

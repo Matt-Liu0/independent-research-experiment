@@ -104,8 +104,11 @@ export function StudyApp({ entry, store, detect = detectDevice }: Props) {
         )
       case 'missing_params':
         return (
-          <Message title="Please open this study from Prolific">
-            <p>This link is missing some information. Go back to Prolific and start the study from there.</p>
+          <Message title="Please use the link you were given">
+            <p>
+              This link is missing some information. Open the study again from Prolific, or from the invitation with your
+              participant code.
+            </p>
           </Message>
         )
       case 'taken':
@@ -119,7 +122,7 @@ export function StudyApp({ entry, store, detect = detectDevice }: Props) {
       case 'pid_mismatch':
         return (
           <Message title="This phone has already been used">
-            <p>Someone has already taken part in this study on this browser. Please contact the researchers through Prolific.</p>
+            <p>Someone has already taken part in this study on this browser. Please contact the researchers.</p>
           </Message>
         )
       case 'error':

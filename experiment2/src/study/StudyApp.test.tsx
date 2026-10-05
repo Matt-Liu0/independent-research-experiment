@@ -24,8 +24,17 @@ describe('StudyApp', () => {
   it('asks people without Prolific parameters to start from Prolific, and saves nothing', () => {
     const store = new MemoryStore()
     render(<StudyApp entry={parseEntry('')} store={store} detect={phone} />)
-    expect(screen.getByRole('heading', { name: /open this study from prolific/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /use the link you were given/i })).toBeInTheDocument()
     expect(store.participant).toBeNull()
+  })
+
+  it('runs a participant-code entry like a Prolific one, and records the recruitment', async () => {
+    const user = userEvent.setup()
+    const store = new MemoryStore()
+    render(<StudyApp entry={parseEntry('?code=S0123')} store={store} detect={phone} />)
+    await user.click(await screen.findByRole('button', { name: /i agree/i }))
+    expect(await screen.findByRole('heading', { name: /welcome to bramble/i })).toBeInTheDocument()
+    expect(store.participant).toMatchObject({ prolificPid: 'S0123', recruitment: 'code' })
   })
 
   it('stops computers at the device check and records the device', async () => {
