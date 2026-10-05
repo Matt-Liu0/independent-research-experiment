@@ -44,6 +44,10 @@ const alice: RawParticipant = {
     ev(22, 500, { type: 'decision', flowId: 'reward_keel', value: 'decline', source: 'account_page' }),
     ev(22, 600, { type: 'visibility', state: 'hidden' }),
     ev(23, 700, { type: 'task', event: 'reopen', task: 5 }),
+    ev(24, 800, { type: 'action', name: 'map_shown', kind: 'real' }),
+    ev(24, 900, { type: 'action', name: 'map_moved', gesture: 'drag' }),
+    ev(24, 950, { type: 'action', name: 'map_moved', gesture: 'zoom' }),
+    ev(24, 990, { type: 'action', name: 'map_recentered' }),
   ],
 }
 
@@ -91,6 +95,9 @@ describe('buildExport', () => {
       bonusUSD: 0.12,
       taskCardReopens: 1,
       timesHidden: 1,
+      mapShown: 'real',
+      mapMoves: 2,
+      mapRecenters: 1,
     })
   })
 

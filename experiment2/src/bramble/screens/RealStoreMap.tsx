@@ -64,20 +64,39 @@ function circle([lng, lat]: [number, number], meters: number): Feature<Polygon> 
 /** Shifted so the general-area circle doesn't sit exactly on the true simulated spot. */
 const GENERAL_CENTER: [number, number] = [YOU_ARE_HERE_LNGLAT[0] + 0.003, YOU_ARE_HERE_LNGLAT[1] - 0.002]
 
+export type MapGesture = 'drag' | 'zoom' | 'recenter'
+
 interface Props {
   precise: boolean
   selected: string | null
   onSelect: (id: string) => void
   onFail: () => void
+  /** The participant moved the map (logged as a sign of exploring). */
+  onGesture?: (gesture: MapGesture) => void
 }
 
-export default function RealStoreMap({ precise, selected, onSelect, onFail }: Props) {
+/** Starting view: the simulated location and every store. */
+function fitAll(map: MapLibreMap, animate: boolean) {
+  const lnglats = [YOU_ARE_HERE_LNGLAT, ...Object.values(STORE_LNGLAT)]
+  const lngs = lnglats.map((p) => p[0])
+  const lats = lnglats.map((p) => p[1])
+  map.fitBounds(
+    [
+      [Math.min(...lngs), Math.min(...lats)],
+      [Math.max(...lngs), Math.max(...lats)],
+    ],
+    { padding: { top: 34, bottom: 14, left: 20, right: 20 }, animate },
+  )
+}
+
+export default function RealStoreMap({ precise, selected, onSelect, onFail, onGesture }: Props) {
   const container = useRef<HTMLDivElement>(null)
   const pins = useRef(new Map<string, HTMLButtonElement>())
-  const handlers = useRef({ onSelect, onFail })
+  const mapRef = useRef<MapLibreMap | null>(null)
+  const handlers = useRef({ onSelect, onFail, onGesture })
   useEffect(() => {
-    handlers.current = { onSelect, onFail }
-  }, [onSelect, onFail])
+    handlers.current = { onSelect, onFail, onGesture }
+  }, [onSelect, onFail, onGesture])
 
   useEffect(() => {
     const el = container.current
@@ -87,27 +106,33 @@ export default function RealStoreMap({ precise, selected, onSelect, onFail }: Pr
       map = new MapLibreMap({
         container: el,
         style: mapStyle(),
-        // Fixed view, as decided: participants tap pins rather than pan around.
-        interactive: false,
+        // Drag and zoom stay inside the downloaded neighborhood, so there are no blank edges.
+        maxBounds: MAP_BOUNDS,
+        maxZoom: 17,
+        // One finger scrolls the page; two fingers (or Ctrl/⌘ + scroll) move the map.
+        cooperativeGestures: true,
+        dragRotate: false,
+        pitchWithRotate: false,
+        touchPitch: false,
         attributionControl: { compact: true },
       })
     } catch {
       handlers.current.onFail()
       return
     }
+    mapRef.current = map
+    map.touchZoomRotate.disableRotation()
+    map.keyboard.disableRotation()
     // A missing tile or font range is harmless; log it and carry on.
     map.on('error', (e) => console.warn('map error', e.error?.message))
 
-    const lnglats = [YOU_ARE_HERE_LNGLAT, ...Object.values(STORE_LNGLAT)]
-    const lngs = lnglats.map((p) => p[0])
-    const lats = lnglats.map((p) => p[1])
-    map.fitBounds(
-      [
-        [Math.min(...lngs), Math.min(...lats)],
-        [Math.max(...lngs), Math.max(...lats)],
-      ],
-      { padding: { top: 34, bottom: 14, left: 20, right: 20 }, animate: false },
-    )
+    fitAll(map, false)
+    // Can't zoom out past the starting view (the downloaded area ends just beyond it).
+    map.setMinZoom(map.getZoom() - 0.3)
+
+    // Only gestures by the participant count, not the recenter animation.
+    map.on('dragend', (e) => e.originalEvent && handlers.current.onGesture?.('drag'))
+    map.on('zoomend', (e) => e.originalEvent && handlers.current.onGesture?.('zoom'))
 
     for (const store of NEARBY_STORES) {
       const lnglat = STORE_LNGLAT[store.id]
@@ -137,6 +162,7 @@ export default function RealStoreMap({ precise, selected, onSelect, onFail }: Pr
     const currentPins = pins.current
     return () => {
       currentPins.clear()
+      mapRef.current = null
       map.remove()
     }
   }, [precise])
@@ -145,5 +171,21 @@ export default function RealStoreMap({ precise, selected, onSelect, onFail }: Pr
     for (const [id, button] of pins.current) button.classList.toggle('selected', id === selected)
   }, [selected])
 
-  return <div ref={container} className="real-map" role="group" aria-label="Map of stores near you" />
+  const recenter = () => {
+    if (!mapRef.current) return
+    fitAll(mapRef.current, true)
+    handlers.current.onGesture?.('recenter')
+  }
+
+  return (
+    <div className="real-map-wrap">
+      <div ref={container} className="real-map" role="group" aria-label="Map of stores near you" />
+      <button type="button" className="map-recenter" aria-label="Show all stores" onClick={recenter}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+        </svg>
+      </button>
+    </div>
+  )
 }

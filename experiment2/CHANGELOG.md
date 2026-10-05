@@ -2,6 +2,11 @@
 
 Every build participants see has a version (`appVersion` on each record). Bump `version` in `package.json` and add an entry here for any change made once data collection starts.
 
+## 0.4.0 (2026-10-04)
+
+- **The map can be dragged and zoomed:** two fingers on phones (one finger scrolls the page, with an on-screen hint), and mouse drag or Ctrl/⌘ + scroll on computers. Movement stays inside the downloaded neighborhood, with no rotation or tilt. A recenter button returns to the starting view. New actions `map_moved` (`gesture`: `drag` / `zoom`) and `map_recentered`; `participants.csv` gains `mapShown`, `mapMoves` and `mapRecenters`.
+- **Shorter loading** (about a third less): splash 0.7 s, screen skeletons 0.25 / 0.4 s, Place order 1.0 s, other spinners 0.3–0.5 s.
+
 ## 0.3.0 (2026-10-04)
 
 - **Real street map in the store finder:** MapLibre with an OpenStreetMap extract of one neighborhood (Clintonville, Columbus, OH). It's self-hosted in `public/map/` (about 7 MB on the server; a phone loads only the few tiles in view), so there are no third-party requests and no cost. Business and place labels are hidden, and the view is fixed (no panning). Exact location shows as a dot and general area as a circle. Phones without WebGL get the drawn map, and the new `map_shown` action records which.

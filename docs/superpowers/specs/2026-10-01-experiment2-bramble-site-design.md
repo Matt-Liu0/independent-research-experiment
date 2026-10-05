@@ -295,3 +295,7 @@ The store finder, loading and order tracking were reworked as set out in `2026-1
 ## Version 0.3.0 change (Oct 4, 2026)
 
 The nearby-stores map is a real OpenStreetMap street map, self-hosted (`experiment2/public/map/`, made by `npm run build:map`). This keeps the no-third-party rule: tiles and fonts come from our own site. The simulated location is a fixed spot in Clintonville, Columbus, Ohio. Business and place labels are hidden, and the view doesn't pan. Phones without WebGL fall back to the drawn map, logged as `map_shown`.
+
+## Version 0.4.0 change (Oct 4, 2026)
+
+This reverses the earlier "no panning" decision: the real map can be dragged and zoomed. It uses cooperative gestures (two fingers on phones) and is limited to the downloaded area, with a recenter button. Each move is logged as `map_moved`, so exploring is measured rather than prevented. Loading delays are about a third shorter (`src/bramble/timing.ts`).

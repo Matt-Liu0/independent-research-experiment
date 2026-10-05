@@ -148,6 +148,10 @@ function participantRow(code: string, collection: string, data: Record<string, u
   row.accountPageVisits = scalar(get(data, 'appState.accountPageVisits'))
   row.accountPageMs = scalar(get(data, 'appState.accountPageMs'))
   row.taskCardReopens = events.filter((e) => e.type === 'task' && e.event === 'reopen').length
+  const action = (name: string) => events.filter((e) => e.type === 'action' && e.name === name)
+  row.mapShown = (action('map_shown')[0]?.kind as string) ?? null
+  row.mapMoves = action('map_moved').length
+  row.mapRecenters = action('map_recentered').length
   row.timesHidden = events.filter((e) => e.type === 'visibility' && e.state === 'hidden').length
   row.errors = events.filter((e) => e.type === 'error').length
   row.eventCount = events.length

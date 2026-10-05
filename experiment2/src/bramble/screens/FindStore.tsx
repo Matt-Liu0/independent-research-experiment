@@ -109,7 +109,13 @@ function StoreMap(props: { precise: boolean; selected: string | null; onSelect: 
   if (!real) return <DrawnStoreMap {...props} />
   return (
     <Suspense fallback={<div className="real-map skeleton" aria-hidden="true" />}>
-      <RealStoreMap precise={props.precise} selected={props.selected} onSelect={onPin} onFail={() => setReal(false)} />
+      <RealStoreMap
+        precise={props.precise}
+        selected={props.selected}
+        onSelect={onPin}
+        onFail={() => setReal(false)}
+        onGesture={(gesture) => act(gesture === 'recenter' ? 'map_recentered' : 'map_moved', gesture === 'recenter' ? {} : { gesture })}
+      />
     </Suspense>
   )
 }

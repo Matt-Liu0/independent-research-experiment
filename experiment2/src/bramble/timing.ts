@@ -7,20 +7,20 @@ import type { ScreenId } from './types'
  */
 export const TIMING = {
   /** Bramble logo when a task starts. */
-  splash: 1000,
+  splash: 700,
   /** Placeholder shapes when switching to a screen with little data. */
-  tabSkeleton: 400,
+  tabSkeleton: 250,
   /** Placeholder shapes when switching to a screen that "fetches" data. */
-  dataSkeleton: 600,
+  dataSkeleton: 400,
   /** After answering the location prompt (whatever the answer). */
-  findingStores: 800,
-  zipSearch: 800,
-  setStore: 500,
-  placeOrder: 1500,
-  redeem: 800,
+  findingStores: 500,
+  zipSearch: 500,
+  setStore: 300,
+  placeOrder: 1000,
+  redeem: 500,
   /** After accepting or declining a Rewards offer. */
-  offerSave: 500,
-  saveAddress: 600,
+  offerSave: 300,
+  saveAddress: 400,
   /** Order timeline, in visible ms since tracking started. */
   orderPacked: 8000,
   orderOnTheWay: 15000,

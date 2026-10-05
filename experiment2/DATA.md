@@ -149,9 +149,9 @@ Append-only: once written, an event can't be changed or deleted by the participa
 
 | Type | Extra fields and values |
 |---|---|
-| `screen` | `from`, `to`: screen IDs; `loadingMs`: how long the loading placeholder shows before the screen (`400` or `600`) |
+| `screen` | `from`, `to`: screen IDs; `loadingMs`: how long the loading placeholder shows before the screen (`250` or `400`) |
 | `task` | `event`: `start` (with `task`, `position` 1–6) · `reopen` (tapped the task bar to reread; `task`) · `finish` (tapped Done; `task`, `position`, `outcome`: same object as `taskOutcome.tN`) · `ease` (`task`, `value` 1–7) |
-| `action` | `name`, one of: `map_shown` (`kind`: `real` (street map) or `drawn` (fallback on phones that can't show it); logged when the nearby-stores map appears) · `store_card_opened` (`storeId`; `via`: `pin` on the map or `list`) · `store_search` (`item`: `oat_milk` / `sourdough` / `null` for a store-name search; `results`: number of stores shown; the typed text is not logged) · `store_set` (`storeId`, `hasOatMilk`) · `zip_search` (no ZIP stored) · `zip_show_more` · `cart_add` / `cart_remove` (`productId`) · `order_placed` (`items`: product IDs; `freeDelivery`: `true`/`false`) · `order_status` (`step`: `packed`, `on_the_way` or `delivered`) · `deal_toggled` (`dealId`, `saved`: `true` = hearted, `false` = un-hearted) · `delivery_redeemed` · `address_saved` (`matches`: `true`/`false`; the typed text is not logged) |
+| `action` | `name`, one of: `map_shown` (`kind`: `real` (street map) or `drawn` (fallback on phones that can't show it); logged when the nearby-stores map appears) · `map_moved` (`gesture`: `drag` or `zoom`; one per gesture, only ones the participant made) · `map_recentered` (tapped the recenter button) · `store_card_opened` (`storeId`; `via`: `pin` on the map or `list`) · `store_search` (`item`: `oat_milk` / `sourdough` / `null` for a store-name search; `results`: number of stores shown; the typed text is not logged) · `store_set` (`storeId`, `hasOatMilk`) · `zip_search` (no ZIP stored) · `zip_show_more` · `cart_add` / `cart_remove` (`productId`) · `order_placed` (`items`: product IDs; `freeDelivery`: `true`/`false`) · `order_status` (`step`: `packed`, `on_the_way` or `delivered`) · `deal_toggled` (`dealId`, `saved`: `true` = hearted, `false` = un-hearted) · `delivery_redeemed` · `address_saved` (`matches`: `true`/`false`; the typed text is not logged) |
 | `points` | `amount` (`+200`, `+100`, `+150`, or `-300`); `pointsBefore`; and either `flowId` (offer accepted) or `reason: redeem_delivery` |
 | `stage` | Moving through the study. Either `from` / `to` (stage names), or `name` with details: `entry` (`mode`: `study` / `pilot` / `demo`) · `device_check` (`passed`) · `consent` (`agreed`, `version`) · `sus_submitted` · `suspicion_submitted` · `settings_check_submitted` |
 | `visibility` | `state`: `hidden` (left the browser, locked the phone) · `visible` (came back) |
@@ -261,7 +261,7 @@ Includes everyone who arrived, also people who declined consent or failed the de
 | `settings_q1` … `settings_q7` | Settings check (`q1` joined with `;`) |
 | `t1_done`, `t1_storeId`, `t1_usedZipSearch`, `t1_storesViewed`, `t1_msToFind`, `t2_done`, `t3_done`, `t3_samNotified`, `t4_done`, `t4_dealsSaved`, `t5_done`, `t5_deliveryRedeemed`, `t6_done`, `t6_addressMatches` | Task outcomes |
 | `finalPoints`, `bonusUSD` (points ÷ 1,000), `deliveryRedeemed` | Points and bonus to pay |
-| `accountPageVisits`, `accountPageMs`, `taskCardReopens`, `timesHidden`, `errors`, `eventCount` | Behavior and data-quality flags |
+| `accountPageVisits`, `accountPageMs`, `taskCardReopens`, `mapShown` (`real` / `drawn`), `mapMoves`, `mapRecenters`, `timesHidden`, `errors`, `eventCount` | Behavior and data-quality flags (many map moves or Account visits suggest exploring like a tester) |
 
 ### `events.csv`: one row per event, sorted by time
 
