@@ -5,15 +5,26 @@ export interface Store {
   name: string
   hours: string
   hasOatMilk: boolean
-  /** Shown when the participant shares location. */
-  distance?: string
+  /** Miles from the simulated location (stores near you only). */
+  miles?: number
+  /** Pin position on the drawn map, in its 340 × 190 coordinate space. */
+  pin?: [number, number]
 }
 
-/** Stores listed when location is allowed (mockup p. 1). */
+/**
+ * Stores listed when location is allowed, nearest first. The two nearest are out of oat
+ * milk, so finding one takes a little checking, as in a real store finder.
+ */
 export const NEARBY_STORES: Store[] = [
-  { id: 'elm', name: 'Bramble Market · Elm Street', hours: 'Open until 10 PM', hasOatMilk: true, distance: '0.4 mi' },
-  { id: 'riverside', name: 'Bramble Market · Riverside', hours: 'Open until 9 PM', hasOatMilk: false, distance: '1.2 mi' },
+  { id: 'cedar-plaza', name: 'Bramble Market · Cedar Plaza', hours: 'Open until 9 PM', hasOatMilk: false, miles: 0.3, pin: [128, 58] },
+  { id: 'riverside', name: 'Bramble Market · Riverside', hours: 'Open until 9 PM', hasOatMilk: false, miles: 0.6, pin: [250, 140] },
+  { id: 'elm', name: 'Bramble Market · Elm Street', hours: 'Open until 10 PM', hasOatMilk: true, miles: 0.9, pin: [262, 50] },
+  { id: 'north-gate', name: 'Bramble Market · North Gate', hours: 'Open until 10 PM', hasOatMilk: false, miles: 1.4, pin: [60, 30] },
+  { id: 'harbor-point', name: 'Bramble Market · Harbor Point', hours: 'Open until 9 PM', hasOatMilk: true, miles: 2.1, pin: [36, 160] },
 ]
+
+/** Where the simulated location sits on the drawn map. */
+export const YOU_ARE_HERE: [number, number] = [170, 100]
 
 const ZIP_STORE_NAMES: [string, string, boolean][] = [
   ['Alder Road', 'Until 9 PM', false],
@@ -56,6 +67,20 @@ export const ZIP_PAGE_SIZE = 6
 export function findStore(id: string | null): Store | undefined {
   if (!id) return undefined
   return [...NEARBY_STORES, ...ZIP_STORES].find((s) => s.id === id)
+}
+
+/** Distance text: exact miles with precise location, a rounded "about" with general area only. */
+export function distanceLabel(miles: number, precise: boolean): string {
+  return precise ? `${miles.toFixed(1)} mi` : `about ${Math.max(1, Math.round(miles))} mi`
+}
+
+/** What a store-finder search matches: an item (oat milk, sourdough) or part of a store name. */
+export function searchStores(stores: Store[], query: string): { stores: Store[]; item: 'oat_milk' | 'sourdough' | null } {
+  const q = query.trim().toLowerCase()
+  if (!q) return { stores, item: null }
+  if (/oat|milk/.test(q)) return { stores: stores.filter((s) => s.hasOatMilk), item: 'oat_milk' }
+  if (/sourdough|bread|loaf/.test(q)) return { stores, item: 'sourdough' }
+  return { stores: stores.filter((s) => s.name.toLowerCase().includes(q)), item: null }
 }
 
 export interface Product {

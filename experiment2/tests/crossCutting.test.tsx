@@ -30,6 +30,18 @@ const allOn = { ...emptyFlowValues(), deals_personalized: 'on', deals_partner_of
 const PARITY_STATES: [string, Partial<AppState>][] = [
   ['shop', { screen: 'shop' }],
   ['find_store (location sheet)', { screen: 'find_store' }],
+  [
+    'find_store (map, location allowed)',
+    {
+      screen: 'find_store',
+      flows: { ...emptyFlowValues(), store_location: 'once', store_precise: 'general' },
+      settled: ['store_location', 'store_precise'],
+    },
+  ],
+  [
+    'find_store (ZIP, location refused)',
+    { screen: 'find_store', flows: { ...emptyFlowValues(), store_location: 'dont_allow' }, settled: ['store_location'] },
+  ],
   ['checkout', { screen: 'checkout', storeId: 'elm', cart: ['oat_milk', 'sourdough'] }],
   ['orders (on the way)', { screen: 'orders', storeId: 'elm', order: 'on_the_way', orderItems: ['oat_milk'] }],
   [
@@ -76,8 +88,8 @@ async function declineEverything(friction: Friction) {
   await user.click(screen.getByRole('button', { name: "Don't allow" }))
   await user.type(screen.getByLabelText('ZIP code'), '10001')
   await user.click(screen.getByRole('button', { name: 'Search' }))
-  const elm = screen.getByText('Bramble Market · Elm Street').closest('li')!
-  await user.click(within(elm).getByRole('button', { name: 'Set as my store' }))
+  await user.click(screen.getByRole('button', { name: /^Bramble Market · Elm Street/ }))
+  await user.click(screen.getByRole('button', { name: 'Set as my store' }))
   finish(1)
 
   // Task 2: order without sharing anything.

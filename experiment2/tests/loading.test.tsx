@@ -87,6 +87,18 @@ describe('action spinners', () => {
   })
 })
 
+describe('finding stores', () => {
+  it.each(['Allow once', "Don't allow"])('waits the same time after %s', async (answer) => {
+    renderApp('nudged', { screen: 'find_store' })
+    await click(screen.getByRole('button', { name: answer }))
+    expect(screen.getByText('Finding stores near you…')).toBeInTheDocument()
+    await advance(TIMING.findingStores - 1)
+    expect(screen.getByText('Finding stores near you…')).toBeInTheDocument()
+    await advance(1)
+    expect(screen.queryByText('Finding stores near you…')).not.toBeInTheDocument()
+  })
+})
+
 describe('task splash', () => {
   it('opens the app with a splash only after the task card is closed', async () => {
     const existing = {

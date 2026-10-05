@@ -2,11 +2,17 @@ import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderApp } from '../../test/renderApp'
+import { emptyFlowValues } from '../flows'
 
 const tab = (name: string) => within(screen.getByRole('navigation', { name: 'Bramble' })).getByRole('button', { name })
 
 describe('Find a store', () => {
-  it('nudged: asks for location with precise preset on, then lists nearby stores', async () => {
+  const openCard = async (user: ReturnType<typeof userEvent.setup>, name: string) => {
+    await user.click(within(screen.getByRole('list', { name: 'Stores' })).getByRole('button', { name: new RegExp(`^Bramble Market · ${name}`) }))
+    return screen.getByRole('region', { name: `Bramble Market · ${name}` })
+  }
+
+  it('nudged: asks for location with precise preset on, then shows a map and nearby stores', async () => {
     const user = userEvent.setup()
     const app = renderApp('nudged')
     await user.click(screen.getByRole('button', { name: 'Find a store' }))
@@ -16,13 +22,52 @@ describe('Find a store', () => {
     await user.click(within(sheet).getByRole('button', { name: 'Allow while using Bramble' }))
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Map of stores near you' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Your location')).toBeInTheDocument()
     expect(screen.getByText('Stores near you')).toBeInTheDocument()
+    expect(screen.getByText(/0\.3 mi/)).toBeInTheDocument()
     expect(app.state().settled).toEqual(expect.arrayContaining(['store_location', 'store_precise']))
     expect(app.state().flows.store_precise).toBe('exact')
+  })
 
-    await user.click(screen.getAllByRole('button', { name: 'Set as my store' })[0])
+  it('shows stock in the store card, and sets the store from it', async () => {
+    const user = userEvent.setup()
+    const app = renderApp('neutral', { screen: 'find_store', flows: { ...emptyFlowValues(), store_location: 'once', store_precise: 'exact' }, settled: ['store_location', 'store_precise'], shown: ['store_location', 'store_precise'] })
+    const cedar = await openCard(user, 'Cedar Plaza')
+    expect(within(cedar).getByText('Out of stock')).toBeInTheDocument()
+
+    const elm = await openCard(user, 'Elm Street')
+    expect(within(elm).getByText('In stock · Aisle 4')).toBeInTheDocument()
+    await user.click(within(elm).getByRole('button', { name: 'Set as my store' }))
     expect(app.state().storeId).toBe('elm')
-    expect(app.eventsOf('action').at(-1)).toMatchObject({ name: 'store_set', storeId: 'elm', hasOatMilk: true })
+    expect(within(elm).getByRole('button', { name: 'Your store ✓' })).toBeInTheDocument()
+    expect(app.eventsOf('action').map((e) => e.name)).toEqual(['store_card_opened', 'store_card_opened', 'store_set'])
+  })
+
+  it('opens the same card from a map pin', async () => {
+    const user = userEvent.setup()
+    const app = renderApp('nudged', { screen: 'find_store', flows: { ...emptyFlowValues(), store_location: 'once', store_precise: 'exact' }, settled: ['store_location', 'store_precise'], shown: ['store_location'] })
+    await user.click(screen.getByRole('button', { name: 'Bramble Market · Harbor Point on the map' }))
+    expect(screen.getByRole('region', { name: 'Bramble Market · Harbor Point' })).toBeInTheDocument()
+    expect(app.eventsOf('action').at(-1)).toMatchObject({ name: 'store_card_opened', storeId: 'harbor-point', via: 'pin' })
+  })
+
+  it('shows general area as a wide circle with rounded distances', () => {
+    renderApp('neutral', { screen: 'find_store', flows: { ...emptyFlowValues(), store_location: 'while_using', store_precise: 'general' }, settled: ['store_location', 'store_precise'] })
+    expect(screen.getByLabelText('Your general area')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Your location')).not.toBeInTheDocument()
+    expect(screen.getAllByText(/about 1 mi/).length).toBeGreaterThan(0)
+    expect(screen.queryByText(/0\.3 mi/)).not.toBeInTheDocument()
+  })
+
+  it('searching for oat milk lists only stores that have it, and never logs the typed text', async () => {
+    const user = userEvent.setup()
+    const app = renderApp('nudged', { screen: 'find_store', flows: { ...emptyFlowValues(), store_location: 'once', store_precise: 'exact' }, settled: ['store_location', 'store_precise'] })
+    await user.type(screen.getByRole('searchbox', { name: 'Search stores or items' }), 'oat milk please{Enter}')
+    expect(screen.getByText('2 stores have oat milk in stock')).toBeInTheDocument()
+    expect(screen.getAllByText('Oat milk in stock')).toHaveLength(2)
+    expect(app.eventsOf('action').at(-1)).toMatchObject({ name: 'store_search', item: 'oat_milk', results: 2 })
+    expect(JSON.stringify(app.events)).not.toContain('please')
   })
 
   it('neutral: Allow needs an exact/general choice; declining needs nothing', async () => {
@@ -35,25 +80,39 @@ describe('Find a store', () => {
     expect(within(sheet).getByRole('button', { name: 'Allow once' })).toBeEnabled()
   })
 
-  it('declining location leads to the ZIP search, never stores the ZIP, and leaves precise location not applicable', async () => {
+  it('declining location leads to the ZIP search with no map, never stores the ZIP, and leaves precise location not applicable', async () => {
     const user = userEvent.setup()
     const app = renderApp('nudged', { screen: 'find_store' })
     await user.click(screen.getByRole('button', { name: "Don't allow" }))
 
     expect(screen.getByText('Location is off. Enter a ZIP code to see stores.')).toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: 'Map of stores near you' })).not.toBeInTheDocument()
     expect(app.state().flows.store_precise).toBeNull()
     expect(app.state().settled).not.toContain('store_precise')
 
     await user.type(screen.getByLabelText('ZIP code'), '13346')
     await user.click(screen.getByRole('button', { name: 'Search' }))
     expect(screen.getByText('24 stores in this ZIP code · A to Z')).toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: 'Set as my store' })).toHaveLength(6)
+    const rows = () => within(screen.getByRole('list', { name: 'Stores' })).getAllByRole('button')
+    expect(rows()).toHaveLength(6)
     await user.click(screen.getByRole('button', { name: 'Show 18 more' }))
-    expect(screen.getAllByRole('button', { name: 'Set as my store' })).toHaveLength(24)
+    expect(rows()).toHaveLength(24)
 
+    const elm = await openCard(user, 'Elm Street')
+    await user.click(within(elm).getByRole('button', { name: 'Set as my store' }))
+    expect(app.state().storeId).toBe('elm')
     expect(app.state().storeSearch).toMatchObject({ usedZipSearch: true, storesViewed: 24 })
     expect(JSON.stringify(app.events)).not.toContain('13346')
     expect(JSON.stringify(app.state())).not.toContain('13346')
+  })
+
+  it('ZIP path: search covers all 24 stores, as on the nearby list', async () => {
+    const user = userEvent.setup()
+    renderApp('neutral', { screen: 'find_store', flows: { ...emptyFlowValues(), store_location: 'dont_allow' }, settled: ['store_location'] })
+    await user.type(screen.getByLabelText('ZIP code'), '13346')
+    await user.click(screen.getByRole('button', { name: 'Search' }))
+    await user.type(screen.getByRole('searchbox'), 'oat')
+    expect(screen.getByText('3 stores have oat milk in stock')).toBeInTheDocument()
   })
 })
 
