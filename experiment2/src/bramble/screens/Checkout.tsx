@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { displayAddress } from '../appState'
 import { useBramble } from '../BrambleContext'
 import { DELIVERY_FEE, findProduct, findStore } from '../data'
@@ -13,6 +14,8 @@ const CHECKOUT_FLOWS = FLOWS.filter((f) => f.screen === 'checkout')
 export function Checkout() {
   const { state, friction, dispatch, navigate, showFlow, settleFlow, act } = useBramble()
   const [busy, run] = useBusy()
+  // The delivery window is worked out once, when checkout opens.
+  const [openedAt] = useState(() => Date.now())
   const store = findStore(state.storeId)
   const items = state.cart.map((id) => findProduct(id)).filter((p) => p !== undefined)
   const subtotal = items.reduce((sum, p) => sum + p.price, 0)
@@ -74,7 +77,7 @@ export function Checkout() {
       <div className="card">
         <div className="eyebrow-small">Deliver to</div>
         <div className="strong">{displayAddress(state.address)}</div>
-        <div className="muted small">{deliveryWindow(Date.now())}</div>
+        <div className="muted small">{deliveryWindow(openedAt)}</div>
         {store ? (
           <div className="muted small">From {store.name}</div>
         ) : (
