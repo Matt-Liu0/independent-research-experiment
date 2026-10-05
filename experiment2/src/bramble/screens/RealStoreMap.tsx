@@ -126,8 +126,9 @@ export default function RealStoreMap({ precise, selected, onSelect, onFail, onGe
     map.on('error', (e) => console.warn('map error', e.error?.message))
 
     fitAll(map, false)
-    // Can't zoom out past the starting view (the downloaded area ends just beyond it).
-    map.setMinZoom(map.getZoom() - 0.3)
+    // Can't zoom out much past the starting view, and never below the lowest zoom we have tiles
+    // for (below MAP_MIN_ZOOM the map would be blank gray with only the pins).
+    map.setMinZoom(Math.max(map.getZoom() - 0.3, MAP_MIN_ZOOM))
 
     // Only gestures by the participant count, not the recenter animation.
     map.on('dragend', (e) => e.originalEvent && handlers.current.onGesture?.('drag'))

@@ -2,6 +2,10 @@
 
 Every build participants see has a version (`appVersion` on each record). Bump `version` in `package.json` and add an entry here for any change made once data collection starts.
 
+## 0.7.1 (2026-10-05)
+
+- **Fix:** zooming the map all the way out no longer turns it blank gray. The minimum zoom could fall just below the lowest downloaded tile level (11), leaving only the pins; it's now never below that level.
+
 ## 0.7.0 (2026-10-05)
 
 - **Deals photos:** real CC0 product photos (oat milk, apples, sourdough, yogurt), self-hosted in `public/images/deals/`, with credits in `CREDITS.md` there.
