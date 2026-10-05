@@ -121,3 +121,14 @@ describe('bonusDollars', () => {
     expect(bonusDollars(570)).toBe(0.57)
   })
 })
+
+describe('storableAppState', () => {
+  it('never stores a typed address other than the practice one or 40 Oak Street', async () => {
+    const { storableAppState, OTHER_ADDRESS, displayAddress } = await import('./appState')
+    const s = initialAppState()
+    expect(storableAppState(s).address).toBe('12 Birch Lane, Apt 3')
+    expect(storableAppState({ ...s, address: '40 oak st.' }).address).toBe('40 Oak Street')
+    expect(storableAppState({ ...s, address: '221B Baker Street' }).address).toBe(OTHER_ADDRESS)
+    expect(displayAddress(OTHER_ADDRESS)).toBe('Your new address')
+  })
+})

@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { addressMatches } from '../appState'
+import { OTHER_ADDRESS, addressMatches } from '../appState'
 import { useBramble } from '../BrambleContext'
 import { FLOWS, getFlow, isApplicable } from '../flows'
 import type { FlowDef } from '../types'
 
 export function Account() {
   const { state, dispatch, act } = useBramble()
-  const [address, setAddress] = useState(state.address)
+  const [address, setAddress] = useState(state.address === OTHER_ADDRESS ? '' : state.address)
   const [saved, setSaved] = useState(false)
 
   const save = (event: FormEvent) => {

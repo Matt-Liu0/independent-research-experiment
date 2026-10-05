@@ -1,4 +1,4 @@
-import { PRACTICE_ADDRESS, REDEEM_COST, START_POINTS } from './data'
+import { MOVE_ADDRESS, PRACTICE_ADDRESS, REDEEM_COST, START_POINTS } from './data'
 import { dependentsOf, emptyFlowValues, isApplicable } from './flows'
 import type { FlowId, FlowValues, ScreenId } from './types'
 
@@ -179,6 +179,24 @@ export function addressMatches(address: string): boolean {
     .replace(/\s+/g, ' ')
     .trim()
   return /^40 oak (street|st)$/.test(normalized)
+}
+
+/** Stored in place of an address that is neither the practice address nor "40 Oak Street". */
+export const OTHER_ADDRESS = 'other'
+
+/**
+ * What gets saved to the participant record. Participants could type a real address in Task 6,
+ * so only the practice address, "40 Oak Street", or `other` is ever stored.
+ */
+export function storableAppState(state: AppState): AppState {
+  const { address } = state
+  const stored = address === PRACTICE_ADDRESS ? address : addressMatches(address) ? MOVE_ADDRESS : OTHER_ADDRESS
+  return stored === address ? state : { ...state, address: stored }
+}
+
+/** Address text to show. After a reload, an `other` address can't be shown as typed. */
+export function displayAddress(address: string): string {
+  return address === OTHER_ADDRESS ? 'Your new address' : address
 }
 
 /** 100 points = $0.10. */

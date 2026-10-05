@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { initialAppState, type AppState } from '../bramble/appState'
+import { initialAppState, storableAppState, type AppState } from '../bramble/appState'
 import { BrambleApp } from '../bramble/BrambleApp'
 import { BrambleProvider, useBramble } from '../bramble/BrambleContext'
 import type { TaskNumber } from '../bramble/types'
@@ -29,7 +29,7 @@ export function TaskStage({ participant, update, advance }: StageProps) {
       if (saveTimer.current) clearTimeout(saveTimer.current)
       saveTimer.current = setTimeout(() => {
         saveTimer.current = null
-        update({ appState: state })
+        update({ appState: storableAppState(state) })
       }, SAVE_DELAY_MS)
     },
     [update],
@@ -52,7 +52,7 @@ export function TaskStage({ participant, update, advance }: StageProps) {
     logEvent('task', { event: 'finish', task, position: taskIndex + 1, outcome })
     setLogContext({ taskId: null })
     update({
-      appState: state,
+      appState: storableAppState(state),
       taskOutcome: { ...participant.taskOutcome, [`t${task}`]: outcome },
       taskPhase: 'rating',
     })
@@ -62,7 +62,7 @@ export function TaskStage({ participant, update, advance }: StageProps) {
     const ease = { ...participant.ease, [`t${task}`]: value }
     logEvent('task', { event: 'ease', task, value })
     if (taskIndex + 1 < total) update({ ease, taskIndex: taskIndex + 1, taskPhase: 'doing' })
-    else advance({ ease, appState: latest.current })
+    else advance({ ease, appState: storableAppState(latest.current) })
   }
 
   return (

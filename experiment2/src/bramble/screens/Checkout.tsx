@@ -1,3 +1,4 @@
+import { displayAddress } from '../appState'
 import { useBramble } from '../BrambleContext'
 import { DELIVERY_FEE, findProduct, findStore } from '../data'
 import { FlowChoice } from '../FlowChoice'
@@ -64,7 +65,7 @@ export function Checkout() {
 
       <div className="card">
         <div className="eyebrow-small">Deliver to</div>
-        <div className="strong">{state.address}</div>
+        <div className="strong">{displayAddress(state.address)}</div>
         <div className="muted small">Today, 5:30–6:00 PM</div>
         {store ? (
           <div className="muted small">From {store.name}</div>

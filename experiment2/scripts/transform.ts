@@ -160,6 +160,18 @@ function eventRow(code: string, event: Record<string, unknown>): Row {
   return row
 }
 
+/**
+ * Order in which events happened on the phone: page load, then event number. Both come from
+ * the phone, so queued offline writes and reloads can't scramble them. Events without them
+ * fall back to server time, then ms since page load.
+ */
+export function compareEvents(a: Record<string, unknown>, b: Record<string, unknown>): number {
+  if (typeof a.pageLoadAt === 'number' && typeof b.pageLoadAt === 'number' && typeof a.seq === 'number' && typeof b.seq === 'number') {
+    return a.pageLoadAt - b.pageLoadAt || a.seq - b.seq
+  }
+  return (toMs(a.t) ?? 0) - (toMs(b.t) ?? 0) || (Number(a.clientT) || 0) - (Number(b.clientT) || 0)
+}
+
 /** Builds all export tables. Withdrawn participants are left out entirely. */
 export function buildExport(collection: string, raw: RawParticipant[]): ExportResult {
   const kept = raw
@@ -169,10 +181,7 @@ export function buildExport(collection: string, raw: RawParticipant[]): ExportRe
   const result: ExportResult = { participants: [], events: [], flows: [], idMap: [] }
   kept.forEach((p, i) => {
     const code = `${collection.startsWith('pilot_') ? 'PL' : 'P'}${String(i + 1).padStart(3, '0')}`
-    // Server time first: clientT restarts at 0 after a reload. clientT breaks ties within a page load.
-    const events = [...p.events].sort(
-      (a, b) => (toMs(a.t) ?? 0) - (toMs(b.t) ?? 0) || (Number(a.clientT) || 0) - (Number(b.clientT) || 0),
-    )
+    const events = [...p.events].sort(compareEvents)
     result.idMap.push({ studyCode: code, prolificPid: scalar(p.data.prolificPid), uid: p.uid })
     result.participants.push(participantRow(code, collection, p.data, events))
     result.events.push(...events.map((e) => eventRow(code, e)))

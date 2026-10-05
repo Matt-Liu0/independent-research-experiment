@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { displayAddress } from '../appState'
 import { useBramble } from '../BrambleContext'
 import { FlowChoice } from '../FlowChoice'
 import { getFlow, isApplicable } from '../flows'
@@ -47,7 +48,7 @@ export function Orders() {
             <CheckIcon />
           </span>
           <h1 className="screen-title">Delivered at 5:44 PM</h1>
-          <p className="muted">Left at the front door of {state.address}.</p>
+          <p className="muted">Left at the front door of {displayAddress(state.address)}.</p>
         </div>
         <SamStatus />
         {askBetween && (

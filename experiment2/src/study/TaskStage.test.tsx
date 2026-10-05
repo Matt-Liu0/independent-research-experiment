@@ -80,6 +80,23 @@ describe('task stage', () => {
     expect(await screen.findByRole('heading', { name: 'What did you think of Bramble?' })).toBeInTheDocument()
   })
 
+  it('never saves a typed address to the participant record', async () => {
+    const user = userEvent.setup()
+    const store = atTasks({ taskOrder: [6, 1, 2, 3, 4, 5] })
+    render(<StudyApp entry={parseEntry(PARAMS)} store={store} />)
+    await user.click(await screen.findByRole('button', { name: 'Start task' }))
+    await user.click(screen.getByRole('button', { name: 'Account' }))
+    const input = screen.getByLabelText('Delivery address')
+    await user.clear(input)
+    await user.type(input, '221B Baker Street')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await user.click(screen.getByRole('button', { name: 'Done' }))
+    expect(store.participant?.appState?.address).toBe('other')
+    expect(store.participant?.taskOutcome.t6).toEqual({ done: false, addressMatches: false })
+    expect(JSON.stringify(store.participant)).not.toContain('Baker')
+    expect(JSON.stringify(store.events)).not.toContain('Baker')
+  })
+
   it('restores the app state after a reload', async () => {
     const user = userEvent.setup()
     const appState = { ...initialAppState(), points: 270, deliveryRedeemed: true, screen: 'rewards' as const }

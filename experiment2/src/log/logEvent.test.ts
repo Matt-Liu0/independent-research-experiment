@@ -32,6 +32,15 @@ describe('logEvent', () => {
     expect(sink.events[0].clientT).toBeGreaterThanOrEqual(1500)
   })
 
+  it('numbers events in order within a page load', () => {
+    logEvent('screen')
+    logEvent('screen')
+    const [a, b] = sink.events
+    expect(b.seq).toBe(a.seq + 1)
+    expect(b.pageLoadAt).toBe(a.pageLoadAt)
+    expect(a.clientTime).toBeTypeOf('number')
+  })
+
   it('drops undefined fields, which Firestore would reject', () => {
     logEvent('action', { name: 'store_set', storeId: undefined })
     expect('storeId' in sink.events[0]).toBe(false)

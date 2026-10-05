@@ -15,6 +15,12 @@ export type EventType =
 
 export interface StudyEvent {
   type: EventType
+  /** Phone clock (epoch ms) when this page loaded. Goes up with every reload. */
+  pageLoadAt: number
+  /** Event number within this page load: 1, 2, 3, … Sort by pageLoadAt, then seq. */
+  seq: number
+  /** Phone clock (epoch ms) when the event happened, even if it reached the server later. */
+  clientTime: number
   clientT: number
   taskId: number | null
   screen: string | null
@@ -25,6 +31,9 @@ export interface StudyEvent {
 export interface EventSink {
   write(event: StudyEvent): void
 }
+
+const pageLoadAt = Date.now()
+let seq = 0
 
 const context: { taskId: number | null; screen: string | null } = { taskId: null, screen: null }
 let sink: EventSink = { write: () => {} }
@@ -43,7 +52,16 @@ export function getLogContext(): Readonly<typeof context> {
 }
 
 export function logEvent(type: EventType, fields: Record<string, unknown> = {}): StudyEvent {
-  const event: StudyEvent = { type, clientT: clientT(), taskId: context.taskId, screen: context.screen }
+  seq += 1
+  const event: StudyEvent = {
+    type,
+    pageLoadAt,
+    seq,
+    clientTime: Date.now(),
+    clientT: clientT(),
+    taskId: context.taskId,
+    screen: context.screen,
+  }
   // Firestore rejects undefined values, so drop them.
   for (const [key, value] of Object.entries(fields)) {
     if (value !== undefined) event[key] = value

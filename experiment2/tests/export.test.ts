@@ -160,3 +160,15 @@ describe('toCsv', () => {
     expect(csv).toBe('a,b,c\n"x,y","say ""hi""",\n\'=SUM(A1),,"line\nbreak"\n')
   })
 })
+
+describe('compareEvents', () => {
+  it('keeps phone order across an offline reload, even when server times tie', async () => {
+    const { compareEvents } = await import('../scripts/transform')
+    const sameServerTime = at(30)
+    // Page load A queued three events offline; the participant reloaded (B) before the signal came back.
+    const a = [1, 2, 3].map((seq) => ({ type: 'decision', pageLoadAt: 1000, seq, clientT: seq * 100, t: sameServerTime }))
+    const b = [1, 2].map((seq) => ({ type: 'decision', pageLoadAt: 9000, seq, clientT: seq * 10, t: sameServerTime }))
+    const sorted = [b[1], a[2], b[0], a[0], a[1]].sort(compareEvents)
+    expect(sorted.map((e) => `${e.pageLoadAt}:${e.seq}`)).toEqual(['1000:1', '1000:2', '1000:3', '9000:1', '9000:2'])
+  })
+})

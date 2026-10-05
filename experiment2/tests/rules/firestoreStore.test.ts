@@ -50,7 +50,7 @@ describe('FirestoreStore with the real rules', () => {
     expect(taskOrder).toHaveLength(6)
 
     b.store.update({ stage: 'welcome' }, ['consentAt'])
-    b.store.sink.write({ type: 'stage', clientT: 10, taskId: null, screen: null, to: 'welcome' })
+    b.store.sink.write({ type: 'stage', pageLoadAt: 1, seq: 1, clientTime: 1, clientT: 10, taskId: null, screen: null, to: 'welcome' })
     await b.store.flush()
 
     const uid = b.auth.currentUser!.uid
@@ -100,7 +100,7 @@ describe('FirestoreStore with the real rules', () => {
 
   it('queues events logged before sign-in and writes them once the record exists', async () => {
     const b = browser()
-    b.store.sink.write({ type: 'stage', clientT: 1, taskId: null, screen: null, name: 'early' })
+    b.store.sink.write({ type: 'stage', pageLoadAt: 1, seq: 1, clientTime: 1, clientT: 1, taskId: null, screen: null, name: 'early' })
     await b.store.start(params('frank'))
     await b.store.flush()
     const uid = b.auth.currentUser!.uid
