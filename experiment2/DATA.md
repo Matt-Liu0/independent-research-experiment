@@ -7,6 +7,7 @@ What every stored field means and the values it can take. It covers the Firestor
 - **Server time** fields (`createdAt`, `consentAt`, `completedAt`, event `t`) are Firestore timestamps. The CSVs show them as ISO strings in UTC, e.g. `2026-11-01T12:20:00.000Z`.
 - **Visible time** leaves out time the app was in the background (phone locked, switched apps). Decision times use it.
 - **Per page load:** `clientT` and visible time start at 0 every time the page loads. After a reload (`resume` event) they start again.
+- **Event order:** sort events by `pageLoadAt`, then `seq`. Both come from the phone, so the order is exact even when the network delays or batches writes.
 
 ---
 
@@ -92,31 +93,36 @@ Saved about every 0.3 s while using the app, and at the end of each task.
 | `appState.deliveryRedeemed` | Redeemed free delivery | `true` / `false` |
 | `appState.storeId` | Current store | store ID or `null` |
 | `appState.cart` | Items in the cart now | list of product IDs (section 6) |
-| `appState.order` | Order status | `none` · `on_the_way` · `delivered` |
+| `appState.order` | Order status | `none` → `placed` → `packed` → `on_the_way` → `delivered` |
 | `appState.orderItems` | Items in the placed order | list of product IDs |
+| `appState.orderPlacedAt` | Phone clock when the order was placed (delivery times shown are worked out from it) | epoch ms, or `null` |
+| `appState.orderTrackingStarted` | Orders has been opened since ordering; the timeline only runs after this | `true` / `false` |
+| `appState.orderElapsedMs` | Visible ms of order tracking so far (pauses while the app is closed or hidden) | number |
+| `appState.orderOnTheWayAtMs` | `orderElapsedMs` when the order went On the way | number, or `null` |
 | `appState.savedDeals` | Deals saved (hearted) | list of deal IDs (section 6) |
-| `appState.address` | Delivery address. Starts as the practice address; changes only when the participant types a new one in Task 6 (participants are told to use the practice address, but **could** type a real one) | text |
+| `appState.address` | Delivery address, reduced to one of three values so a typed real address is never stored | `12 Birch Lane, Apt 3` (practice address, unchanged) · `40 Oak Street` (Task 6 done) · `other` (they saved something else) |
 | `appState.storeSearch.usedZipSearch` | Searched by ZIP. The ZIP itself is never stored | `true` / `false` |
-| `appState.storeSearch.storesViewed` | Most ZIP results shown | `0`, `6`, `24` |
+| `appState.storeSearch.storesViewed` | Most ZIP results shown without searching | `0`, `6`, `24` |
 | `appState.storeSearch.firstVisitMs` | Visible-clock time of first visit to Find a store | number or `null` |
 | `appState.storeSearch.msToFind` | See `t1.msToFind` | number or `null` |
 | `appState.accountPageVisits` | Times the Account tab was opened | `0`, `1`, … |
 | `appState.accountPageMs` | Total visible ms on the Account page | number |
 | `appState.screen` | Screen open when last saved | `shop` · `find_store` · `checkout` · `orders` · `deals` · `rewards` · `account` |
 
-> ⚠️ `appState.address` is the one place a participant's own typing is stored as written. The plan was to store only `addressMatches`. Since the address field holds whatever they type, someone could enter their real address. If that matters to the IRB, the app can stop saving the typed text and keep only whether it matches.
-
 ---
 
 ## 2. `participants/{uid}/events/{id}`: one document per event
 
-Append-only: once written, an event can't be changed or deleted by the participant. **The emulator UI lists events by random ID, not by time.** Sort by `t`, then `clientT`, or use `events.csv`, which is already sorted.
+Append-only: once written, an event can't be changed or deleted by the participant. **The emulator UI lists events by random ID, not by time.** Sort by `pageLoadAt`, then `seq`, or use `events.csv`, which is already sorted.
 
 ### Fields on every event
 
 | Field | Meaning | Values |
 |---|---|---|
 | `type` | Kind of event | `prompt_shown` · `decision` · `settled` · `screen` · `task` · `action` · `points` · `stage` · `visibility` · `resume` · `error` |
+| `pageLoadAt` | Phone clock when this page load began; goes up with every reload | epoch ms |
+| `seq` | Event number within this page load | `1`, `2`, `3`, … |
+| `clientTime` | Phone clock when the event happened (even if it reached the server later) | epoch ms |
 | `t` | When the server received it | server time |
 | `clientT` | ms since this page load, on the phone | number (restarts after a reload) |
 | `taskId` | Task in progress | `1`–`6`, or `null` outside a task (consent, surveys, ease ratings) |
@@ -143,9 +149,9 @@ Append-only: once written, an event can't be changed or deleted by the participa
 
 | Type | Extra fields and values |
 |---|---|
-| `screen` | `from`, `to`: screen IDs |
+| `screen` | `from`, `to`: screen IDs; `loadingMs`: how long the loading placeholder shows before the screen (`400` or `600`) |
 | `task` | `event`: `start` (with `task`, `position` 1–6) · `reopen` (tapped the task bar to reread; `task`) · `finish` (tapped Done; `task`, `position`, `outcome`: same object as `taskOutcome.tN`) · `ease` (`task`, `value` 1–7) |
-| `action` | `name`, one of: `store_set` (`storeId`, `hasOatMilk`) · `zip_search` (no ZIP stored) · `zip_show_more` · `cart_add` / `cart_remove` (`productId`) · `order_placed` (`items`: product IDs; `freeDelivery`: `true`/`false`) · `order_delivered` · `deal_toggled` (`dealId`, `saved`: `true` = hearted, `false` = un-hearted) · `delivery_redeemed` · `address_saved` (`matches`: `true`/`false`; the typed text is not logged) |
+| `action` | `name`, one of: `store_card_opened` (`storeId`; `via`: `pin` on the map or `list`) · `store_search` (`item`: `oat_milk` / `sourdough` / `null` for a store-name search; `results`: number of stores shown; the typed text is not logged) · `store_set` (`storeId`, `hasOatMilk`) · `zip_search` (no ZIP stored) · `zip_show_more` · `cart_add` / `cart_remove` (`productId`) · `order_placed` (`items`: product IDs; `freeDelivery`: `true`/`false`) · `order_status` (`step`: `packed`, `on_the_way` or `delivered`) · `deal_toggled` (`dealId`, `saved`: `true` = hearted, `false` = un-hearted) · `delivery_redeemed` · `address_saved` (`matches`: `true`/`false`; the typed text is not logged) |
 | `points` | `amount` (`+200`, `+100`, `+150`, or `-300`); `pointsBefore`; and either `flowId` (offer accepted) or `reason: redeem_delivery` |
 | `stage` | Moving through the study. Either `from` / `to` (stage names), or `name` with details: `entry` (`mode`: `study` / `pilot` / `demo`) · `device_check` (`passed`) · `consent` (`agreed`, `version`) · `sus_submitted` · `suspicion_submitted` · `settings_check_submitted` |
 | `visibility` | `state`: `hidden` (left the browser, locked the phone) · `visible` (came back) |
@@ -175,7 +181,7 @@ The first value listed shares more; ★ marks the option that shares least (`pri
 
 **Dependent flows:** #2 applies only if #1 is not `dont_allow`. #7 applies only if #5 is `allow`. Otherwise they're `null` and never settle.
 
-**Where the prompt appears:** a flow appears the first time the participant reaches its screen, whatever task they're on. The `taskId` on its events says which task that was.
+**Where the prompt appears:** a flow appears the first time the participant reaches its screen, whatever task they're on. The `taskId` on its events says which task that was. #5 and #6 appear only once the order is **On the way**, about 15 s of tracking after Orders is first opened. #7 appears on delivery.
 
 ---
 
@@ -208,7 +214,7 @@ Pilot runs use `pilot_pids` and `pilot_meta`.
 
 | Kind | IDs |
 |---|---|
-| Stores (nearby, with location on) | `elm` (Elm Street, oat milk in stock) · `riverside` (out of stock) |
+| Stores (nearby, with location on, nearest first) | `cedar-plaza` (0.3 mi, no oat milk) · `riverside` (0.6 mi, no) · `elm` (0.9 mi, in stock) · `north-gate` (1.4 mi, no) · `harbor-point` (2.1 mi, in stock). With general area only, distances show as "about 1 mi" / "about 2 mi" |
 | Stores (ZIP list, 24 A–Z) | `alder-road`, `bay-street`, `cedar-plaza`, `dover-avenue`, `elm`, `fenwick-commons`, `garden-row`, `harbor-point`, `ivy-lane`, `juniper-court`, `kestrel-way`, `linden-square`, `maple-crossing`, `north-gate`, `orchard-hill`, `pine-street`, `quarry-road`, `riverside`, `spruce-avenue`, `tanner-mill`, `union-place`, `vale-street`, `willow-park`, `york-commons`. Oat milk is in stock only at `elm`, `harbor-point` and `maple-crossing` |
 | Products | `oat_milk` · `sourdough` · `apples` · `yogurt` · `eggs` · `bananas` |
 | Deals | `oat_milk` · `apples` · `sourdough` · `yogurt` |
@@ -258,7 +264,7 @@ Includes everyone who arrived, also people who declined consent or failed the de
 
 ### `events.csv`: one row per event, sorted by time
 
-`studyCode`, then every event field from section 2. Lists are joined with `;`, and nested objects (such as a task `outcome`) are written as JSON.
+`studyCode`, then every event field from section 2, in phone order (`pageLoadAt`, then `seq`). Lists are joined with `;`, and nested objects (such as a task `outcome`) are written as JSON.
 
 ### `id-map.csv`: study code → Prolific ID
 

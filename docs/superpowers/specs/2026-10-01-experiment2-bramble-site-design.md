@@ -279,3 +279,15 @@ These refine the design above; where they conflict, this section wins.
 - `completedAt` is stamped when the settings check is submitted.
 - Consent text is a TypeScript module (`src/study/consentText.ts`), not markdown.
 - The export orders events by server time, then `clientT`, because `clientT` restarts after a reload. It is tested on fixtures and against seeded emulator data.
+
+## Version 0.2.0 changes (Oct 4, 2026)
+
+The store finder, loading and order tracking were reworked as set out in `2026-10-04-bramble-realism-proposals.md`. Points that change this spec:
+
+- **Nearby stores:** five, the two nearest without oat milk. Stock shows in store cards, or in the list after searching for oat milk.
+- **ZIP path:** still no map, but the same search box and store cards as the nearby path.
+- **Order statuses:** `placed`, `packed`, `on_the_way` and `delivered`. #5 and #6 appear at On the way. Place order no longer jumps to Orders; the timeline starts when Orders is first opened.
+- **Events:** every event also has `pageLoadAt`, `seq` and `clientTime`. New actions: `store_card_opened`, `store_search` and `order_status`. `screen` events have `loadingMs`.
+- **Stored address:** only the practice address, `40 Oak Street` or `other`.
+
+`experiment2/DATA.md` is the field-level reference.

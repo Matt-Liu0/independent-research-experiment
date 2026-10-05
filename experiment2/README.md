@@ -10,7 +10,7 @@ Phone web app for Part 1 of the location-privacy study. What every stored field 
 | `npm run dev` | Start the app at http://localhost:5173 |
 | `npm run emulators` | Start the local Auth and Firestore emulators (UI at http://localhost:4000) |
 | `npm test` | Unit, component and whole-app tests |
-| `npm run test:rules` | Security-rules, store and export tests against the emulators |
+| `npm run test:rules` | Security-rules, store and export tests against their own emulators (ports in `firebase.test.json`, so they never touch `npm run emulators` data) |
 | `npm run typecheck` | TypeScript check of app, tests and scripts |
 | `npm run lint` | Lint |
 | `npm run build` | Production build into `dist/` |
