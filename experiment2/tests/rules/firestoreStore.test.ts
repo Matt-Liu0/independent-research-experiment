@@ -14,14 +14,19 @@ const { FirestoreStore, collectionNames } = await import('../../src/study/firest
 const apps: FirebaseApp[] = []
 const run = Date.now().toString(36)
 
+// emulators:exec sets these to the test emulators' ports (firebase.test.json).
+const firestoreHost = process.env.FIRESTORE_EMULATOR_HOST ?? '127.0.0.1:8180'
+const authHost = process.env.FIREBASE_AUTH_EMULATOR_HOST ?? '127.0.0.1:9199'
+
 /** A separate "browser": its own Firebase app, auth session and Firestore client. */
 function browser() {
   const app = initializeApp({ projectId: 'demo-bramble', apiKey: 'demo-api-key', appId: 'demo' }, `b${apps.length}-${run}`)
   apps.push(app)
   const auth = getAuth(app)
-  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })
+  connectAuthEmulator(auth, `http://${authHost}`, { disableWarnings: true })
   const db = initializeFirestore(app, {})
-  connectFirestoreEmulator(db, '127.0.0.1', 8080)
+  const [fsHost, fsPort] = firestoreHost.split(':')
+  connectFirestoreEmulator(db, fsHost, Number(fsPort))
   return { app, auth, db, store: new FirestoreStore(db, auth, collectionNames(true)) }
 }
 
