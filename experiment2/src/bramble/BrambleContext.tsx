@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { visibleMs } from '../log/clock'
 import { logEvent, setLogContext } from '../log/logEvent'
+import { isSheetOpen } from './Sheet'
 import { delayFor, screenLoadingKey } from './timing'
 import { appReducer, type AppAction, type AppState } from './appState'
 import { FLOWS, getFlow, isApplicable, levelOf } from './flows'
@@ -17,6 +18,8 @@ export interface Bramble {
   friction: Friction
   dispatch: (action: AppAction) => void
   navigate: (screen: ScreenId) => void
+  /** Back to the previous screen (the ‹ button or the phone's Back). False if there's nowhere to go. */
+  goBack: () => boolean
   /** Log a named participant action (store set, order placed, …). */
   act: (name: string, fields?: Record<string, unknown>) => void
   /** A flow's prompt or control is on screen. Logs prompt_shown once per page load and applies its preset. */
@@ -30,6 +33,9 @@ export interface Bramble {
   /** The latest state, including changes made earlier in the same event handler. */
   getState: () => AppState
 }
+
+/** Where Back goes from a sub-screen when there's no history (e.g. right after a reload). */
+const SUB_SCREEN_PARENT: Partial<Record<ScreenId, ScreenId>> = { find_store: 'shop', checkout: 'shop' }
 
 const BrambleContext = createContext<Bramble | null>(null)
 
@@ -53,6 +59,8 @@ export function BrambleProvider({ friction, initialState, onChange, children }: 
   const shownAt = useRef(new Map<FlowId, number>())
   const decisions = useRef(new Map<FlowId, number>())
   const accountEnteredAt = useRef<number | null>(null)
+  // Screens visited in this page load, for Back. Not saved: after a reload, Back uses SUB_SCREEN_PARENT.
+  const history = useRef<ScreenId[]>([])
 
   const dispatch = useCallback((action: AppAction) => {
     stateRef.current = appReducer(stateRef.current, action)
@@ -170,9 +178,10 @@ export function BrambleProvider({ friction, initialState, onChange, children }: 
   }, [dispatch])
 
   const navigate = useCallback(
-    (screen: ScreenId) => {
+    (screen: ScreenId, via: 'tap' | 'back' = 'tap') => {
       const from = stateRef.current.screen
       if (from === screen) return
+      if (via === 'tap') history.current.push(from)
       settleLeaveFlows(from)
       if (from === 'account') closeAccountTiming()
       if (screen === 'account') {
@@ -180,11 +189,21 @@ export function BrambleProvider({ friction, initialState, onChange, children }: 
         dispatch({ type: 'accountVisit' })
       }
       setLogContext({ screen })
-      logEvent('screen', { from, to: screen, loadingMs: delayFor(screenLoadingKey(screen)) })
+      logEvent('screen', { from, to: screen, via, loadingMs: delayFor(screenLoadingKey(screen)) })
       dispatch({ type: 'navigate', screen })
     },
     [dispatch, settleLeaveFlows, closeAccountTiming],
   )
+
+  const goBack = useCallback(() => {
+    // Prompts can't be dismissed, so Back does nothing while one is open.
+    if (isSheetOpen()) return false
+    const current = stateRef.current.screen
+    const previous = history.current.pop() ?? SUB_SCREEN_PARENT[current]
+    if (!previous || previous === current) return false
+    navigate(previous, 'back')
+    return true
+  }, [navigate])
 
   const leaveScreen = useCallback(() => {
     settleLeaveFlows(stateRef.current.screen)
@@ -205,8 +224,8 @@ export function BrambleProvider({ friction, initialState, onChange, children }: 
   const getState = useCallback(() => stateRef.current, [])
 
   const value = useMemo<Bramble>(
-    () => ({ state, friction, dispatch, navigate, act, showFlow, chooseFlow, settleFlow, leaveScreen, getState }),
-    [state, friction, dispatch, navigate, act, showFlow, chooseFlow, settleFlow, leaveScreen, getState],
+    () => ({ state, friction, dispatch, navigate, goBack, act, showFlow, chooseFlow, settleFlow, leaveScreen, getState }),
+    [state, friction, dispatch, navigate, goBack, act, showFlow, chooseFlow, settleFlow, leaveScreen, getState],
   )
 
   return <BrambleContext.Provider value={value}>{children}</BrambleContext.Provider>

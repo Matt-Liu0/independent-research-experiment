@@ -306,3 +306,7 @@ One-finger dragging replaced two-finger in 0.4.1 (Oct 4, 2026).
 - **Rewards Change button:** answered offers can be changed on the Rewards card, the same in both levels.
 - **Offer points track the current answer:** they're paid on accepting and taken back on unlinking, wherever the change happens. This replaces "changes on the Account page never pay points", which allowed earning the bonus without sharing.
 - **Measures:** the first choice (`settled`) is still the behavior measure, and later changes are flagged in `flows.csv` as `changedLater`.
+
+## Version 0.6.0 change (Oct 4, 2026)
+
+Back navigation: a ‹ button on Find a store and Checkout, and the phone's Back moves between app screens. Back is blocked during consent, ratings and surveys, and while a prompt is open.

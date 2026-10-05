@@ -1,5 +1,12 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 
+let openSheets = 0
+
+/** A prompt sheet is on screen; Back must not close it (prompts can't be dismissed). */
+export function isSheetOpen(): boolean {
+  return openSheets > 0
+}
+
 /**
  * Bottom sheet that can't be dismissed: no drag handle, no tap-outside, no Escape.
  * It closes only when the screen stops rendering it (after a choice).
@@ -10,6 +17,10 @@ export function Sheet({ icon, title, description, children }: { icon: ReactNode;
 
   useEffect(() => {
     ref.current?.focus()
+    openSheets++
+    return () => {
+      openSheets--
+    }
   }, [])
 
   return (

@@ -4,8 +4,8 @@ import { useBramble } from '../BrambleContext'
 import { DELIVERY_FEE, findProduct, findStore } from '../data'
 import { FlowChoice } from '../FlowChoice'
 import { FLOWS, levelOf } from '../flows'
-import { BackIcon } from '../icons'
 import { Spinner } from '../Loading'
+import { ScreenHeader } from '../ScreenHeader'
 import { deliveryWindow } from '../orderTimeline'
 import { useBusy } from '../useBusy'
 
@@ -37,14 +37,7 @@ export function Checkout() {
     })
   }
 
-  const header = (
-    <div className="screen-header">
-      <button type="button" className="icon-button" aria-label="Back" onClick={() => navigate('shop')}>
-        <BackIcon />
-      </button>
-      <h1 className="screen-title">Checkout</h1>
-    </div>
-  )
+  const header = <ScreenHeader title="Checkout" />
 
   if (state.order !== 'none') {
     return (

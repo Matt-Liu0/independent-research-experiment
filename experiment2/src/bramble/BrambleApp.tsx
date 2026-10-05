@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import './bramble.css'
 import { useBramble } from './BrambleContext'
 import { visibleMs } from '../log/clock'
+import { setBackHandler } from '../study/backGuard'
 import { ScreenSkeleton } from './Loading'
 import { nextOrderStep } from './orderTimeline'
 import { BagIcon, CartIcon, GiftIcon, ReceiptIcon, TagIcon, UserIcon } from './icons'
@@ -35,9 +36,15 @@ const TABS: { screen: ScreenId; label: string; icon: ReactNode; covers: ScreenId
 
 /** The practice grocery app: header, current screen and tab bar. */
 export function BrambleApp() {
-  const { state, navigate } = useBramble()
+  const { state, navigate, goBack } = useBramble()
   const Screen = SCREENS[state.screen]
   useOrderTimeline()
+
+  // While the app is open, the phone's Back moves between screens.
+  useEffect(() => {
+    setBackHandler(goBack)
+    return () => setBackHandler(null)
+  }, [goBack])
   // The screen that has finished "loading". The first screen shows straight away (the task splash covers it).
   const [loaded, setLoaded] = useState<ScreenId>(state.screen)
   const loadingMs = delayFor(screenLoadingKey(state.screen))

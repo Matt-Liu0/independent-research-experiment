@@ -2,6 +2,10 @@
 
 Every build participants see has a version (`appVersion` on each record). Bump `version` in `package.json` and add an entry here for any change made once data collection starts.
 
+## 0.6.0 (2026-10-04)
+
+- **Back navigation:** Find a store and Checkout have a ‹ back button that returns to the screen you came from (Shop after a reload). The phone's Back button or swipe now moves between app screens instead of leaving the study. Back does nothing during consent, ratings and surveys, or while a prompt is open (prompts still can't be dismissed). New `via` on `screen` events and a new `phone_back` action.
+
 ## 0.5.0 (2026-10-04)
 
 - **Map:** downloaded a larger area (about 18 × 13 km, 16 MB on the server), so the map drags freely sideways as well as up and down.

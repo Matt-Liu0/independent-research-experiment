@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import './ui.css'
 import { installVisibilityLogging, logEvent } from './log/logEvent'
+import { installBackGuard } from './study/backGuard'
 import { ErrorBoundary } from './study/ErrorBoundary'
 import { getFirebase } from './study/firebase'
 import { FirestoreStore, collectionNames } from './study/firestoreStore'
@@ -21,6 +22,7 @@ function createStore(): StudyStore {
 const store = createStore()
 
 installVisibilityLogging()
+installBackGuard()
 window.addEventListener('error', (e) => logEvent('error', { where: 'window', message: String(e.message) }))
 window.addEventListener('unhandledrejection', (e) =>
   logEvent('error', { where: 'promise', message: String(e.reason) }),

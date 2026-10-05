@@ -14,6 +14,7 @@ import { FlowChoice } from '../FlowChoice'
 import { getFlow, levelOf } from '../flows'
 import { PinIcon, SearchIcon } from '../icons'
 import { LoadingBlock, Spinner } from '../Loading'
+import { ScreenHeader } from '../ScreenHeader'
 import { Sheet } from '../Sheet'
 import { useBusy } from '../useBusy'
 
@@ -59,7 +60,7 @@ export function FindStore() {
 
   return (
     <section className="screen">
-      <h1 className="screen-title">Find a store</h1>
+      <ScreenHeader title="Find a store" />
       {body}
       {askLocation && (
         <Sheet icon={<PinIcon />} title={flow.title} description={flow.description}>
