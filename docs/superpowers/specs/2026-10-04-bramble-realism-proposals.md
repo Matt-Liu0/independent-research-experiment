@@ -191,3 +191,17 @@ Each phase ends with tests passing and a commit, as before.
    - add `pageLoad`/`seq` counters so events sort exactly even after offline reloads
 
    They can be folded into Phase R1.
+
+## Decisions (Oct 4, 2026)
+
+Approved with the recommendations:
+
+1. Map: tap pins and rows to open a store card. No panning and no "Search this area".
+2. No "Use my location" on the ZIP screen. The ZIP path stays as on mockup p. 12 (ZIP box, then 24 stores A to Z, no map), so declining costs exactly what it did.
+3. Loading: a splash when each task starts, skeletons on screen changes, and spinners on actions.
+4. Order timeline: Packed at about 8 s, On the way at about 15 s, then delivery once #5 and #6 are answered and at least 15 s have passed on the way.
+5. Both data fixes are included, as Phase R0:
+   - The stored address is only the practice address, "40 Oak Street", or `other`; the typed text stays in memory.
+   - Every event gets `pageLoadAt` (phone clock at page load), `seq` (event number within the page load) and `clientTime`. The export sorts by these.
+6. After Place order, Checkout shows a confirmation with "Track your order" instead of jumping to Orders, so the tracking timeline starts in Task 3 when the participant opens Orders.
+7. Courier chat is left out (cosmetic).
