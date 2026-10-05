@@ -133,7 +133,7 @@ Append-only: once written, an event can't be changed or deleted by the participa
 | Type | When | Extra fields |
 |---|---|---|
 | `prompt_shown` | A flow's prompt or control first comes on screen (once per page load; at least half of it must be visible) | `flowId`; `defaultShown`: the preset value (e.g. `share` in nudged), or `null` if nothing was preset |
-| `decision` | Every tap that changes a flow, including each switch toggle | `flowId`; `value` (new value); `previous` (value before the tap, `null` if none); `defaultShown`; `source`: `prompt` (on the app screen) or `account_page`; `msSincePrompt`: visible ms since `prompt_shown` (`null` for Account-page changes); `pointsBefore`: balance at the moment of choosing |
+| `decision` | Every tap that changes a flow, including each switch toggle | `flowId`; `value` (new value); `previous` (value before the tap, `null` if none); `defaultShown`; `source`: `prompt` (on the app screen, including taps before it settles), `rewards_page` (changing an answered offer with its **Change** button) or `account_page`; `msSincePrompt`: visible ms since `prompt_shown` (`null` for changes after settling); `pointsBefore`: balance at the moment of choosing |
 | `settled` | The flow's **first choice** is fixed (see "When flows settle" below). Happens at most once per flow | `flowId`; `value`: the first choice; `defaultShown`; `changedFromDefault`: `true` if a preset existed and they moved off it, `false` otherwise (always `false` when there was no preset); `msSincePrompt`: visible ms from appearing to settling; `toggleCount`: taps on this flow before it settled, in this page load (1 for a one-tap prompt; 0 for a preset switch never touched) |
 
 **When flows settle**
@@ -152,7 +152,7 @@ Append-only: once written, an event can't be changed or deleted by the participa
 | `screen` | `from`, `to`: screen IDs; `loadingMs`: how long the loading placeholder shows before the screen (`250` or `400`) |
 | `task` | `event`: `start` (with `task`, `position` 1–6) · `reopen` (tapped the task bar to reread; `task`) · `finish` (tapped Done; `task`, `position`, `outcome`: same object as `taskOutcome.tN`) · `ease` (`task`, `value` 1–7) |
 | `action` | `name`, one of: `map_shown` (`kind`: `real` (street map) or `drawn` (fallback on phones that can't show it); logged when the nearby-stores map appears) · `map_moved` (`gesture`: `drag` or `zoom`; one per gesture, only ones the participant made) · `map_recentered` (tapped the recenter button) · `store_card_opened` (`storeId`; `via`: `pin` on the map or `list`) · `store_search` (`item`: `oat_milk` / `sourdough` / `null` for a store-name search; `results`: number of stores shown; the typed text is not logged) · `store_set` (`storeId`, `hasOatMilk`) · `zip_search` (no ZIP stored) · `zip_show_more` · `cart_add` / `cart_remove` (`productId`) · `order_placed` (`items`: product IDs; `freeDelivery`: `true`/`false`) · `order_status` (`step`: `packed`, `on_the_way` or `delivered`) · `deal_toggled` (`dealId`, `saved`: `true` = hearted, `false` = un-hearted) · `delivery_redeemed` · `address_saved` (`matches`: `true`/`false`; the typed text is not logged) |
-| `points` | `amount` (`+200`, `+100`, `+150`, or `-300`); `pointsBefore`; and either `flowId` (offer accepted) or `reason: redeem_delivery` |
+| `points` | `amount` (`+200`, `+100`, `+150`, their negatives, or `-300`); `pointsBefore`; and either `flowId` with `reason` `offer_accepted` (first answer) or `offer_changed` (an answered offer changed, on the Rewards card or the Account page), or `reason: redeem_delivery`. Points always match the current answers, so accepting and then unlinking earns nothing |
 | `stage` | Moving through the study. Either `from` / `to` (stage names), or `name` with details: `entry` (`mode`: `study` / `pilot` / `demo`) · `device_check` (`passed`) · `consent` (`agreed`, `version`) · `sus_submitted` · `suspicion_submitted` · `settings_check_submitted` |
 | `visibility` | `state`: `hidden` (left the browser, locked the phone) · `visible` (came back) |
 | `resume` | Page reopened mid-study; `stage`: where they resumed |
@@ -244,7 +244,8 @@ Only participants who were assigned a level have rows.
 | `changedFromDefault` | Moved off a preset | `true` / `false` / empty |
 | `msSincePrompt` | Decision time: visible ms from appearing to settling | number |
 | `toggleCount` | Taps on the flow (on the app screen) up to settling, across reloads | `0`, `1`, … (high values suggest "testing" rather than "using") |
-| `changedOnAccountPage` | Changed later on the Account page | `true` / `false` |
+| `changedLater` | Changed at all after the first choice was fixed (Rewards **Change** button or Account page) | `true` / `false` |
+| `changedOnAccountPage` | Changed later on the Account page specifically | `true` / `false` |
 
 ### `participants.csv`: one row per participant
 

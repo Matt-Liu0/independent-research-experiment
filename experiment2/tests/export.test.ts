@@ -119,12 +119,14 @@ describe('buildExport', () => {
       toggleCount: 3,
       msSincePrompt: 1000,
       changedOnAccountPage: false,
+      changedLater: false,
     })
     expect(row('reward_keel')).toMatchObject({
       firstChoice: 'accept',
       finalValue: 'decline',
       firstChoiceIsPrivacy: false,
       changedOnAccountPage: true,
+      changedLater: true,
       toggleCount: 1,
     })
     expect(row('deals_personalized')).toMatchObject({ status: 'not_shown', firstChoice: null })

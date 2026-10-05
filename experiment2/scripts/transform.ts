@@ -96,6 +96,8 @@ function flowRows(code: string, data: Record<string, unknown>, events: Record<st
       changedFromDefault: (settled?.changedFromDefault as boolean) ?? null,
       msSincePrompt: (settled?.msSincePrompt as number) ?? null,
       toggleCount: promptDecisions.length,
+      // Changed after the first choice was fixed: on the Rewards card (Change) or the Account page.
+      changedLater: settled ? events.some((e, i) => i > settledIndex && e.type === 'decision' && e.flowId === flow.id) : false,
       changedOnAccountPage: events.some((e) => e.type === 'decision' && e.flowId === flow.id && e.source === 'account_page'),
     }
   })

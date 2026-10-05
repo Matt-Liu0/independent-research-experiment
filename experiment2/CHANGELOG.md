@@ -2,6 +2,13 @@
 
 Every build participants see has a version (`appVersion` on each record). Bump `version` in `package.json` and add an entry here for any change made once data collection starts.
 
+## 0.5.0 (2026-10-04)
+
+- **Map:** downloaded a larger area (about 18 × 13 km, 16 MB on the server), so the map drags freely sideways as well as up and down.
+- **Rewards:** answered offers show a **Change** button (same in both levels) to switch the answer. Decisions made this way have `source: rewards_page`.
+- **Points follow the current answer everywhere:** unlinking an accepted offer, on the Rewards card or the Account page, takes its points back, and accepting later pays them. Before this, accepting and then unlinking kept the bonus without sharing. `points` events have a `reason` (`offer_accepted` / `offer_changed`).
+- **Export:** `flows.csv` has a new `changedLater` column.
+
 ## 0.4.1 (2026-10-04)
 
 - The map now drags with one finger and pinch-zooms with two, like a phone app (was two-finger dragging). Swiping outside the map still scrolls the page.

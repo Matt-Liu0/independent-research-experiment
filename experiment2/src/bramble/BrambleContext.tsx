@@ -6,7 +6,11 @@ import { appReducer, type AppAction, type AppState } from './appState'
 import { FLOWS, getFlow, isApplicable, levelOf } from './flows'
 import type { FlowId, Friction, ScreenId } from './types'
 
-export type DecisionSource = 'prompt' | 'account_page'
+/**
+ * prompt: on the app screen where the flow appears. rewards_page: changing an answered offer
+ * with its Change button. account_page: on the Account page.
+ */
+export type DecisionSource = 'prompt' | 'rewards_page' | 'account_page'
 
 export interface Bramble {
   state: AppState
@@ -122,17 +126,30 @@ export function BrambleProvider({ friction, initialState, onChange, children }: 
         previous: before.flows[id],
         defaultShown: presetOf(id),
         source,
-        msSincePrompt: source === 'prompt' ? msSincePrompt(id) : null,
+        msSincePrompt: source === 'prompt' && !wasSettled ? msSincePrompt(id) : null,
         pointsBefore: before.points,
       })
       dispatch({ type: 'set', flowId: id, value })
 
-      if (source !== 'prompt' || wasSettled) return
-      if (flow.points && value === flow.options[0]) {
-        logEvent('points', { flowId: id, amount: flow.points, pointsBefore: before.points })
-        dispatch({ type: 'addPoints', amount: flow.points })
+      // Points always match the current answer: accepting pays, and changing an accepted offer
+      // back takes the points back, wherever it happens. Otherwise accepting and then unlinking
+      // would earn the bonus without sharing anything.
+      const firstAnswer = source === 'prompt' && !wasSettled
+      if (flow.points && (firstAnswer || wasSettled)) {
+        const accept = flow.options[0]
+        const amount =
+          (value === accept ? flow.points : 0) - (wasSettled && before.flows[id] === accept ? flow.points : 0)
+        if (amount !== 0) {
+          logEvent('points', {
+            flowId: id,
+            amount,
+            pointsBefore: before.points,
+            reason: firstAnswer ? 'offer_accepted' : 'offer_changed',
+          })
+          dispatch({ type: 'addPoints', amount })
+        }
       }
-      if (flow.settleOn === 'choice') settleWith(id, value)
+      if (firstAnswer && flow.settleOn === 'choice') settleWith(id, value)
     },
     [dispatch, presetOf, settleWith],
   )

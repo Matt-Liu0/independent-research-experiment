@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef } from 'react'
-import { useBramble } from './BrambleContext'
+import { useBramble, type DecisionSource } from './BrambleContext'
 import { getFlow, levelOf } from './flows'
 import type { FlowDef, FlowId, LevelDef } from './types'
 
@@ -38,13 +38,15 @@ interface Props {
   disabledOptions?: string[]
   /** Called after the choice is logged. */
   onChosen?: (value: string) => void
+  /** Where the choice is made; 'rewards_page' when changing an answered offer. */
+  source?: DecisionSource
 }
 
 /**
  * Draws one flow in the participant's friction level and logs every choice.
  * Prompts draw only their buttons (the screen shows the title); settings draw their own text.
  */
-export function FlowChoice({ flowId, layout = 'stack', tone = 'green', disabledOptions = [], onChosen }: Props) {
+export function FlowChoice({ flowId, layout = 'stack', tone = 'green', disabledOptions = [], onChosen, source = 'prompt' }: Props) {
   const { friction, state, chooseFlow } = useBramble()
   const flow = getFlow(flowId)
   const level = levelOf(flow, friction)
@@ -52,7 +54,7 @@ export function FlowChoice({ flowId, layout = 'stack', tone = 'green', disabledO
   const value = state.flows[flowId] ?? level.default
 
   const choose = (next: string) => {
-    chooseFlow(flowId, next)
+    chooseFlow(flowId, next, source)
     onChosen?.(next)
   }
 

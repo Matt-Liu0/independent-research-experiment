@@ -300,3 +300,9 @@ The nearby-stores map is a real OpenStreetMap street map, self-hosted (`experime
 
 This reverses the earlier "no panning" decision: the real map can be dragged and zoomed. It uses cooperative gestures (two fingers on phones) and is limited to the downloaded area, with a recenter button. Each move is logged as `map_moved`, so exploring is measured rather than prevented. Loading delays are about a third shorter (`src/bramble/timing.ts`).
 One-finger dragging replaced two-finger in 0.4.1 (Oct 4, 2026).
+
+## Version 0.5.0 changes (Oct 4, 2026)
+
+- **Rewards Change button:** answered offers can be changed on the Rewards card, the same in both levels.
+- **Offer points track the current answer:** they're paid on accepting and taken back on unlinking, wherever the change happens. This replaces "changes on the Account page never pay points", which allowed earning the bonus without sharing.
+- **Measures:** the first choice (`settled`) is still the behavior measure, and later changes are flagged in `flows.csv` as `changedLater`.

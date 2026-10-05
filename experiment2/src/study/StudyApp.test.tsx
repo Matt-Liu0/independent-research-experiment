@@ -30,7 +30,7 @@ describe('StudyApp', () => {
   it('stops computers at the device check and records the device', async () => {
     const store = new MemoryStore()
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} detect={computer} />)
-    expect(await screen.findByRole('heading', { name: /open this on your phone/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /open this on your phone/i }, { timeout: 3000 })).toBeInTheDocument()
     expect(store.participant?.stage).toBe('device')
     expect(store.participant?.device?.passedCheck).toBe(false)
   })

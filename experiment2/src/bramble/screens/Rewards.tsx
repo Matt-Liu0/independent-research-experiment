@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { logEvent } from '../../log/logEvent'
 import { bonusDollars } from '../appState'
 import { useBramble } from '../BrambleContext'
@@ -12,6 +13,8 @@ const OFFERS = FLOWS.filter((f) => f.screen === 'rewards')
 export function Rewards() {
   const { state, dispatch, act } = useBramble()
   const [busy, run] = useBusy()
+  // Offers being changed after their first answer.
+  const [editing, setEditing] = useState<string | null>(null)
   const canRedeem = !state.deliveryRedeemed && state.points >= REDEEM_COST && busy === null
 
   const redeem = () => {
@@ -65,15 +68,27 @@ export function Rewards() {
               <p className="small muted offer-result">
                 <Spinner label="Saving…" />
               </p>
-            ) : settled && value !== null ? (
-              <p className="small strong offer-result">{offer.account.labels[value]}</p>
+            ) : settled && value !== null && editing !== offer.id ? (
+              <div className="row offer-result">
+                <span className="small strong" style={{ flex: 1 }}>
+                  {value === offer.options[0] ? `${offer.account.labels[value]} · +${offer.points} pts` : 'You said no thanks'}
+                </span>
+                {/* Same in both levels: answers can always be changed, and points follow the answer. */}
+                <button type="button" className="btn btn-link btn-small" onClick={() => setEditing(offer.id)}>
+                  Change
+                </button>
+              </div>
             ) : (
               <FlowChoice
                 flowId={offer.id}
                 layout="row"
                 tone="berry"
+                source={settled ? 'rewards_page' : 'prompt'}
                 // The choice is logged at the tap; the spinner only follows it.
-                onChosen={() => run('offerSave', () => {}, offer.id)}
+                onChosen={() => {
+                  setEditing(null)
+                  run('offerSave', () => {}, offer.id)
+                }}
               />
             )}
           </div>
