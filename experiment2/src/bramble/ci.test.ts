@@ -46,3 +46,25 @@ describe('GKC-CI coding', () => {
     for (const flow of FLOWS) expect(['opt_out', 'nudged_choice']).not.toContain(consentForm(flow, 'neutral'))
   })
 })
+
+describe('verdictOf', () => {
+  it('maps every option of every flow to the pipeline verdicts', async () => {
+    const { verdictOf } = await import('./ci')
+    const map = Object.fromEntries(FLOWS.map((f) => [f.id, Object.fromEntries(f.options.map((o) => [o, verdictOf(f, o)]))]))
+    expect(map).toEqual({
+      store_location: { while_using: 'allow', once: 'ask', dont_allow: 'block' },
+      store_precise: { exact: 'allow', general: 'block' },
+      courier_live: { share: 'allow', dont_share: 'block' },
+      checkout_partner_offers: { checked: 'allow', unchecked: 'block' },
+      bg_during_order: { allow: 'allow', not_now: 'block' },
+      sam_share: { live_location: 'allow', arrival_only: 'block' },
+      bg_between_orders: { keep_on: 'allow', turn_off: 'block' },
+      deals_personalized: { on: 'allow', off: 'block' },
+      deals_partner_offers: { on: 'allow', off: 'block' },
+      reward_keel: { accept: 'allow', decline: 'block' },
+      reward_university: { accept: 'allow', decline: 'block' },
+      reward_data_partners: { accept: 'allow', decline: 'block' },
+    })
+    expect(verdictOf(FLOWS[0], null)).toBeNull()
+  })
+})

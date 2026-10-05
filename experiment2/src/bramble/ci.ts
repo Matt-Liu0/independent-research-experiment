@@ -86,3 +86,23 @@ export function consentForm(flow: FlowDef, friction: Friction): ConsentForm {
   if (level.default !== null) return level.default === flow.privacyOption ? 'opt_in' : 'opt_out'
   return level.emphasis !== null ? 'nudged_choice' : 'active_choice'
 }
+
+/** The battery's three responses (Experiment 1 questionnaire, Experiment 3 probes). */
+export type Verdict = 'allow' | 'ask' | 'block'
+
+/** Options that map to something other than the default rule below. */
+const VERDICT_EXCEPTIONS: Partial<Record<FlowDef['id'], Record<string, Verdict>>> = {
+  store_location: { once: 'ask' },
+}
+
+/**
+ * Maps a site choice to a battery verdict, as the pipeline specifies (Experiment 2, "Verdict"):
+ * Allow or Allow while using → allow; Allow once → ask; Don't allow or an unchecked box → block.
+ * Every flow's least-sharing option is block; its other options are allow unless listed above.
+ */
+export function verdictOf(flow: FlowDef, value: string | null): Verdict | null {
+  if (value === null) return null
+  const exception = VERDICT_EXCEPTIONS[flow.id]?.[value]
+  if (exception) return exception
+  return value === flow.privacyOption ? 'block' : 'allow'
+}

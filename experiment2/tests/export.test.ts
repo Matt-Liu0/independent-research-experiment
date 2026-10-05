@@ -109,7 +109,9 @@ describe('buildExport', () => {
 
   it('computes one row per flow with status, first choice and final value', () => {
     const row = (flowId: string) => result.flows.find((r) => r.flowId === flowId)!
-    expect(row('store_location')).toMatchObject({ status: 'chosen', firstChoice: 'dont_allow', firstChoiceIsPrivacy: true, taskId: 1 })
+    expect(row('store_location')).toMatchObject({ status: 'chosen', firstChoice: 'dont_allow', firstChoiceIsPrivacy: true, taskId: 1, firstVerdict: 'block', finalVerdict: 'block' })
+    expect(row('reward_keel')).toMatchObject({ firstVerdict: 'allow', finalVerdict: 'block' })
+    expect(row('deals_personalized')).toMatchObject({ firstVerdict: null })
     expect(row('courier_live')).toMatchObject({
       consentForm: 'opt_out',
       ci_sender: 'participant',

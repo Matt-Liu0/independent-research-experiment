@@ -1,6 +1,6 @@
 // Turns raw participant records and event logs into analysis-ready rows.
 // Pure functions only, so they can be tested without Firebase.
-import { consentForm } from '../src/bramble/ci'
+import { consentForm, verdictOf } from '../src/bramble/ci'
 import { FLOWS } from '../src/bramble/flows'
 import type { FlowDef, FlowStatus, Friction } from '../src/bramble/types'
 
@@ -86,6 +86,7 @@ export function flowCodebook(): Row[] {
     dependsOn: flow.dependsOn ? flow.dependsOn.flowId : null,
     consentForm_nudged: consentForm(flow, 'nudged'),
     consentForm_neutral: consentForm(flow, 'neutral'),
+    verdictMap: flow.options.map((o) => `${o}=${verdictOf(flow, o)}`).join(';'),
     ...ciColumns(flow),
     ci_statement: flow.ci.statement,
   }))
@@ -128,6 +129,9 @@ function flowRows(code: string, data: Record<string, unknown>, events: Record<st
       finalValue: finalFlows[flow.id] ?? null,
       privacyOption: flow.privacyOption,
       firstChoiceIsPrivacy: settled ? settled.value === flow.privacyOption : null,
+      // The pipeline's verdicts, comparable with S(f) and the agent's verdicts.
+      firstVerdict: verdictOf(flow, (settled?.value as string) ?? null),
+      finalVerdict: verdictOf(flow, finalFlows[flow.id] ?? null),
       defaultShown: (shown?.defaultShown as string) ?? null,
       changedFromDefault: (settled?.changedFromDefault as boolean) ?? null,
       msSincePrompt: (settled?.msSincePrompt as number) ?? null,
