@@ -484,9 +484,12 @@
   padding: 12px;
 }
 
-.deal-swatch {
-  height: 84px;
+.deal-photo {
+  display: block;
+  width: 100%;
+  height: 96px;
   border-radius: 12px;
+  object-fit: cover;
 }
 
 .deal-footer {

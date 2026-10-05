@@ -34,7 +34,7 @@ export function Deals() {
             const saved = state.savedDeals.includes(deal.id)
             return (
               <li key={deal.id} className="card deal-card">
-                <div className="deal-swatch" style={{ background: deal.swatch }} aria-hidden="true" />
+                <img className="deal-photo" src={deal.image} alt="" style={{ background: deal.swatch }} width={240} height={160} />
                 <div className="product-name">{deal.name}</div>
                 <div className="row deal-footer">
                   <span className="deal-price">{deal.price}</span>

@@ -108,14 +108,17 @@ export interface Deal {
   id: string
   name: string
   price: string
+  /** Shown behind the photo while it loads. */
   swatch: string
+  /** CC0 photo served from our own site (public/images/deals; credits in CREDITS.md there). */
+  image: string
 }
 
 export const DEALS: Deal[] = [
-  { id: 'oat_milk', name: 'Oat milk, 64 oz', price: '2 for $7.00', swatch: '#e6edf3' },
-  { id: 'apples', name: 'Honeycrisp apples', price: '$1.99 / lb', swatch: '#f2e5e3' },
-  { id: 'sourdough', name: 'Sourdough loaf', price: '$4.99', swatch: '#f3ecdc' },
-  { id: 'yogurt', name: 'Greek yogurt, 32 oz', price: '$4.29', swatch: '#e2ede5' },
+  { id: 'oat_milk', name: 'Oat milk, 64 oz', price: '2 for $7.00', swatch: '#e6edf3', image: '/images/deals/oat_milk.jpg' },
+  { id: 'apples', name: 'Honeycrisp apples', price: '$1.99 / lb', swatch: '#f2e5e3', image: '/images/deals/apples.jpg' },
+  { id: 'sourdough', name: 'Sourdough loaf', price: '$4.99', swatch: '#f3ecdc', image: '/images/deals/sourdough.jpg' },
+  { id: 'yogurt', name: 'Greek yogurt, 32 oz', price: '$4.29', swatch: '#e2ede5', image: '/images/deals/yogurt.jpg' },
 ]
 
 /** Practice delivery address (the participant's real address is never asked for). */
