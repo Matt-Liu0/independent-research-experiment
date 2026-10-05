@@ -1,3 +1,3 @@
 Map data © OpenStreetMap contributors (ODbL), via Protomaps build 20261003.
 Fonts: Noto Sans (SIL Open Font License), from protomaps/basemaps-assets.
-Area: -83.085, 40.005, -82.97, 40.078 (west, south, east, north), zooms 11–15.
+Area: -83.135, 39.985, -82.92, 40.1 (west, south, east, north), zooms 11–15.

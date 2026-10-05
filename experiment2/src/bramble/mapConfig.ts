@@ -13,8 +13,8 @@ export const STORE_LNGLAT: Record<string, [number, number]> = {
   'harbor-point': [-83.0435, 40.0215],
 }
 
-/** Area downloaded by `npm run build:map`: west, south, east, north. Covers all pins with margin. */
-export const MAP_BOUNDS: [number, number, number, number] = [-83.085, 40.005, -82.97, 40.078]
+/** Area downloaded by `npm run build:map`: west, south, east, north. About 18 × 13 km, so the map can be dragged a good way in every direction from the starting view. */
+export const MAP_BOUNDS: [number, number, number, number] = [-83.135, 39.985, -82.92, 40.1]
 
 export const MAP_MIN_ZOOM = 11
 export const MAP_MAX_ZOOM = 15
