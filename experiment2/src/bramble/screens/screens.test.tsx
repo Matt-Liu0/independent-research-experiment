@@ -70,8 +70,8 @@ describe('Checkout', () => {
     await user.click(screen.getByRole('button', { name: "Don't share" }))
     await user.click(place)
 
-    expect(app.state().order).toBe('on_the_way')
-    expect(app.state().screen).toBe('orders')
+    expect(app.state().order).not.toBe('none')
+    expect(screen.getByText('Order placed! You can follow it in Orders.')).toBeInTheDocument()
     const settled = app.eventsOf('settled')
     expect(settled.map((e) => [e.flowId, e.value])).toEqual([
       ['courier_live', 'dont_share'],

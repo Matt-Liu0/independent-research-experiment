@@ -2,20 +2,26 @@ import { useState, type FormEvent } from 'react'
 import { OTHER_ADDRESS, addressMatches } from '../appState'
 import { useBramble } from '../BrambleContext'
 import { FLOWS, getFlow, isApplicable } from '../flows'
+import { Spinner } from '../Loading'
 import type { FlowDef } from '../types'
+import { useBusy } from '../useBusy'
 
 export function Account() {
   const { state, dispatch, act } = useBramble()
   const [address, setAddress] = useState(state.address === OTHER_ADDRESS ? '' : state.address)
   const [saved, setSaved] = useState(false)
+  const [busy, run] = useBusy()
 
   const save = (event: FormEvent) => {
     event.preventDefault()
     if (!address.trim()) return
-    dispatch({ type: 'saveAddress', address })
-    // Only whether it matches is logged; the typed text is not.
-    act('address_saved', { matches: addressMatches(address) })
-    setSaved(true)
+    const typed = address
+    run('saveAddress', () => {
+      dispatch({ type: 'saveAddress', address: typed })
+      // Only whether it matches is logged; the typed text is not.
+      act('address_saved', { matches: addressMatches(typed) })
+      setSaved(true)
+    })
   }
 
   return (
@@ -35,8 +41,8 @@ export function Account() {
               setSaved(false)
             }}
           />
-          <button type="submit" className="btn btn-green btn-auto" disabled={!address.trim()}>
-            Save
+          <button type="submit" className="btn btn-green btn-auto" disabled={!address.trim() || busy !== null}>
+            {busy ? <Spinner /> : 'Save'}
           </button>
         </div>
         {saved && (

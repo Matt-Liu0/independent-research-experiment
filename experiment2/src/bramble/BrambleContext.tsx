@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { visibleMs } from '../log/clock'
 import { logEvent, setLogContext } from '../log/logEvent'
+import { delayFor, screenLoadingKey } from './timing'
 import { appReducer, type AppAction, type AppState } from './appState'
 import { FLOWS, getFlow, isApplicable, levelOf } from './flows'
 import type { FlowId, Friction, ScreenId } from './types'
@@ -162,7 +163,7 @@ export function BrambleProvider({ friction, initialState, onChange, children }: 
         dispatch({ type: 'accountVisit' })
       }
       setLogContext({ screen })
-      logEvent('screen', { from, to: screen })
+      logEvent('screen', { from, to: screen, loadingMs: delayFor(screenLoadingKey(screen)) })
       dispatch({ type: 'navigate', screen })
     },
     [dispatch, settleLeaveFlows, closeAccountTiming],

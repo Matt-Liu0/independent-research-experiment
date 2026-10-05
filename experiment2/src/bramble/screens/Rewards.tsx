@@ -4,17 +4,22 @@ import { useBramble } from '../BrambleContext'
 import { REDEEM_COST } from '../data'
 import { FlowChoice } from '../FlowChoice'
 import { FLOWS } from '../flows'
+import { Spinner } from '../Loading'
+import { useBusy } from '../useBusy'
 
 const OFFERS = FLOWS.filter((f) => f.screen === 'rewards')
 
 export function Rewards() {
   const { state, dispatch, act } = useBramble()
-  const canRedeem = !state.deliveryRedeemed && state.points >= REDEEM_COST
+  const [busy, run] = useBusy()
+  const canRedeem = !state.deliveryRedeemed && state.points >= REDEEM_COST && busy === null
 
   const redeem = () => {
-    logEvent('points', { reason: 'redeem_delivery', amount: -REDEEM_COST, pointsBefore: state.points })
-    act('delivery_redeemed')
-    dispatch({ type: 'redeem' })
+    run('redeem', () => {
+      logEvent('points', { reason: 'redeem_delivery', amount: -REDEEM_COST, pointsBefore: state.points })
+      act('delivery_redeemed')
+      dispatch({ type: 'redeem' })
+    })
   }
 
   return (
@@ -39,7 +44,7 @@ export function Rewards() {
           <div className="muted small">{REDEEM_COST} pts</div>
         </div>
         <button type="button" className="btn btn-green btn-auto" disabled={!canRedeem} onClick={redeem}>
-          {state.deliveryRedeemed ? 'Redeemed' : 'Redeem'}
+          {busy === 'redeem' ? <Spinner /> : state.deliveryRedeemed ? 'Redeemed' : 'Redeem'}
         </button>
       </div>
 
@@ -56,10 +61,20 @@ export function Rewards() {
               <span className="points-pill">+{offer.points} pts</span>
             </div>
             <p className="muted offer-description">{offer.description}</p>
-            {settled && value !== null ? (
+            {busy === offer.id ? (
+              <p className="small muted offer-result">
+                <Spinner label="Saving…" />
+              </p>
+            ) : settled && value !== null ? (
               <p className="small strong offer-result">{offer.account.labels[value]}</p>
             ) : (
-              <FlowChoice flowId={offer.id} layout="row" tone="berry" />
+              <FlowChoice
+                flowId={offer.id}
+                layout="row"
+                tone="berry"
+                // The choice is logged at the tap; the spinner only follows it.
+                onChosen={() => run('offerSave', () => {}, offer.id)}
+              />
             )}
           </div>
         )

@@ -95,6 +95,7 @@ async function declineEverything(friction: Friction) {
   finish(2)
 
   // Task 3: no background location; arrival time only.
+  await user.click(tab('Orders'))
   await user.click(screen.getByRole('button', { name: 'Not now' }))
   await user.click(screen.getByRole('button', { name: 'Send arrival time only' }))
   await screen.findByText('Delivered at 5:44 PM', {}, { timeout: 3000 })

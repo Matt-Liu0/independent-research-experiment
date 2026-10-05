@@ -583,3 +583,88 @@
   color: #fff;
   font-weight: 700;
 }
+
+/* Loading */
+.spinner-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 999px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.skeleton {
+  border-radius: 14px;
+  background: linear-gradient(90deg, var(--sand) 0%, #f6f4ee 50%, var(--sand) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+
+.skeleton-title {
+  width: 55%;
+  height: 34px;
+}
+
+.skeleton-block {
+  height: 150px;
+  border-radius: var(--radius-card);
+}
+
+.skeleton-row {
+  height: 72px;
+  border-radius: var(--radius-card);
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+.loading-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  color: var(--ink-muted);
+}
+
+.splash {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: var(--cream);
+  color: var(--green);
+}
+
+.splash-logo {
+  font-size: 48px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner,
+  .skeleton {
+    animation-duration: 3s;
+  }
+}

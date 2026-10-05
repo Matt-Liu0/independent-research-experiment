@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { initialAppState, storableAppState, type AppState } from '../bramble/appState'
 import { BrambleApp } from '../bramble/BrambleApp'
 import { BrambleProvider, useBramble } from '../bramble/BrambleContext'
+import { Splash } from '../bramble/Loading'
+import { delayFor } from '../bramble/timing'
 import type { TaskNumber } from '../bramble/types'
 import { logEvent, setLogContext } from '../log/logEvent'
 import { EaseRating } from '../surveys/EaseRating'
@@ -89,12 +91,22 @@ function TaskRunner({
 }) {
   const { leaveScreen, getState } = useBramble()
   const logged = useRef(false)
+  // card: task card open, app not mounted yet. splash: the app "opening". app: in use.
+  const [phase, setPhase] = useState<'card' | 'splash' | 'app'>('card')
 
   useEffect(() => {
     if (logged.current) return
     logged.current = true
     logEvent('task', { event: 'start', task, position })
   }, [task, position])
+
+  useEffect(() => {
+    if (phase !== 'splash') return
+    const timer = setTimeout(() => setPhase('app'), delayFor('splash'))
+    return () => clearTimeout(timer)
+  }, [phase])
+
+  const start = () => setPhase(delayFor('splash') > 0 ? 'splash' : 'app')
 
   const finish = () => {
     // Settle flows that settle on leaving (Deals) and close Account timing before scoring the task.
@@ -105,8 +117,9 @@ function TaskRunner({
 
   return (
     <div className="task-frame">
-      <TaskBar task={task} position={position} total={total} startOpen onFinish={finish} />
-      <BrambleApp />
+      <TaskBar task={task} position={position} total={total} startOpen onStart={start} onFinish={finish} />
+      {/* The app mounts only once the task card is closed, so no prompt opens (or starts timing) behind it. */}
+      {phase === 'app' ? <BrambleApp /> : phase === 'splash' ? <Splash /> : <div className="splash" />}
     </div>
   )
 }

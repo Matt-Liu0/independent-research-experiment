@@ -9,11 +9,13 @@ interface Props {
   total: number
   /** The full task card is open at the start of each task. */
   startOpen: boolean
+  /** The participant closed the task card for the first time. */
+  onStart?: () => void
   onFinish: () => void
 }
 
 /** The current task, pinned above the app. Tap to see the full wording again. */
-export function TaskBar({ task, position, total, startOpen, onFinish }: Props) {
+export function TaskBar({ task, position, total, startOpen, onStart, onFinish }: Props) {
   const [open, setOpen] = useState(startOpen)
   const [started, setStarted] = useState(!startOpen)
   const { short, text } = TASKS[task]
@@ -56,6 +58,7 @@ export function TaskBar({ task, position, total, startOpen, onFinish }: Props) {
               className="btn btn-study"
               onClick={() => {
                 setOpen(false)
+                if (!started) onStart?.()
                 setStarted(true)
               }}
             >

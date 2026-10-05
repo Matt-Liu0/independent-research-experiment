@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import './bramble.css'
 import { useBramble } from './BrambleContext'
+import { ScreenSkeleton } from './Loading'
 import { BagIcon, CartIcon, GiftIcon, ReceiptIcon, TagIcon, UserIcon } from './icons'
 import { Account } from './screens/Account'
 import { Checkout } from './screens/Checkout'
@@ -9,6 +10,7 @@ import { FindStore } from './screens/FindStore'
 import { Orders } from './screens/Orders'
 import { Rewards } from './screens/Rewards'
 import { Shop } from './screens/Shop'
+import { delayFor, screenLoadingKey } from './timing'
 import type { ScreenId } from './types'
 
 const SCREENS: Record<ScreenId, () => ReactNode> = {
@@ -33,6 +35,16 @@ const TABS: { screen: ScreenId; label: string; icon: ReactNode; covers: ScreenId
 export function BrambleApp() {
   const { state, navigate } = useBramble()
   const Screen = SCREENS[state.screen]
+  // The screen that has finished "loading". The first screen shows straight away (the task splash covers it).
+  const [loaded, setLoaded] = useState<ScreenId>(state.screen)
+  const loadingMs = delayFor(screenLoadingKey(state.screen))
+  const loading = loaded !== state.screen && loadingMs > 0
+
+  useEffect(() => {
+    if (!loading) return
+    const timer = setTimeout(() => setLoaded(state.screen), loadingMs)
+    return () => clearTimeout(timer)
+  }, [loading, loadingMs, state.screen])
 
   return (
     <div className="bramble">
@@ -44,7 +56,8 @@ export function BrambleApp() {
         </button>
       </header>
       <main className="app-content">
-        <Screen key={state.screen} />
+        {/* Prompts live inside screens, so none can appear (or start timing) while loading. */}
+        {loading ? <ScreenSkeleton /> : <Screen key={state.screen} />}
       </main>
       <nav className="tab-bar" aria-label="Bramble">
         {TABS.map((tab) => {
