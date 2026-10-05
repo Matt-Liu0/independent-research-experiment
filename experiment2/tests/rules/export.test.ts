@@ -48,7 +48,7 @@ afterAll(async () => {
 })
 
 describe('export from Firestore', () => {
-  it('writes the four CSVs, without withdrawn participants', async () => {
+  it('writes the CSVs and the flow codebook, without withdrawn participants', async () => {
     const raw = (await loadParticipants(getFirestore(), COLLECTION)).filter((p) => p.uid.endsWith(run))
     expect(raw).toHaveLength(2)
     writeExport(outDir, COLLECTION, raw)
@@ -62,7 +62,18 @@ describe('export from Firestore', () => {
     expect(participants).toContain('PL001')
     expect(participants).toContain('0.22')
     expect(participants).not.toContain('EXPORT_')
-    expect(flows).toContain('PL001,neutral,reward_university,5,,chosen,accept,accept')
+    const [header, ...rows] = flows.trim().split('\n').map((line) => line.split(','))
+    const uni = Object.fromEntries(header.map((h, i) => [h, rows.find((r) => r.includes('reward_university'))![i]]))
+    expect(uni).toMatchObject({
+      studyCode: 'PL001',
+      friction: 'neutral',
+      consentForm: 'active_choice',
+      ci_recipient: 'university_traffic_lab',
+      status: 'chosen',
+      firstChoice: 'accept',
+      finalValue: 'accept',
+    })
+    expect(readFileSync(join(outDir, 'flow-codebook.csv'), 'utf8').trim().split('\n')).toHaveLength(13)
     expect(events).toContain('2026-11-01T12:02:00.000Z')
     expect(idMap).toContain(`EXPORT_A_${run}`)
     expect(idMap).not.toContain(`EXPORT_W_${run}`)

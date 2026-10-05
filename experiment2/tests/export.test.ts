@@ -110,6 +110,17 @@ describe('buildExport', () => {
   it('computes one row per flow with status, first choice and final value', () => {
     const row = (flowId: string) => result.flows.find((r) => r.flowId === flowId)!
     expect(row('store_location')).toMatchObject({ status: 'chosen', firstChoice: 'dont_allow', firstChoiceIsPrivacy: true, taskId: 1 })
+    expect(row('courier_live')).toMatchObject({
+      consentForm: 'opt_out',
+      ci_sender: 'participant',
+      ci_recipient: 'courier',
+      ci_recipientType: 'service_provider',
+      ci_informationType: 'live_location',
+      ci_aim: 'courier_handoff',
+      ci_temporal: 'until_delivery',
+      ci_points: 0,
+    })
+    expect(row('reward_keel')).toMatchObject({ consentForm: 'nudged_choice', ci_condition: 'with_consent_for_payment', ci_points: 200 })
     expect(row('store_precise')).toMatchObject({ status: 'not_applicable', firstChoice: null, defaultShown: 'exact' })
     expect(row('courier_live')).toMatchObject({
       status: 'chosen',
@@ -137,6 +148,20 @@ describe('buildExport', () => {
     const key = (e: Record<string, unknown>) => `${e.type}:${e.flowId ?? ''}:${e.clientT}`
     expect(shuffled.events.map(key)).toEqual(alice.events.map(key))
     expect(shuffled.events.find((e) => e.type === 'resume')?.t).toBe('2026-11-01T12:20:00.000Z')
+  })
+})
+
+describe('flowCodebook', () => {
+  it('has one row per flow with its GKC-CI parameters and both consent forms', async () => {
+    const { flowCodebook } = await import('../scripts/transform')
+    const book = flowCodebook()
+    expect(book).toHaveLength(12)
+    expect(book.find((r) => r.flowId === 'checkout_partner_offers')).toMatchObject({
+      consentForm_nudged: 'opt_out',
+      consentForm_neutral: 'opt_in',
+      ci_recipient: 'partner_brands',
+      ci_informationType: 'home_address',
+    })
   })
 })
 

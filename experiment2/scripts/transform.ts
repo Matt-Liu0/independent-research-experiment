@@ -1,7 +1,8 @@
 // Turns raw participant records and event logs into analysis-ready rows.
 // Pure functions only, so they can be tested without Firebase.
+import { consentForm } from '../src/bramble/ci'
 import { FLOWS } from '../src/bramble/flows'
-import type { FlowDef, FlowStatus } from '../src/bramble/types'
+import type { FlowDef, FlowStatus, Friction } from '../src/bramble/types'
 
 export type Row = Record<string, string | number | boolean | null>
 
@@ -58,6 +59,38 @@ function settledEvent(events: Record<string, unknown>[], flowId: string) {
   return events.find((e) => e.type === 'settled' && e.flowId === flowId)
 }
 
+/** The flow's GKC-CI parameters as flat columns (same for everyone; see src/bramble/ci.ts). */
+export function ciColumns(flow: FlowDef): Row {
+  const tp = flow.ci.transmissionPrinciple
+  return {
+    ci_sender: flow.ci.sender,
+    ci_recipient: flow.ci.recipient,
+    ci_recipientType: flow.ci.recipientType,
+    ci_subject: flow.ci.subject,
+    ci_informationType: flow.ci.informationType,
+    ci_aim: tp.aim,
+    ci_condition: tp.condition,
+    ci_temporal: tp.temporal,
+    ci_points: tp.consideration?.points ?? 0,
+  }
+}
+
+/** One row per flow: the codebook for joining with Part 2 questionnaire items. */
+export function flowCodebook(): Row[] {
+  return FLOWS.map((flow) => ({
+    flowId: flow.id,
+    expectedTask: flow.task,
+    screen: flow.screen,
+    options: flow.options.join(';'),
+    privacyOption: flow.privacyOption,
+    dependsOn: flow.dependsOn ? flow.dependsOn.flowId : null,
+    consentForm_nudged: consentForm(flow, 'nudged'),
+    consentForm_neutral: consentForm(flow, 'neutral'),
+    ...ciColumns(flow),
+    ci_statement: flow.ci.statement,
+  }))
+}
+
 /** Export status of one flow: chosen, not applicable (by the first choice it depends on), shown but never settled, or never shown. */
 export function flowStatus(flow: FlowDef, events: Record<string, unknown>[]): FlowStatus {
   if (settledEvent(events, flow.id)) return 'chosen'
@@ -81,10 +114,13 @@ function flowRows(code: string, data: Record<string, unknown>, events: Record<st
       (e, i) => e.type === 'decision' && e.flowId === flow.id && e.source === 'prompt' && i <= settledIndex,
     )
     const shown = events.find((e) => e.type === 'prompt_shown' && e.flowId === flow.id)
+    const friction = (data.friction as Friction | null) ?? null
     return {
       studyCode: code,
-      friction: (data.friction as string) ?? null,
+      friction,
       flowId: flow.id,
+      consentForm: friction ? consentForm(flow, friction) : null,
+      ...ciColumns(flow),
       expectedTask: flow.task,
       taskId: (settled?.taskId as number) ?? null,
       status: flowStatus(flow, events),

@@ -310,3 +310,7 @@ One-finger dragging replaced two-finger in 0.4.1 (Oct 4, 2026).
 ## Version 0.6.0 change (Oct 4, 2026)
 
 Back navigation: a ‹ button on Find a store and Checkout, and the phone's Back moves between app screens. Back is blocked during consent, ratings and surveys, and while a prompt is open.
+
+## Version 0.7.0 change (Oct 5, 2026)
+
+Each flow carries a GKC-CI coding (`src/bramble/ci.ts`): sender, recipient and recipient type, subject, information type, and a transmission principle split into aim, condition, temporal and consideration. The friction level changes only the derived **consent form** (opt_out, opt_in, nudged_choice, active_choice). Exported in `flows.csv` and `flow-codebook.csv`.

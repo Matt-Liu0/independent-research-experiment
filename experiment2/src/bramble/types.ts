@@ -1,3 +1,5 @@
+import type { CIFlow } from './ci'
+
 export type Friction = 'nudged' | 'neutral'
 
 export const FLOW_IDS = [
@@ -64,6 +66,8 @@ export interface FlowDef {
   /** Points paid for choosing the first option (Rewards offers only). */
   points?: number
   account: { label: string; labels: Record<string, string> }
+  /** GKC-CI description of the information flow (see ci.ts). Identical in both levels. */
+  ci: CIFlow
   nudged: LevelDef
   neutral: LevelDef
 }

@@ -185,6 +185,35 @@ The first value listed shares more; ★ marks the option that shares least (`pri
 
 ---
 
+### GKC-CI coding of the 12 flows
+
+Each flow is also described as a Contextual Integrity information flow, with the transmission principle split into Institutional Grammar parts (GKC-CI). The coding lives in `src/bramble/ci.ts` and the `ci` field of each flow in `src/bramble/flows.ts`. It is the same in both levels: the manipulation changes only the **consent form**.
+
+| # | `flowId` | Sender → Recipient (type) | Information type | Aim | Condition | Temporal | Points | Consent form: nudged / neutral |
+|---|---|---|---|---|---|---|---|---|
+| 1 | `store_location` | participant → bramble (first party) | current_location | find_stores | with_permission | once_or_while_using | 0 | nudged_choice / active_choice |
+| 2 | `store_precise` | participant → bramble (first party) | location_precision | find_stores | with_permission | once_or_while_using | 0 | opt_out / active_choice |
+| 3 | `courier_live` | participant → courier (service provider) | live_location | courier_handoff | with_consent | until_delivery | 0 | opt_out / active_choice |
+| 4 | `checkout_partner_offers` | bramble → partner_brands (third party, commercial) | home_address | marketing_offers | with_consent | ongoing | 0 | opt_out / opt_in |
+| 5 | `bg_during_order` | participant → bramble (first party) | background_location | accurate_arrival_time | with_permission | while_order_active | 0 | nudged_choice / active_choice |
+| 6 | `sam_share` | participant → housemate_sam (personal) | live_location | coordinate_with_housemate | with_consent | until_delivery | 0 | nudged_choice / active_choice |
+| 7 | `bg_between_orders` | participant → bramble (first party) | background_location | speed_up_future_orders | with_permission | ongoing | 0 | nudged_choice / active_choice |
+| 8 | `deals_personalized` | bramble → bramble_deals (first party, secondary use) | location_history | personalized_deals | with_consent | ongoing | 0 | opt_out / active_choice |
+| 9 | `deals_partner_offers` | bramble → partner_brands (third party, commercial) | location_history | marketing_offers | with_consent | ongoing | 0 | opt_out / active_choice |
+| 10 | `reward_keel` | bramble → keel_auto_insurance (third party, commercial) | location_history | insurance_pricing | with_consent_for_payment | ongoing | 200 | nudged_choice / active_choice |
+| 11 | `reward_university` | bramble → university_traffic_lab (third party, research) | deidentified_location_history | research | with_consent_for_payment | ongoing | 100 | nudged_choice / active_choice |
+| 12 | `reward_data_partners` | bramble → data_partners (third party, commercial) | location_history | market_research | with_consent_for_payment | ongoing | 150 | nudged_choice / active_choice |
+
+Subject is always the participant. **Consent forms** (worked out from each level's settings, so they always match the app):
+- `opt_out`: sharing is preset; the participant must act to stop it
+- `opt_in`: not sharing is preset; the participant must act to share
+- `nudged_choice`: no preset, but the sharing option is emphasized
+- `active_choice`: no preset, equal options
+
+Each flow also has a one-sentence `statement` for codebooks. If the Part 2 questionnaire is coded with different terms, change the vocabularies in `ci.ts` so both sides match.
+
+---
+
 ## 4. Other collections
 
 | Document | Fields | Meaning |
@@ -234,6 +263,8 @@ Only participants who were assigned a level have rows.
 |---|---|---|
 | `studyCode`, `friction` | Who, and their level | `P001`…; `nudged` / `neutral` |
 | `flowId`, `expectedTask` | Which flow, and the task it belongs to | section 3; `1`–`6` |
+| `consentForm` | How consent was asked for this person (their level) | `opt_out` · `opt_in` · `nudged_choice` · `active_choice` |
+| `ci_sender`, `ci_recipient`, `ci_recipientType`, `ci_subject`, `ci_informationType`, `ci_aim`, `ci_condition`, `ci_temporal`, `ci_points` | The flow's GKC-CI parameters (same for everyone; section 3) | see section 3 |
 | `taskId` | Task actually in progress when it settled | `1`–`6`, or empty |
 | `status` | What happened | `chosen` (first choice recorded) · `not_applicable` (#2 after refusing location; #7 after refusing background location) · `shown_not_settled` (saw it but never committed, e.g. opened checkout and never ordered) · `not_shown` (never reached that screen) |
 | `firstChoice` | Value when it settled: **the behavior measure** | flow value, or empty |
@@ -267,6 +298,10 @@ Includes everyone who arrived, also people who declined consent or failed the de
 ### `events.csv`: one row per event, sorted by time
 
 `studyCode`, then every event field from section 2, in phone order (`pageLoadAt`, then `seq`). Lists are joined with `;`, and nested objects (such as a task `outcome`) are written as JSON.
+
+### `flow-codebook.csv`: one row per flow (12 rows)
+
+`flowId`, `expectedTask`, `screen`, `options`, `privacyOption`, `dependsOn`, `consentForm_nudged`, `consentForm_neutral`, the `ci_*` columns and `ci_statement`. Use it to match the site flows with the Part 2 questionnaire items.
 
 ### `id-map.csv`: study code → Prolific ID
 

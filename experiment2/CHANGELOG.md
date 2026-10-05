@@ -2,6 +2,11 @@
 
 Every build participants see has a version (`appVersion` on each record). Bump `version` in `package.json` and add an entry here for any change made once data collection starts.
 
+## 0.7.0 (2026-10-05)
+
+- **Deals photos:** real CC0 product photos (oat milk, apples, sourdough, yogurt), self-hosted in `public/images/deals/`, with credits in `CREDITS.md` there.
+- **GKC-CI coding:** each flow carries its Contextual Integrity parameters (`src/bramble/ci.ts`). `flows.csv` gains `consentForm` and the `ci_*` columns, and the export writes a 12-row `flow-codebook.csv` for matching with the Part 2 questionnaire. Participants see no difference.
+
 ## 0.6.0 (2026-10-04)
 
 - **Back navigation:** Find a store and Checkout have a ‹ back button that returns to the screen you came from (Shop after a reload). The phone's Back button or swipe now moves between app screens instead of leaving the study. Back does nothing during consent, ratings and surveys, or while a prompt is open (prompts still can't be dismissed). New `via` on `screen` events and a new `phone_back` action.
