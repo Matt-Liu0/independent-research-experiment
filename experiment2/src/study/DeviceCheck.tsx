@@ -6,19 +6,25 @@ import type { DeviceInfo } from './types'
 
 interface Props extends StageProps {
   detect: () => DeviceInfo
+  /** Testing on a computer (&anydevice=1, local or emulator runs only). */
+  skipCheck?: boolean
 }
 
-export function DeviceCheck({ detect, mode, update, advance }: Props) {
-  const [device] = useState(detect)
+export function DeviceCheck({ detect, skipCheck = false, mode, update, advance }: Props) {
+  // A skipped check is recorded, so test runs are easy to find and drop.
+  const [device] = useState(() => {
+    const detected = detect()
+    return skipCheck && !detected.passedCheck ? { ...detected, checkSkipped: true } : detected
+  })
   // Demo links are for researchers, who may preview on a computer.
-  const failed = !device.passedCheck && mode !== 'demo'
+  const failed = !device.passedCheck && mode !== 'demo' && !device.checkSkipped
   const [qr, setQr] = useState<string | null>(null)
   const ran = useRef(false)
 
   useEffect(() => {
     if (ran.current) return
     ran.current = true
-    logEvent('stage', { name: 'device_check', passed: device.passedCheck })
+    logEvent('stage', { name: 'device_check', passed: device.passedCheck, skipped: device.checkSkipped === true })
     if (failed) update({ device })
     else advance({ device })
   }, [device, failed, update, advance])

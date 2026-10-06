@@ -2,6 +2,10 @@
 
 Every build participants see has a version (`appVersion` on each record). Bump `version` in `package.json` and add an entry here for any change made once data collection starts.
 
+## 0.9.1 (2026-10-06)
+
+- `&anydevice=1` skips the phone check for testing on a computer, on the local dev server or against the emulators only (ignored on the deployed study). Skipped checks are recorded as `device.checkSkipped`, with a `deviceCheckSkipped` column in `participants.csv`.
+
 ## 0.9.0 (2026-10-05)
 
 Decisions on the pipeline conflicts (Oct 5): keep 12 site flows, keep the "try a new app" framing, keep friction as defaults and emphasis only (no points cost for declining), drop the Day 15 retest, and support both recruitment routes.

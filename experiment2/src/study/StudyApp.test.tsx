@@ -37,6 +37,19 @@ describe('StudyApp', () => {
     expect(store.participant).toMatchObject({ prolificPid: 'S0123', recruitment: 'code' })
   })
 
+  it('lets local testing skip the phone check with &anydevice=1, and records the skip', async () => {
+    const store = new MemoryStore()
+    render(<StudyApp entry={parseEntry(`${PARAMS}&anydevice=1`, true)} store={store} detect={computer} />)
+    expect(await screen.findByRole('button', { name: /i agree/i })).toBeInTheDocument()
+    expect(store.participant?.device).toMatchObject({ passedCheck: false, checkSkipped: true })
+  })
+
+  it('ignores &anydevice=1 on the deployed study', async () => {
+    const store = new MemoryStore()
+    render(<StudyApp entry={parseEntry(`${PARAMS}&anydevice=1`, false)} store={store} detect={computer} />)
+    expect(await screen.findByRole('heading', { name: /open this on your phone/i }, { timeout: 3000 })).toBeInTheDocument()
+  })
+
   it('stops computers at the device check and records the device', async () => {
     const store = new MemoryStore()
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} detect={computer} />)

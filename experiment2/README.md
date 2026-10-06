@@ -24,6 +24,7 @@ Phone web app for Part 1 of the location-privacy study. What every stored field 
 | `/?PROLIFIC_PID=…&STUDY_ID=…&SESSION_ID=…` | Real participants (Prolific fills these in) |
 | `/?code=S0123` | Participants recruited directly (e.g. students), with a code you hand out; ends without Prolific |
 | add `&pilot=1` | Pilot runs; data goes to `pilot_` collections |
+| add `&anydevice=1` | **Local or emulator testing only:** skip the phone check on a computer. Ignored on the deployed study (real Firebase project with `VITE_USE_EMULATORS=false`). Recorded as `device.checkSkipped` |
 | `/?demo=nudged` or `/?demo=neutral` | Researcher preview: any device, chosen level, nothing saved |
 | `/?agent=1&EPISODE_ID=…&friction=…&taskOrder=…` | Experiment 4 agent episode, driven by the MCP harness; data read from `window.__brambleAgent` (see `DATA.md` section 8) |
 

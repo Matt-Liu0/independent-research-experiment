@@ -39,6 +39,7 @@ What every stored field means and the values it can take. It covers the Firestor
 | `device.touch` | Has a touch screen | `true` / `false` |
 | `device.userAgent` | Browser's full identification string | text |
 | `device.passedCheck` | Passed the phone-only check | `true` (continued) · `false` (stopped and shown a QR code) |
+| `device.checkSkipped` | The phone check was skipped with `&anydevice=1`, which only works on local or emulator runs. Marks test runs; drop these | `true`, or missing |
 | `device.automated` | The browser reported being controlled by automation (`navigator.webdriver`), e.g. a participant running an agent, or an Experiment 4 episode | `true` / `false` |
 | `tzOffset` | Time zone, as minutes behind UTC | e.g. `240` = US Eastern daylight time, `300` = Eastern standard time |
 | `localStartHour` | Local hour when the record was created | `0`–`23` |
@@ -288,7 +289,7 @@ Includes everyone who arrived, also people who declined consent or failed the de
 | Columns | Meaning |
 |---|---|
 | `studyCode`, `pilot`, `recruitment`, `appVersion`, `consentVersion`, `consentDeclined`, `friction`, `taskOrder` (e.g. `4-1-2-3-5-6`), `stage`, `completed` (`stage` = `done`) | Identity, assignment and progress |
-| `os`, `screenW`, `screenH`, `passedDeviceCheck`, `automated`, `userAgent`, `tzOffset`, `localStartHour`, `resumeCount` | Device and context |
+| `os`, `screenW`, `screenH`, `passedDeviceCheck`, `deviceCheckSkipped`, `automated`, `userAgent`, `tzOffset`, `localStartHour`, `resumeCount` | Device and context |
 | `createdAt`, `consentAt`, `completedAt`, `minutesToComplete` (consent → completion) | Timing |
 | `ease_t1` … `ease_t6` | Ease ratings by task number |
 | `sus_1` … `sus_10`, `susScore` | SUS answers and the standard 0–100 score |

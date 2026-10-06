@@ -153,7 +153,7 @@ export function StudyApp({ entry, store, detect = detectDevice }: Props) {
           Pilot
         </div>
       )}
-      {Stage ? <Stage key={participant.stage} {...props} /> : <DeviceCheck {...props} detect={detect} />}
+      {Stage ? <Stage key={participant.stage} {...props} /> : <DeviceCheck {...props} detect={detect} skipCheck={entry.skipDeviceCheck === true} />}
       <div className="rotate-overlay">Please turn your phone upright to continue.</div>
     </>
   )

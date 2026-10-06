@@ -55,6 +55,8 @@ export interface DeviceInfo {
   passedCheck: boolean
   /** navigator.webdriver: the browser is controlled by automation (e.g. an agent). */
   automated: boolean
+  /** The phone check was skipped with &anydevice=1 (local or emulator testing only). */
+  checkSkipped?: boolean
 }
 
 export interface TaskOutcome {

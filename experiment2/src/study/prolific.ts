@@ -18,7 +18,16 @@ export interface Entry {
   agent?: AgentEntry | null
   /** Why an agent link was rejected, for the harness to report. */
   invalid?: string
+  /** &anydevice=1 on a local or emulator run: skip the phone check for testing on a computer. */
+  skipDeviceCheck?: boolean
 }
+
+/**
+ * Testing on a computer is allowed only on the local dev server or against the emulators,
+ * never on the deployed study, so real participants can't skip the phone check.
+ */
+export const DEVICE_SKIP_ALLOWED: boolean =
+  import.meta.env.DEV || import.meta.env.VITE_USE_EMULATORS === 'true' || !import.meta.env.VITE_FIREBASE_PROJECT_ID
 
 const DEMO_PARAMS: ProlificParams = { prolificPid: 'DEMO', studyId: 'DEMO', sessionId: 'DEMO' }
 
@@ -71,9 +80,11 @@ function parseAgent(q: URLSearchParams): Entry {
   }
 }
 
-export function parseEntry(search: string): Entry {
+export function parseEntry(search: string, allowDeviceSkip: boolean = DEVICE_SKIP_ALLOWED): Entry {
   const q = new URLSearchParams(search)
   if (q.get('agent') === '1') return parseAgent(q)
+  const skipDeviceCheck = allowDeviceSkip && q.get('anydevice') === '1'
+  const withSkip = (entry: Entry): Entry => (skipDeviceCheck ? { ...entry, skipDeviceCheck } : entry)
   const demo = q.get('demo')
   if (demo === 'nudged' || demo === 'neutral') {
     return { mode: 'demo', params: DEMO_PARAMS, demoFriction: demo }
@@ -83,21 +94,21 @@ export function parseEntry(search: string): Entry {
   const code = q.get('code')
   if (code !== null) {
     const valid = SAFE_ID.test(code)
-    return {
+    return withSkip({
       mode,
       params: valid ? { prolificPid: code, studyId: 'CODE', sessionId: 'CODE', recruitment: 'code' } : null,
       demoFriction: null,
-    }
+    })
   }
   const prolificPid = q.get('PROLIFIC_PID') ?? ''
   const studyId = q.get('STUDY_ID') ?? ''
   const sessionId = q.get('SESSION_ID') ?? ''
   const valid = [prolificPid, studyId, sessionId].every((v) => SAFE_ID.test(v))
-  return {
+  return withSkip({
     mode,
     params: valid ? { prolificPid, studyId, sessionId, recruitment: 'prolific' } : null,
     demoFriction: null,
-  }
+  })
 }
 
 const env = import.meta.env
