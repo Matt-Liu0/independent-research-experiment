@@ -89,7 +89,7 @@ Saved about every 0.3 s while using the app, and at the end of each task.
 
 | Field | Meaning | Values |
 |---|---|---|
-| `appState.flows.<flowId>` | **Current** value of each of the 12 flows, including Account-page changes | see section 3; `null` = never set, or not applicable |
+| `appState.flows.<flowId>` | **Current** value of each of the 14 flows, including Account-page changes | see section 3; `null` = never set, or not applicable |
 | `appState.shown` | Flows whose prompt or control has appeared | list of flow IDs |
 | `appState.settled` | Flows whose **first choice** is fixed | list of flow IDs |
 | `appState.points` | Points balance | starts at `420`; −300 for free delivery; +200 / +100 / +150 for accepted offers |
@@ -163,19 +163,21 @@ Append-only: once written, an event can't be changed or deleted by the participa
 
 ---
 
-## 3. The 12 flows: IDs and values
+## 3. The 14 flows: IDs and values
+
+Flows #13 (`save_card`) and #14 (`birthday_deals`) were added in 0.11.0 to cover the financial and demographic categories. They use practice values only (a practice Visa ending 4242, a practice birthday of May 14), never the participant's own.
 
 The first value listed shares more; ★ marks the option that shares least (`privacyOption`).
 
-**Friction varies within each participant, by decision screen.** The 12 flows sit on six decision screens ("units"). Each participant gets three units nudged and three neutral (their `pattern`), so no screen mixes the two levels:
+**Friction varies within each participant, by decision screen.** The 14 flows sit on six decision screens ("units"). Each participant gets three units nudged and three neutral (their `pattern`), so no screen mixes the two levels:
 
 | Unit | Screen | Flows |
 |---|---|---|
 | `U1` | Location prompt (Find a store) | #1, #2 |
-| `U2` | Checkout | #3, #4 |
+| `U2` | Checkout | #3, #4, #13 |
 | `U3` | Order tracking | #5, #6 |
 | `U4` | "Keep background location on?" (on delivery) | #7 |
-| `U5` | Deals settings | #8, #9 |
+| `U5` | Deals settings | #8, #9, #14 |
 | `U6` | Rewards offers | #10, #11, #12 |
 
 The two levels follow Utz et al. (2019), *(Un)informed Consent*: **nudged** highlights only the sharing option (every other option looks like a neutral button) and pre-checks settings; **neutral** shows all options alike and leaves settings unchecked (off).
@@ -194,6 +196,8 @@ The two levels follow Utz et al. (2019), *(Un)informed Consent*: **nudged** high
 | 10 | `reward_keel` | 5 | `accept` (+200 pts) · `decline` ★ | "Link" filled | equal buttons |
 | 11 | `reward_university` | 5 | `accept` (+100 pts) · `decline` ★ | "Donate" filled | equal buttons |
 | 12 | `reward_data_partners` | 5 | `accept` (+150 pts) · `decline` ★ | "Share" filled | equal buttons |
+| 13 | `save_card` | 2 | `checked` · `unchecked` ★ | box starts `checked` | box starts `unchecked` |
+| 14 | `birthday_deals` | 4 | `on` · `off` ★ | switch starts `on` | switch starts `off` |
 
 **Dependent flows:** #2 applies only if #1 is not `dont_allow`. #7 applies only if #5 is `allow`. Otherwise they're `null` and never settle.
 
@@ -201,7 +205,7 @@ The two levels follow Utz et al. (2019), *(Un)informed Consent*: **nudged** high
 
 ---
 
-### GKC-CI coding of the 12 flows
+### GKC-CI coding of the 14 flows
 
 Each flow is also described as a Contextual Integrity information flow, with the transmission principle split into Institutional Grammar parts (GKC-CI). The coding lives in `src/bramble/ci.ts` and the `ci` field of each flow in `src/bramble/flows.ts`. It is the same in both levels: the manipulation changes only the **consent form**.
 
@@ -219,6 +223,8 @@ Each flow is also described as a Contextual Integrity information flow, with the
 | 10 | `reward_keel` | bramble → keel_auto_insurance (third party, commercial) | digital_activity: location_history, exact, historical, identified | insurance_pricing | with_consent_for_payment | ongoing | 200 | nudged_choice / active_choice |
 | 11 | `reward_university` | bramble → university_traffic_lab (third party, research) | digital_activity: location_history, exact, historical, deidentified | research | with_consent_for_payment | ongoing | 100 | nudged_choice / active_choice |
 | 12 | `reward_data_partners` | bramble → data_partners (third party, commercial) | digital_activity: location_history, exact, historical, identified | market_research | with_consent_for_payment | ongoing | 150 | nudged_choice / active_choice |
+| 13 | `save_card` | participant → bramble (first party) | financial: payment_card, exact, static, identified | faster_checkout | with_consent | ongoing | 0 | opt_out / opt_in |
+| 14 | `birthday_deals` | participant → bramble_deals (first party, secondary use) | demographic: birthday, exact, static, identified | birthday_offers | with_consent | ongoing | 0 | opt_out / opt_in |
 
 Subject is always the participant. **Information categories** follow Matt's list: `health` (Medical and Health), `financial`, `demographic` (Demographic and Biographical), `communication` (Communal and Communicative), `digital_activity` (Digital Activity and Behavioral, which includes location tracking), `biometric` (Biometrical and Physical). Within a category, `attribute` says what is shared, and `granularity` (exact / approximate / unspecified), `temporality` (point_in_time / continuous / historical / static) and `identifiability` (identified / deidentified) describe it. **Consent forms** (worked out from each level's settings, so they always match the app):
 - `opt_out`: sharing is preset; the participant must act to stop it

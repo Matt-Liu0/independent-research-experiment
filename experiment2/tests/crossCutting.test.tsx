@@ -100,7 +100,7 @@ async function declineEverything(friction: Friction) {
   // Nudged presets sharing, so it must be undone; neutral already starts unchecked.
   if (friction === 'nudged') {
     await user.click(screen.getByRole('switch'))
-    await user.click(screen.getByRole('checkbox'))
+    for (const box of screen.getAllByRole('checkbox')) await user.click(box)
   }
   await user.click(screen.getByRole('button', { name: /place order/i }))
   finish(2)
@@ -235,10 +235,10 @@ describe('friction by decision screen (within each participant)', () => {
 
     await user.click(screen.getByRole('button', { name: /^Cart/ }))
     expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'true')
-    expect(screen.getByRole('checkbox')).toBeChecked()
+    for (const box of screen.getAllByRole('checkbox')) expect(box).toBeChecked()
 
     await user.click(tab('Deals'))
-    expect(screen.getAllByRole('switch').map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'true'])
+    expect(screen.getAllByRole('switch').map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'true', 'true'])
 
     await user.click(tab('Rewards'))
     expect(screen.getByRole('button', { name: 'Link' })).toHaveAttribute('data-emphasis', 'plain')

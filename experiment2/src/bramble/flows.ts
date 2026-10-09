@@ -13,7 +13,7 @@ const equalButtons: LevelDef = { control: 'buttons', default: null, emphasis: nu
 const unchecked = (privacyOption: string): LevelDef => ({ control: 'switch', default: privacyOption, emphasis: null })
 
 /**
- * The 12 site flows. This is the only place the two friction levels differ:
+ * The site flows. This is the only place the two friction levels differ:
  * screens draw every flow through <FlowChoice>, which reads `nudged` or `neutral`.
  * Wording, labels and points are shared by both levels.
  */
@@ -384,6 +384,66 @@ export const FLOWS: readonly FlowDef[] = [
     },
     nudged: { control: 'buttons', default: null, emphasis: 'accept' },
     neutral: equalButtons,
+  },
+  {
+    id: 'save_card',
+    task: 2,
+    screen: 'checkout',
+    unit: 'U2',
+    kind: 'setting',
+    settleOn: 'commit',
+    options: ['checked', 'unchecked'],
+    labels: { checked: 'Checked', unchecked: 'Unchecked' },
+    title: 'Save this card (practice Visa ending 4242) for faster checkout next time.',
+    description: '',
+    privacyOption: 'unchecked',
+    dependsOn: null,
+    account: { label: 'Saved card', labels: { checked: 'Saved', unchecked: 'Not saved' } },
+    ci: {
+      sender: 'participant',
+      recipient: 'bramble',
+      recipientType: 'first_party',
+      subject: 'participant',
+      informationCategory: 'financial',
+      attribute: 'payment_card',
+      granularity: 'exact',
+      temporality: 'static',
+      identifiability: 'identified',
+      transmissionPrinciple: { aim: 'faster_checkout', condition: 'with_consent', temporal: 'ongoing', consideration: null },
+      statement: "Bramble keeps the participant's payment card on file, with consent, for faster checkout on later orders.",
+    },
+    nudged: { control: 'checkbox', default: 'checked', emphasis: null },
+    neutral: { control: 'checkbox', default: 'unchecked', emphasis: null },
+  },
+  {
+    id: 'birthday_deals',
+    task: 4,
+    screen: 'deals',
+    unit: 'U5',
+    kind: 'setting',
+    settleOn: 'leave',
+    options: ['on', 'off'],
+    labels: { on: 'On', off: 'Off' },
+    title: 'Birthday deals',
+    description: 'Bramble uses the birthday on your practice profile (May 14) to send you a birthday deal.',
+    privacyOption: 'off',
+    dependsOn: null,
+    account: { label: 'Birthday deals', labels: { on: 'On', off: 'Off' } },
+    ci: {
+      sender: 'participant',
+      recipient: 'bramble_deals',
+      recipientType: 'first_party_secondary_use',
+      subject: 'participant',
+      informationCategory: 'demographic',
+      attribute: 'birthday',
+      granularity: 'exact',
+      temporality: 'static',
+      identifiability: 'identified',
+      transmissionPrinciple: { aim: 'birthday_offers', condition: 'with_consent', temporal: 'ongoing', consideration: null },
+      statement: "Bramble uses the participant's birthday, with consent, to send them a birthday deal.",
+    },
+    nudged: { control: 'switch', default: 'on', emphasis: null },
+    neutral: unchecked('off'),
   },
 ]
 

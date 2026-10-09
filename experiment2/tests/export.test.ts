@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildExport, flowStatus, susScore, toCsv, type RawParticipant } from '../scripts/transform'
-import { getFlow } from '../src/bramble/flows'
+import { FLOWS, getFlow } from '../src/bramble/flows'
 
 const at = (minute: number) => new Date(Date.UTC(2026, 10, 1, 12, minute))
 
@@ -105,7 +105,7 @@ describe('buildExport', () => {
   it('keeps people who declined consent in participants.csv but gives them no flow rows', () => {
     expect(result.participants[1]).toMatchObject({ studyCode: 'P002', consentDeclined: true, completed: false })
     expect(result.flows.every((r) => r.studyCode === 'P001')).toBe(true)
-    expect(result.flows).toHaveLength(12)
+    expect(result.flows).toHaveLength(FLOWS.length)
   })
 
   it('computes one row per flow with status, first choice and final value', () => {
@@ -160,7 +160,7 @@ describe('flowCodebook', () => {
   it('has one row per flow with its GKC-CI parameters and both consent forms', async () => {
     const { flowCodebook } = await import('../scripts/transform')
     const book = flowCodebook()
-    expect(book).toHaveLength(12)
+    expect(book).toHaveLength(FLOWS.length)
     expect(book.find((r) => r.flowId === 'checkout_partner_offers')).toMatchObject({
       consentForm_nudged: 'opt_out',
       consentForm_neutral: 'opt_in',

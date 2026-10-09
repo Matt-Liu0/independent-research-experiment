@@ -114,6 +114,12 @@ export function Checkout() {
         </div>
       </div>
 
+      <div className="card">
+        <div className="eyebrow-small">Payment</div>
+        <div className="strong">Practice Visa ending 4242</div>
+        <FlowChoice flowId="save_card" />
+      </div>
+
       <FlowChoice flowId="checkout_partner_offers" />
 
       <button type="button" className="btn btn-green" disabled={!store || busy !== null} onClick={placeOrder}>

@@ -125,5 +125,9 @@ export const DEALS: Deal[] = [
 export const PRACTICE_ADDRESS = '12 Birch Lane, Apt 3'
 export const MOVE_ADDRESS = '40 Oak Street'
 
+/** Practice profile details used by flows (never the participant's own). */
+export const PRACTICE_BIRTHDAY = 'May 14'
+export const PRACTICE_CARD = 'Visa ending 4242'
+
 export const START_POINTS = 420
 export const REDEEM_COST = 300

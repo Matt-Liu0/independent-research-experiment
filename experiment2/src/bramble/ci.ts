@@ -69,6 +69,8 @@ export type Aim =
   | 'insurance_pricing'
   | 'research'
   | 'market_research'
+  | 'faster_checkout'
+  | 'birthday_offers'
 
 /** Institutional Grammar "condition": what the flow is conditioned on. */
 export type Condition = 'with_permission' | 'with_consent' | 'with_consent_for_payment'

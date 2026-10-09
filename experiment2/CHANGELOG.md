@@ -2,6 +2,14 @@
 
 Every build participants see has a version (`appVersion` on each record). Bump `version` in `package.json` and add an entry here for any change made once data collection starts.
 
+## 0.11.0 (2026-10-08)
+
+- **Information coding split:** `informationType` is replaced by `informationCategory` (Matt's list: health, financial, demographic, communication, digital_activity, biometric), `attribute`, `granularity`, `temporality` and `identifiability`. The `ci_*` export columns follow.
+- **Two new Bramble flows, in new categories:**
+  - #13 `save_card`: save a practice card at checkout (financial; unit U2).
+  - #14 `birthday_deals`: birthday deals from the practice profile's birthday (demographic; unit U5).
+  Both use practice values only and follow the same Utz levels.
+
 ## 0.10.0 (2026-10-08)
 
 Friction levels now follow Utz et al. (2019), as decided with Noah.

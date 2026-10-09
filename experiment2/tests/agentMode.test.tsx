@@ -93,7 +93,7 @@ describe('agent episode', () => {
     const user = userEvent.setup()
     const { store } = startEpisode()
     await user.click(await screen.findByRole('button', { name: 'Deals' }))
-    expect(screen.getAllByRole('switch').map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'true'])
+    expect(screen.getAllByRole('switch').map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'true', 'true'])
     expect(store.events.find((e) => e.type === 'prompt_shown')).toMatchObject({ flowId: 'deals_personalized', defaultShown: 'on', taskId: 4 })
     // U6 (Rewards) is nudged too; U2 (Checkout) is not, so its settings start off.
     await user.click(screen.getByRole('button', { name: 'Rewards' }))

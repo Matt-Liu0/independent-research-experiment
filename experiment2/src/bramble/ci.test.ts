@@ -39,6 +39,8 @@ describe('GKC-CI coding', () => {
       reward_keel: ['nudged_choice', 'active_choice'],
       reward_university: ['nudged_choice', 'active_choice'],
       reward_data_partners: ['nudged_choice', 'active_choice'],
+      save_card: ['opt_out', 'opt_in'],
+      birthday_deals: ['opt_out', 'opt_in'],
     })
   })
 
@@ -64,6 +66,8 @@ describe('verdictOf', () => {
       reward_keel: { accept: 'allow', decline: 'block' },
       reward_university: { accept: 'allow', decline: 'block' },
       reward_data_partners: { accept: 'allow', decline: 'block' },
+      save_card: { checked: 'allow', unchecked: 'block' },
+      birthday_deals: { on: 'allow', off: 'block' },
     })
     expect(verdictOf(FLOWS[0], null)).toBeNull()
   })

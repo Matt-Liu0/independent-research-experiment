@@ -8,6 +8,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { loadParticipants, writeExport } from '../../scripts/export'
+import { FLOWS } from '../../src/bramble/flows'
 
 let env: RulesTestEnvironment
 let outDir: string
@@ -74,7 +75,7 @@ describe('export from Firestore', () => {
       firstChoice: 'accept',
       finalValue: 'accept',
     })
-    expect(readFileSync(join(outDir, 'flow-codebook.csv'), 'utf8').trim().split('\n')).toHaveLength(13)
+    expect(readFileSync(join(outDir, 'flow-codebook.csv'), 'utf8').trim().split('\n')).toHaveLength(FLOWS.length + 1)
     expect(events).toContain('2026-11-01T12:02:00.000Z')
     expect(idMap).toContain(`EXPORT_A_${run}`)
     expect(idMap).not.toContain(`EXPORT_W_${run}`)

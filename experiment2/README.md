@@ -51,7 +51,7 @@ To change the area, edit `src/bramble/mapConfig.ts` (location, store pins, `MAP_
 
 | Path | Contents |
 | --- | --- |
-| `src/bramble/flows.ts` | The 12 flows and the only place the friction levels differ |
+| `src/bramble/flows.ts` | The 14 flows and the only place the friction levels differ |
 | `src/bramble/units.ts` | The six decision screens (units), the 20 nudged-screen patterns, and per-flow friction |
 | `src/bramble/BrambleContext.tsx` | App state plus the show / choose / settle logging rules |
 | `src/bramble/screens/` | Shop, Find a store, Checkout, Orders, Deals, Rewards, Account |

@@ -69,7 +69,7 @@ describe('action spinners', () => {
     const app = renderApp('nudged', { screen: 'checkout', storeId: 'elm', cart: ['oat_milk', 'sourdough'] })
     await click(screen.getByRole('button', { name: /place order/i }))
 
-    expect(app.eventsOf('settled').map((e) => e.flowId)).toEqual(['courier_live', 'checkout_partner_offers'])
+    expect(app.eventsOf('settled').map((e) => e.flowId)).toEqual(['courier_live', 'checkout_partner_offers', 'save_card'])
     expect(screen.getByText('Placing order…')).toBeInTheDocument()
     expect(app.state().order).toBe('none')
 

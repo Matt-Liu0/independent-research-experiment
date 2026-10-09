@@ -3,9 +3,9 @@ import { FLOWS, dependentsOf, emptyFlowValues, getFlow, isApplicable } from './f
 import { FLOW_IDS } from './types'
 
 describe('flow config', () => {
-  it('has exactly the 12 flows, in spec order, with unique IDs', () => {
+  it('has every flow, in spec order, with unique IDs', () => {
     expect(FLOWS.map((f) => f.id)).toEqual([...FLOW_IDS])
-    expect(new Set(FLOWS.map((f) => f.id)).size).toBe(12)
+    expect(new Set(FLOWS.map((f) => f.id)).size).toBe(FLOW_IDS.length)
   })
 
   it.each(FLOWS.map((f) => [f.id, f] as const))('%s is internally consistent', (_id, flow) => {
