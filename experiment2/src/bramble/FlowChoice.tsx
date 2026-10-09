@@ -4,7 +4,7 @@ import { getFlow, levelOf } from './flows'
 import type { FlowDef, FlowId, LevelDef } from './types'
 
 /** Visual prominence of a choice button (see data-emphasis). */
-export type Emphasis = 'primary' | 'secondary' | 'link' | 'plain'
+export type Emphasis = 'primary' | 'plain'
 
 /** Logs prompt_shown when the element first scrolls into view (immediately where IntersectionObserver is missing). */
 export function useShownWhenVisible(id: FlowId) {
@@ -37,8 +37,6 @@ interface Props {
   layout?: 'row' | 'stack'
   /** Filled-button color for the emphasized option. */
   tone?: 'green' | 'berry'
-  /** Options that can't be picked yet (e.g. Allow before choosing exact/general in neutral). */
-  disabledOptions?: string[]
   /** Called after the choice is logged. */
   onChosen?: (value: string) => void
   /** Where the choice is made; 'rewards_page' when changing an answered offer. */
@@ -49,7 +47,7 @@ interface Props {
  * Draws one flow in the participant's friction level and logs every choice.
  * Prompts draw only their buttons (the screen shows the title); settings draw their own text.
  */
-export function FlowChoice({ flowId, layout = 'stack', tone = 'green', disabledOptions = [], onChosen, source = 'prompt' }: Props) {
+export function FlowChoice({ flowId, layout = 'stack', tone = 'green', onChosen, source = 'prompt' }: Props) {
   const { friction, state, chooseFlow } = useBramble()
   const flow = getFlow(flowId)
   const level = levelOf(flow, friction)
@@ -69,7 +67,6 @@ export function FlowChoice({ flowId, layout = 'stack', tone = 'green', disabledO
         level={level}
         layout={layout}
         tone={tone}
-        disabledOptions={disabledOptions}
         onChoose={choose}
       />
     )
@@ -78,7 +75,7 @@ export function FlowChoice({ flowId, layout = 'stack', tone = 'green', disabledO
   } else if (level.control === 'checkbox') {
     control = <CheckboxSetting flow={flow} value={value} onChoose={choose} />
   } else {
-    control = <SelectSetting flow={flow} value={value} onChoose={choose} />
+    throw new Error(`Setting ${flowId} needs a switch or checkbox control`)
   }
 
   return (
@@ -93,26 +90,19 @@ function PromptButtons({
   level,
   layout,
   tone,
-  disabledOptions,
   onChoose,
 }: {
   flow: FlowDef
   level: LevelDef
   layout: 'row' | 'stack'
   tone: 'green' | 'berry'
-  disabledOptions: string[]
   onChoose: (value: string) => void
 }) {
-  // How prominent each option looks. Also written to data-emphasis, so the Experiment 4
-  // harness can describe the screen ("primary" button) without reading visual styles.
-  const emphasisFor = (option: string): Emphasis => {
-    if (level.emphasis === null) return 'plain'
-    if (option === level.emphasis) return 'primary'
-    if (option === flow.privacyOption) return 'link'
-    return 'secondary'
-  }
-  const classFor = (option: string) =>
-    ({ primary: `btn btn-${tone}`, secondary: 'btn btn-outline', link: 'btn btn-link', plain: 'btn btn-equal' })[emphasisFor(option)]
+  // As in Utz et al. (2019): only the emphasized (sharing) option is highlighted; every other
+  // option looks exactly like a non-nudging button. Also written to data-emphasis, so the
+  // Experiment 4 harness can describe the screen ("primary" button) without reading styles.
+  const emphasisFor = (option: string): Emphasis => (level.emphasis !== null && option === level.emphasis ? 'primary' : 'plain')
+  const classFor = (option: string) => (emphasisFor(option) === 'primary' ? `btn btn-${tone}` : 'btn btn-equal')
   // Nudged puts the emphasized option first; neutral keeps the config order.
   const options =
     level.emphasis === null ? flow.options : [level.emphasis, ...flow.options.filter((o) => o !== level.emphasis)]
@@ -124,7 +114,6 @@ function PromptButtons({
           type="button"
           className={classFor(option)}
           data-emphasis={emphasisFor(option)}
-          disabled={disabledOptions.includes(option)}
           onClick={() => onChoose(option)}
         >
           {flow.labels[option]}
@@ -182,29 +171,6 @@ function CheckboxSetting({ flow, value, onChoose }: { flow: FlowDef; value: stri
         onChange={() => onChoose(checked ? uncheckedOption : checkedOption)}
       />
       <label htmlFor={id}>{flow.title}</label>
-    </div>
-  )
-}
-
-function SelectSetting({ flow, value, onChoose }: { flow: FlowDef; value: string | null; onChoose: (v: string) => void }) {
-  const labelId = useId()
-  return (
-    <div className="setting setting-select" role="group" aria-labelledby={labelId}>
-      <SettingText flow={flow} labelId={labelId} />
-      <div className="select-buttons" data-flow-control>
-        {flow.options.map((option) => (
-          <button
-            key={option}
-            type="button"
-            className="btn btn-equal"
-            data-emphasis="plain"
-            aria-pressed={value === option}
-            onClick={() => onChoose(option)}
-          >
-            {flow.labels[option]}
-          </button>
-        ))}
-      </div>
     </div>
   )
 }

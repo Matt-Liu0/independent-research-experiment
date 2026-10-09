@@ -2,6 +2,13 @@
 
 Every build participants see has a version (`appVersion` on each record). Bump `version` in `package.json` and add an entry here for any change made once data collection starts.
 
+## 0.10.0 (2026-10-08)
+
+Friction levels now follow Utz et al. (2019), as decided with Noah.
+
+- **Neutral settings start unchecked (off)** instead of requiring a choice: precise location (#2), courier sharing (#3) and both Deals settings (#8, #9). The partner-offers box (#4) already worked this way. The neutral consent form for these flows is now `opt_in`. This removes the extra tap needed to allow precise location in neutral, the disabled Allow buttons, the hidden-until-chosen deals, and the disabled Place order button.
+- **Nudged highlights only the sharing option:** the protective option is now an ordinary button of the same size, not a small text link. `data-emphasis` is `primary` or `plain`.
+
 ## 0.9.1 (2026-10-06)
 
 - `&anydevice=1` skips the phone check for testing on a computer, on the local dev server or against the emulators only (ignored on the deployed study). Skipped checks are recorded as `device.checkSkipped`, with a `deviceCheckSkipped` column in `participants.csv`.

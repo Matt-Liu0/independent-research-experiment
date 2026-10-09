@@ -1,11 +1,16 @@
 import type { Friction, FlowDef, FlowId, FlowValues, LevelDef } from './types'
 import { FLOW_IDS } from './types'
 
-/** Neutral style for a one-tap prompt: equal buttons, nothing preset. */
+// The two levels follow Utz et al. (2019), "(Un)informed Consent", CCS:
+//  - one-tap prompts: nudging = only the sharing option highlighted; non-nudging = all
+//    options formatted the same.
+//  - settings: nudging = pre-checked (sharing on); non-nudging = unchecked (sharing off).
+
+/** Non-nudging one-tap prompt: equal buttons, nothing preset. */
 const equalButtons: LevelDef = { control: 'buttons', default: null, emphasis: null }
 
-/** Neutral style for a setting: equal buttons, nothing preset, must choose. */
-const activeChoice: LevelDef = { control: 'buttons', default: null, emphasis: null, required: true }
+/** Non-nudging setting: the same switch, unchecked (the least-sharing option). */
+const unchecked = (privacyOption: string): LevelDef => ({ control: 'switch', default: privacyOption, emphasis: null })
 
 /**
  * The 12 site flows. This is the only place the two friction levels differ:
@@ -64,7 +69,7 @@ export const FLOWS: readonly FlowDef[] = [
       statement: "The participant's phone sends Bramble their exact location rather than only their general area, with permission, to find nearby stores.",
     },
     nudged: { control: 'switch', default: 'exact', emphasis: null },
-    neutral: activeChoice,
+    neutral: unchecked('general'),
   },
   {
     id: 'courier_live',
@@ -89,7 +94,7 @@ export const FLOWS: readonly FlowDef[] = [
       statement: "Bramble shares the participant's live location with their courier, with consent, until the order arrives, to help the courier find them.",
     },
     nudged: { control: 'switch', default: 'share', emphasis: null },
-    neutral: activeChoice,
+    neutral: unchecked('dont_share'),
   },
   {
     id: 'checkout_partner_offers',
@@ -215,7 +220,7 @@ export const FLOWS: readonly FlowDef[] = [
       statement: "Bramble uses the participant's location history (stores visited), with consent, to choose personalized deals.",
     },
     nudged: { control: 'switch', default: 'on', emphasis: null },
-    neutral: activeChoice,
+    neutral: unchecked('off'),
   },
   {
     id: 'deals_partner_offers',
@@ -240,7 +245,7 @@ export const FLOWS: readonly FlowDef[] = [
       statement: "Bramble shares the participant's location history with partner brands, with consent, so they can send marketing offers.",
     },
     nudged: { control: 'switch', default: 'on', emphasis: null },
-    neutral: activeChoice,
+    neutral: unchecked('off'),
   },
   {
     id: 'reward_keel',

@@ -15,10 +15,10 @@ function Probe() {
   return null
 }
 
-function renderFlow(friction: Friction, flowId: FlowId, extra?: { disabledOptions?: string[] }) {
+function renderFlow(friction: Friction, flowId: FlowId) {
   return render(
     <BrambleProvider friction={friction} initialState={initialAppState()}>
-      <FlowChoice flowId={flowId} {...extra} />
+      <FlowChoice flowId={flowId} />
       <Probe />
     </BrambleProvider>,
   )
@@ -32,17 +32,17 @@ describe('FlowChoice', () => {
     setEventSink(sink)
   })
 
-  it('nudged prompt: fills the sharing option and turns "no" into a text link', () => {
+  it('nudged prompt: highlights only the sharing option; the others look like neutral buttons (Utz et al.)', () => {
     renderFlow('nudged', 'store_location')
     expect(screen.getByRole('button', { name: 'Allow while using Bramble' })).toHaveClass('btn-green')
-    expect(screen.getByRole('button', { name: 'Allow once' })).toHaveClass('btn-outline')
-    expect(screen.getByRole('button', { name: "Don't allow" })).toHaveClass('btn-link')
+    expect(screen.getByRole('button', { name: 'Allow once' })).toHaveClass('btn-equal')
+    expect(screen.getByRole('button', { name: "Don't allow" })).toHaveClass('btn-equal')
   })
 
   it('marks how prominent each option is, for the agent harness', () => {
     renderFlow('nudged', 'store_location')
     const emphasis = (name: string) => screen.getByRole('button', { name }).getAttribute('data-emphasis')
-    expect([emphasis('Allow while using Bramble'), emphasis('Allow once'), emphasis("Don't allow")]).toEqual(['primary', 'secondary', 'link'])
+    expect([emphasis('Allow while using Bramble'), emphasis('Allow once'), emphasis("Don't allow")]).toEqual(['primary', 'plain', 'plain'])
   })
 
   it('marks neutral options as plain', () => {
@@ -91,16 +91,15 @@ describe('FlowChoice', () => {
     expect(events('settled')).toHaveLength(0)
   })
 
-  it('neutral setting: two equal buttons, neither selected', async () => {
+  it('neutral setting: the same switch, starting off (unchecked), and it can be turned on', async () => {
     const user = userEvent.setup()
     renderFlow('neutral', 'deals_personalized')
-    const on = screen.getByRole('button', { name: 'On' })
-    const off = screen.getByRole('button', { name: 'Off' })
-    expect(on).toHaveAttribute('aria-pressed', 'false')
-    expect(off).toHaveAttribute('aria-pressed', 'false')
-    expect(latest.flows.deals_personalized).toBeNull()
-    await user.click(off)
-    expect(off).toHaveAttribute('aria-pressed', 'true')
+    const sw = screen.getByRole('switch', { name: 'Deals picked for you' })
+    expect(sw).toHaveAttribute('aria-checked', 'false')
+    expect(latest.flows.deals_personalized).toBe('off')
+    expect(events('prompt_shown')[0]).toMatchObject({ defaultShown: 'off' })
+    await user.click(sw)
+    expect(sw).toHaveAttribute('aria-checked', 'true')
   })
 
   it('checkbox starts checked in nudged and unchecked in neutral', () => {
@@ -127,11 +126,5 @@ describe('FlowChoice', () => {
     renderFlow('nudged', 'reward_data_partners')
     await user.click(screen.getByRole('button', { name: 'No thanks' }))
     expect(latest.points).toBe(420)
-  })
-
-  it('respects disabled options', () => {
-    renderFlow('neutral', 'store_location', { disabledOptions: ['while_using', 'once'] })
-    expect(screen.getByRole('button', { name: 'Allow once' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: "Don't allow" })).toBeEnabled()
   })
 })

@@ -77,7 +77,7 @@ export interface CIFlow {
  *  - opt_out: sharing is preset; the participant must act to stop it
  *  - opt_in: not sharing is preset; the participant must act to share
  *  - nudged_choice: no preset, but the sharing option is visually emphasized
- *  - active_choice: no preset, equal options (and, for settings, a choice is required)
+ *  - active_choice: no preset, equal options
  */
 export type ConsentForm = 'opt_out' | 'opt_in' | 'nudged_choice' | 'active_choice'
 

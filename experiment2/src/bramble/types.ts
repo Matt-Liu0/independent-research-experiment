@@ -42,10 +42,8 @@ export interface LevelDef {
   control: Control
   /** Preset value; null means nothing is selected. */
   default: string | null
-  /** Option drawn as the filled button, with the others as text links; null = equal buttons. */
+  /** Option drawn as the highlighted button; the others look like the non-nudging buttons. null = all equal. */
   emphasis: string | null
-  /** The participant can't continue on this screen until they choose. */
-  required?: boolean
 }
 
 export interface FlowDef {

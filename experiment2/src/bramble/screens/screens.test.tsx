@@ -72,14 +72,15 @@ describe('Find a store', () => {
     expect(JSON.stringify(app.events)).not.toContain('please')
   })
 
-  it('neutral: Allow needs an exact/general choice; declining needs nothing', async () => {
+  it('neutral: precise location starts off (unchecked), and allowing needs one tap like declining', async () => {
     const user = userEvent.setup()
-    renderApp('neutral', { screen: 'find_store' })
+    const app = renderApp('neutral', { screen: 'find_store' })
     const sheet = screen.getByRole('dialog')
-    expect(within(sheet).getByRole('button', { name: 'Allow once' })).toBeDisabled()
-    expect(within(sheet).getByRole('button', { name: "Don't allow" })).toBeEnabled()
-    await user.click(within(sheet).getByRole('button', { name: 'General area only' }))
+    expect(within(sheet).getByRole('switch', { name: 'Precise location' })).toHaveAttribute('aria-checked', 'false')
     expect(within(sheet).getByRole('button', { name: 'Allow once' })).toBeEnabled()
+    await user.click(within(sheet).getByRole('button', { name: 'Allow once' }))
+    expect(app.state().flows.store_precise).toBe('general')
+    expect(app.eventsOf('settled').find((e) => e.flowId === 'store_precise')).toMatchObject({ value: 'general', defaultShown: 'general', changedFromDefault: false })
   })
 
   it('declining location leads to the ZIP search with no map, never stores the ZIP, and leaves precise location not applicable', async () => {
@@ -121,14 +122,14 @@ describe('Find a store', () => {
 describe('Checkout', () => {
   const ready = { storeId: 'elm', cart: ['oat_milk', 'sourdough'], screen: 'checkout' as const }
 
-  it('neutral: Place order waits for the courier choice; ordering settles both checkout flows', async () => {
+  it('neutral: courier sharing and the offers box start unchecked; ordering settles both', async () => {
     const user = userEvent.setup()
     const app = renderApp('neutral', ready)
     const place = screen.getByRole('button', { name: /place order/i })
-    expect(place).toBeDisabled()
+    expect(place).toBeEnabled()
+    expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'false')
     expect(screen.getByRole('checkbox')).not.toBeChecked()
 
-    await user.click(screen.getByRole('button', { name: "Don't share" }))
     await user.click(place)
 
     expect(app.state().order).not.toBe('none')
@@ -171,7 +172,7 @@ describe('Orders', () => {
     const user = userEvent.setup()
     const app = renderApp('nudged', onTheWay)
     expect(screen.getByRole('button', { name: 'Allow in background' })).toHaveClass('btn-green')
-    expect(screen.getByRole('button', { name: 'Not now' })).toHaveClass('btn-link')
+    expect(screen.getByRole('button', { name: 'Not now' })).toHaveClass('btn-equal')
     await user.click(screen.getByRole('button', { name: 'Allow in background' }))
     await user.click(screen.getByRole('button', { name: 'Send arrival time only' }))
 
@@ -193,14 +194,10 @@ describe('Orders', () => {
 })
 
 describe('Deals', () => {
-  it('neutral: hides deals until both settings are chosen, and settles them on leaving', async () => {
+  it('neutral: both deal settings start off, deals show right away, and settings settle on leaving', async () => {
     const user = userEvent.setup()
     const app = renderApp('neutral', { screen: 'deals' })
-    expect(screen.getByText("Choose both settings above to see this week's deals.")).toBeInTheDocument()
-
-    const [, offFirst] = within(screen.getByRole('group', { name: 'Deals picked for you' })).getAllByRole('button')
-    await user.click(offFirst)
-    await user.click(within(screen.getByRole('group', { name: 'Offers from partner brands' })).getByRole('button', { name: 'Off' }))
+    expect(screen.getAllByRole('switch').map((s) => s.getAttribute('aria-checked'))).toEqual(['false', 'false'])
     await user.click(screen.getByRole('button', { name: 'Save Honeycrisp apples' }))
     await user.click(screen.getByRole('button', { name: 'Save Greek yogurt, 32 oz' }))
     expect(app.state().savedDeals).toEqual(['apples', 'yogurt'])

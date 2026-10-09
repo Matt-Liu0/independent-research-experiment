@@ -18,7 +18,6 @@ describe('flow config', () => {
     for (const level of [flow.nudged, flow.neutral]) {
       if (level.default !== null) expect(flow.options).toContain(level.default)
       if (level.emphasis !== null) expect(flow.options).toContain(level.emphasis)
-      if (level.required) expect(level.default).toBeNull()
     }
     if (flow.dependsOn) {
       expect(FLOW_IDS).toContain(flow.dependsOn.flowId)
@@ -47,9 +46,18 @@ describe('flow config', () => {
     }
   })
 
-  it('presets nothing in neutral except the partner-offers box, which starts unchecked', () => {
-    const presets = FLOWS.filter((f) => f.neutral.default !== null).map((f) => [f.id, f.neutral.default])
-    expect(presets).toEqual([['checkout_partner_offers', 'unchecked']])
+  it('follows Utz et al. in neutral: prompts have no preset, settings start unchecked (least sharing)', () => {
+    for (const flow of FLOWS) {
+      if (flow.kind === 'prompt') expect(flow.neutral.default, flow.id).toBeNull()
+      else expect(flow.neutral.default, flow.id).toBe(flow.privacyOption)
+    }
+  })
+
+  it('uses the same control in both levels for settings, so only the preset differs', () => {
+    for (const flow of FLOWS.filter((f) => f.kind === 'setting')) {
+      expect(flow.neutral.control, flow.id).toBe(flow.nudged.control)
+      expect(['switch', 'checkbox'], flow.id).toContain(flow.nudged.control)
+    }
   })
 
   it('pays the same points in both levels (points live on the flow, not the level)', () => {

@@ -11,7 +11,7 @@ import {
   type Store,
 } from '../data'
 import { FlowChoice } from '../FlowChoice'
-import { getFlow, levelOf } from '../flows'
+import { getFlow } from '../flows'
 import { PinIcon, SearchIcon } from '../icons'
 import { LoadingBlock, Spinner } from '../Loading'
 import { ScreenHeader } from '../ScreenHeader'
@@ -31,7 +31,7 @@ function webglAvailable(): boolean {
 }
 
 export function FindStore() {
-  const { state, dispatch, friction, settleFlow } = useBramble()
+  const { state, dispatch, settleFlow } = useBramble()
   const [busy, run] = useBusy()
   const location = state.flows.store_location
   const askLocation = !state.settled.includes('store_location')
@@ -39,10 +39,6 @@ export function FindStore() {
   useEffect(() => {
     dispatch({ type: 'visitFindStore', atMs: visibleMs() })
   }, [dispatch])
-
-  // Neutral: "Allow" needs an exact/general choice first; "Don't allow" never does.
-  const preciseRequired = levelOf(getFlow('store_precise'), friction).required === true
-  const allowBlocked = preciseRequired && state.flows.store_precise === null
 
   const onLocationChosen = (value: string) => {
     if (value !== 'dont_allow') settleFlow('store_precise')
@@ -65,11 +61,7 @@ export function FindStore() {
       {askLocation && (
         <Sheet icon={<PinIcon />} title={flow.title} description={flow.description}>
           <FlowChoice flowId="store_precise" />
-          <FlowChoice
-            flowId="store_location"
-            disabledOptions={allowBlocked ? ['while_using', 'once'] : []}
-            onChosen={onLocationChosen}
-          />
+          <FlowChoice flowId="store_location" onChosen={onLocationChosen} />
         </Sheet>
       )}
     </section>

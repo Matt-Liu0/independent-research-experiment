@@ -97,11 +97,10 @@ async function declineEverything(friction: Friction) {
   await user.click(screen.getByRole('button', { name: 'Add Oat milk, 64 oz' }))
   await user.click(screen.getByRole('button', { name: 'Add Sourdough loaf' }))
   await user.click(screen.getByRole('button', { name: /go to checkout/i }))
+  // Nudged presets sharing, so it must be undone; neutral already starts unchecked.
   if (friction === 'nudged') {
     await user.click(screen.getByRole('switch'))
     await user.click(screen.getByRole('checkbox'))
-  } else {
-    await user.click(screen.getByRole('button', { name: "Don't share" }))
   }
   await user.click(screen.getByRole('button', { name: /place order/i }))
   finish(2)
@@ -118,10 +117,6 @@ async function declineEverything(friction: Friction) {
   await user.click(tab('Deals'))
   if (friction === 'nudged') {
     for (const sw of screen.getAllByRole('switch')) await user.click(sw)
-  } else {
-    for (const name of ['Deals picked for you', 'Offers from partner brands']) {
-      await user.click(within(screen.getByRole('group', { name })).getByRole('button', { name: 'Off' }))
-    }
   }
   await user.click(screen.getByRole('button', { name: 'Save Honeycrisp apples' }))
   await user.click(screen.getByRole('button', { name: 'Save Sourdough loaf' }))
@@ -182,9 +177,9 @@ describe('decline everything', () => {
       if (firstDecision >= 0) expect(firstShown, id).toBeLessThan(firstDecision)
     }
 
-    // Presets show up as defaultShown in nudged; neutral presets only the checkbox.
+    // The preset is recorded: sharing in nudged (so declining changes it), unchecked in neutral.
     const preset = app.eventsOf('settled').find((e) => e.flowId === 'courier_live')!
-    expect(preset.defaultShown).toBe(friction === 'nudged' ? 'share' : null)
+    expect(preset.defaultShown).toBe(friction === 'nudged' ? 'share' : 'dont_share')
     expect(preset.changedFromDefault).toBe(friction === 'nudged')
   }, 20_000)
 })

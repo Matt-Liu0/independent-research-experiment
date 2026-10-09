@@ -3,7 +3,7 @@ import { displayAddress } from '../appState'
 import { useBramble } from '../BrambleContext'
 import { DELIVERY_FEE, findProduct, findStore } from '../data'
 import { FlowChoice } from '../FlowChoice'
-import { FLOWS, levelOf } from '../flows'
+import { FLOWS } from '../flows'
 import { Spinner } from '../Loading'
 import { ScreenHeader } from '../ScreenHeader'
 import { deliveryWindow } from '../orderTimeline'
@@ -12,7 +12,7 @@ import { useBusy } from '../useBusy'
 const CHECKOUT_FLOWS = FLOWS.filter((f) => f.screen === 'checkout')
 
 export function Checkout() {
-  const { state, friction, dispatch, navigate, showFlow, settleFlow, act } = useBramble()
+  const { state, dispatch, navigate, showFlow, settleFlow, act } = useBramble()
   const [busy, run] = useBusy()
   // The delivery window is worked out once, when checkout opens.
   const [openedAt] = useState(() => Date.now())
@@ -20,7 +20,6 @@ export function Checkout() {
   const items = state.cart.map((id) => findProduct(id)).filter((p) => p !== undefined)
   const subtotal = items.reduce((sum, p) => sum + p.price, 0)
   const delivery = state.deliveryRedeemed ? 0 : DELIVERY_FEE
-  const missingChoice = CHECKOUT_FLOWS.some((f) => levelOf(f, friction).required && state.flows[f.id] === null)
 
   const placeOrder = () => {
     // The choices are fixed at the tap; the spinner comes after, so it doesn't count as decision time.
@@ -117,7 +116,7 @@ export function Checkout() {
 
       <FlowChoice flowId="checkout_partner_offers" />
 
-      <button type="button" className="btn btn-green" disabled={!store || missingChoice || busy !== null} onClick={placeOrder}>
+      <button type="button" className="btn btn-green" disabled={!store || busy !== null} onClick={placeOrder}>
         {busy ? <Spinner label="Placing order…" /> : `Place order · $${(subtotal + delivery).toFixed(2)}`}
       </button>
     </section>

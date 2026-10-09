@@ -28,14 +28,14 @@ describe('GKC-CI coding', () => {
     const forms = Object.fromEntries(FLOWS.map((f) => [f.id, [consentForm(f, 'nudged'), consentForm(f, 'neutral')]]))
     expect(forms).toEqual({
       store_location: ['nudged_choice', 'active_choice'],
-      store_precise: ['opt_out', 'active_choice'],
-      courier_live: ['opt_out', 'active_choice'],
+      store_precise: ['opt_out', 'opt_in'],
+      courier_live: ['opt_out', 'opt_in'],
       checkout_partner_offers: ['opt_out', 'opt_in'],
       bg_during_order: ['nudged_choice', 'active_choice'],
       sam_share: ['nudged_choice', 'active_choice'],
       bg_between_orders: ['nudged_choice', 'active_choice'],
-      deals_personalized: ['opt_out', 'active_choice'],
-      deals_partner_offers: ['opt_out', 'active_choice'],
+      deals_personalized: ['opt_out', 'opt_in'],
+      deals_partner_offers: ['opt_out', 'opt_in'],
       reward_keel: ['nudged_choice', 'active_choice'],
       reward_university: ['nudged_choice', 'active_choice'],
       reward_data_partners: ['nudged_choice', 'active_choice'],
