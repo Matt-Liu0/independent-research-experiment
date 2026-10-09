@@ -44,13 +44,13 @@ interface Props {
 }
 
 /**
- * Draws one flow in the participant's friction level and logs every choice.
+ * Draws one flow at the participant's friction level for its screen, and logs every choice.
  * Prompts draw only their buttons (the screen shows the title); settings draw their own text.
  */
 export function FlowChoice({ flowId, layout = 'stack', tone = 'green', onChosen, source = 'prompt' }: Props) {
-  const { friction, state, chooseFlow } = useBramble()
+  const { frictionOf, state, chooseFlow } = useBramble()
   const flow = getFlow(flowId)
-  const level = levelOf(flow, friction)
+  const level = levelOf(flow, frictionOf(flowId))
   const ref = useShownWhenVisible(flowId)
   const value = state.flows[flowId] ?? level.default
 

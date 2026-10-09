@@ -322,3 +322,12 @@ Groundwork for Experiment 4: pipeline verdict mapping in the export, `data-empha
 ## Version 0.9.0 change (Oct 5, 2026)
 
 Pipeline conflicts resolved with the user: keep 12 flows, keep the "try a new app" framing, friction is defaults and emphasis only, no Day 15 retest (stability comes from reworded repeats of the 12 site flows in Part 2), and both Prolific and participant-code recruitment (`?code=…`). The pipeline document was edited to match.
+
+## Version 0.10.0 change (Oct 8, 2026)
+
+Friction follows Utz et al. (2019) and varies within each participant.
+- **Levels:**
+  - **Neutral:** settings unchecked, all buttons formatted alike.
+  - **Nudged:** settings pre-checked, only the sharing option highlighted.
+- **Assignment:** each person gets three of six decision screens (U1–U6) nudged, balanced across all 20 patterns. The record stores `pattern`; `flows.csv` has per-row `friction` and `unit`.
+- **Agent links:** they take `nudged=…`, so Experiment 4 can replay a participant's pattern or its mirror image.

@@ -45,13 +45,13 @@ afterAll(async () => {
 })
 
 describe('FirestoreStore with the real rules', () => {
-  it('creates a record, assigns a level, logs events and resumes', async () => {
+  it('creates a record, assigns a pattern, logs events and resumes', async () => {
     const b = browser()
     const first = await b.store.start(params('alice'))
     expect(first.kind).toBe('new')
 
-    const { friction, taskOrder } = await b.store.assign()
-    expect(['nudged', 'neutral']).toContain(friction)
+    const { pattern, taskOrder } = await b.store.assign()
+    expect(pattern).toMatch(/^(U[1-6]){3}$/)
     expect(taskOrder).toHaveLength(6)
 
     b.store.update({ stage: 'welcome' }, ['consentAt'])
@@ -60,11 +60,11 @@ describe('FirestoreStore with the real rules', () => {
 
     const uid = b.auth.currentUser!.uid
     const snap = await getDoc(doc(b.db, 'pilot_participants', uid))
-    expect(snap.data()).toMatchObject({ friction, stage: 'welcome', prolificPid: params('alice').prolificPid })
+    expect(snap.data()).toMatchObject({ pattern, stage: 'welcome', prolificPid: params('alice').prolificPid })
     expect(snap.data()?.consentAt).toBeTruthy()
 
-    // Assigning again returns the same level instead of re-randomizing.
-    expect((await b.store.assign()).friction).toBe(friction)
+    // Assigning again returns the same pattern instead of re-randomizing.
+    expect((await b.store.assign()).pattern).toBe(pattern)
 
     // A reload in the same browser resumes.
     const again = new FirestoreStore(b.db, b.auth, collectionNames(true))
@@ -90,17 +90,20 @@ describe('FirestoreStore with the real rules', () => {
 
   it('keeps assignment balanced across many participants', async () => {
     const before = await countsNow()
-    const levels: string[] = []
+    const patterns: string[] = []
     for (let i = 0; i < 6; i++) {
       const b = browser()
       await b.store.start(params(`bal${i}`))
-      levels.push((await b.store.assign()).friction)
+      patterns.push((await b.store.assign()).pattern)
       await signOut(b.auth)
     }
     const after = await countsNow()
-    expect(after.nudged + after.neutral - before.nudged - before.neutral).toBe(6)
-    expect(Math.abs(after.nudged - after.neutral)).toBeLessThanOrEqual(1)
-    expect(levels).toHaveLength(6)
+    const total = (c: Record<string, number>) => Object.values(c).reduce((a, b) => a + b, 0)
+    expect(total(after) - total(before)).toBe(6)
+    // Least-used first: once all 20 patterns exist, no two counts differ by more than 1.
+    const spread = Math.max(...Object.values(after)) - Math.min(...Object.values(after))
+    expect(Object.keys(after).length < 20 || spread <= 1).toBe(true)
+    expect(patterns).toHaveLength(6)
   })
 
   it('queues events logged before sign-in and writes them once the record exists', async () => {
@@ -124,5 +127,5 @@ async function countsNow() {
   const b = browser()
   await b.store.start(params(`probe${Math.random().toString(36).slice(2)}`))
   const snap = await getDoc(doc(b.db, 'pilot_meta', 'assignment'))
-  return (snap.data() as { nudged: number; neutral: number } | undefined) ?? { nudged: 0, neutral: 0 }
+  return (snap.data() as Record<string, number> | undefined) ?? {}
 }

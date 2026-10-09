@@ -6,6 +6,7 @@ import { delayFor, screenLoadingKey } from './timing'
 import { appReducer, type AppAction, type AppState } from './appState'
 import { FLOWS, getFlow, isApplicable, levelOf } from './flows'
 import type { FlowId, Friction, ScreenId } from './types'
+import { frictionOf as frictionOfFlow, type UnitId } from './units'
 
 /**
  * prompt: on the app screen where the flow appears. rewards_page: changing an answered offer
@@ -15,7 +16,8 @@ export type DecisionSource = 'prompt' | 'rewards_page' | 'account_page'
 
 export interface Bramble {
   state: AppState
-  friction: Friction
+  /** This participant's friction level for a flow (it varies by decision screen). */
+  frictionOf: (id: FlowId) => Friction
   dispatch: (action: AppAction) => void
   navigate: (screen: ScreenId) => void
   /** Back to the previous screen (the ‹ button or the phone's Back). False if there's nowhere to go. */
@@ -46,13 +48,14 @@ export function useBramble(): Bramble {
 }
 
 interface Props {
-  friction: Friction
+  /** Decision screens shown nudged for this participant; the rest are neutral. */
+  nudgedUnits: readonly UnitId[]
   initialState: AppState
   onChange?: (state: AppState) => void
   children: ReactNode
 }
 
-export function BrambleProvider({ friction, initialState, onChange, children }: Props) {
+export function BrambleProvider({ nudgedUnits, initialState, onChange, children }: Props) {
   const [state, setState] = useState(initialState)
   // Synchronous mirror, so a choice and the settle that follows it see the same state.
   const stateRef = useRef(initialState)
@@ -75,7 +78,8 @@ export function BrambleProvider({ friction, initialState, onChange, children }: 
     onChange?.(state)
   }, [state, onChange])
 
-  const presetOf = useCallback((id: FlowId) => levelOf(getFlow(id), friction).default, [friction])
+  const frictionOf = useCallback((id: FlowId) => frictionOfFlow(getFlow(id), nudgedUnits), [nudgedUnits])
+  const presetOf = useCallback((id: FlowId) => levelOf(getFlow(id), frictionOf(id)).default, [frictionOf])
 
   const msSincePrompt = (id: FlowId): number | null => {
     const at = shownAt.current.get(id)
@@ -224,8 +228,8 @@ export function BrambleProvider({ friction, initialState, onChange, children }: 
   const getState = useCallback(() => stateRef.current, [])
 
   const value = useMemo<Bramble>(
-    () => ({ state, friction, dispatch, navigate, goBack, act, showFlow, chooseFlow, settleFlow, leaveScreen, getState }),
-    [state, friction, dispatch, navigate, goBack, act, showFlow, chooseFlow, settleFlow, leaveScreen, getState],
+    () => ({ state, frictionOf, dispatch, navigate, goBack, act, showFlow, chooseFlow, settleFlow, leaveScreen, getState }),
+    [state, frictionOf, dispatch, navigate, goBack, act, showFlow, chooseFlow, settleFlow, leaveScreen, getState],
   )
 
   return <BrambleContext.Provider value={value}>{children}</BrambleContext.Provider>

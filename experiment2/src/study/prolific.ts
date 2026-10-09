@@ -1,8 +1,10 @@
-import type { Friction, TaskNumber } from '../bramble/types'
+import type { TaskNumber } from '../bramble/types'
+import { UNITS, patternKey, uniformUnits, type UnitId } from '../bramble/units'
 import type { AgentMeta, Mode, ProlificParams } from './types'
 
 export interface AgentEntry extends AgentMeta {
-  friction: Friction
+  /** Nudged decision screens: the matched participant's, their mirror image, or all/none. */
+  nudgedUnits: UnitId[]
   taskOrder: TaskNumber[]
   /** The person the agent acts for, used in the app's greeting (the pipeline's "[name]"). */
   name: string | null
@@ -12,8 +14,11 @@ export interface Entry {
   mode: Mode
   /** null when the link is missing Prolific's parameters (or an agent link is invalid). */
   params: ProlificParams | null
-  /** Demo links choose the level; everyone else is randomized. */
-  demoFriction: Friction | null
+  /**
+   * Demo links: the nudged-screen pattern to preview ("" = all neutral, "U1…U6" = all nudged),
+   * or null for ?demo=mixed (a random 3-of-6 pattern, as participants get). Not used otherwise.
+   */
+  demoPattern?: string | null
   /** Set for agent links (?agent=1). */
   agent?: AgentEntry | null
   /** Why an agent link was rejected, for the harness to report. */
@@ -46,16 +51,27 @@ export function validTaskOrder(order: number[]): order is TaskNumber[] {
 
 /**
  * Agent episode link, built by the Experiment 4 harness:
- * ?agent=1&EPISODE_ID=…&friction=nudged|neutral&taskOrder=4-1-2-3-5-6
+ * ?agent=1&EPISODE_ID=…&nudged=U1-U3-U5&taskOrder=4-1-2-3-5-6
  *   [&NAME=…&MODEL=…&CONDITION=…&RUN=…&PARTICIPANT=…]
- * The level and task order are the matched participant's, so the agent meets the same screens.
+ * `nudged` lists the nudged decision screens (U1–U6), or `none` / `all`. Normally the matched
+ * participant's pattern, so the agent meets the same screens; or its mirror image.
  */
+function parseNudged(value: string | null): UnitId[] | null {
+  if (value === 'none') return []
+  if (value === 'all') return [...UNITS]
+  if (!value) return null
+  const parts = value.split('-')
+  if (!parts.every((p): p is UnitId => (UNITS as readonly string[]).includes(p))) return null
+  if (new Set(parts).size !== parts.length) return null
+  return UNITS.filter((u) => parts.includes(u))
+}
+
 function parseAgent(q: URLSearchParams): Entry {
-  const reject = (invalid: string): Entry => ({ mode: 'agent', params: null, demoFriction: null, agent: null, invalid })
+  const reject = (invalid: string): Entry => ({ mode: 'agent', params: null, agent: null, invalid })
   const episodeId = q.get('EPISODE_ID') ?? ''
   if (!SAFE_ID.test(episodeId)) return reject('EPISODE_ID is missing or not a safe ID')
-  const friction = q.get('friction')
-  if (friction !== 'nudged' && friction !== 'neutral') return reject('friction must be nudged or neutral')
+  const nudgedUnits = parseNudged(q.get('nudged'))
+  if (!nudgedUnits) return reject('nudged must be none, all, or units U1-U6 joined by "-" (e.g. U1-U3-U5)')
   const taskOrder = (q.get('taskOrder') ?? '').split('-').map(Number)
   if (!validTaskOrder(taskOrder)) return reject('taskOrder must list tasks 1-6, with 3 right after 2 and 6 last')
   const text = (key: string) => {
@@ -66,10 +82,9 @@ function parseAgent(q: URLSearchParams): Entry {
   return {
     mode: 'agent',
     params: { prolificPid: `AGENT-${episodeId}`, studyId: 'AGENT', sessionId: episodeId },
-    demoFriction: null,
     agent: {
       episodeId,
-      friction,
+      nudgedUnits,
       taskOrder,
       name: text('NAME'),
       model: text('MODEL'),
@@ -87,8 +102,9 @@ export function parseEntry(search: string, allowDeviceSkip: boolean = DEVICE_SKI
   const withSkip = (entry: Entry): Entry => (skipDeviceCheck ? { ...entry, skipDeviceCheck } : entry)
   const demo = q.get('demo')
   if (demo === 'nudged' || demo === 'neutral') {
-    return { mode: 'demo', params: DEMO_PARAMS, demoFriction: demo }
+    return { mode: 'demo', params: DEMO_PARAMS, demoPattern: patternKey(uniformUnits(demo)) }
   }
+  if (demo === 'mixed') return { mode: 'demo', params: DEMO_PARAMS, demoPattern: null }
   const mode: Mode = q.get('pilot') === '1' ? 'pilot' : 'study'
   // Participant codes handed out directly (e.g. to students), instead of a Prolific link.
   const code = q.get('code')
@@ -97,7 +113,6 @@ export function parseEntry(search: string, allowDeviceSkip: boolean = DEVICE_SKI
     return withSkip({
       mode,
       params: valid ? { prolificPid: code, studyId: 'CODE', sessionId: 'CODE', recruitment: 'code' } : null,
-      demoFriction: null,
     })
   }
   const prolificPid = q.get('PROLIFIC_PID') ?? ''
@@ -107,7 +122,6 @@ export function parseEntry(search: string, allowDeviceSkip: boolean = DEVICE_SKI
   return withSkip({
     mode,
     params: valid ? { prolificPid, studyId, sessionId, recruitment: 'prolific' } : null,
-    demoFriction: null,
   })
 }
 

@@ -1,4 +1,5 @@
 import type { CIFlow } from './ci'
+import type { UnitId } from './units'
 
 export type Friction = 'nudged' | 'neutral'
 
@@ -51,6 +52,8 @@ export interface FlowDef {
   /** Task this flow is expected to fall in (events log the actual task). */
   task: TaskNumber
   screen: ScreenId
+  /** Decision screen whose friction level this flow follows (see units.ts). */
+  unit: UnitId
   kind: FlowKind
   settleOn: SettleOn
   options: readonly string[]

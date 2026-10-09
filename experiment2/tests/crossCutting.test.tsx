@@ -221,3 +221,49 @@ describe('points range', () => {
     expect(bonuses.every((b) => b >= 0.12 && b <= 0.57)).toBe(true)
   })
 })
+
+describe('friction by decision screen (within each participant)', () => {
+  it('shows each screen at its own level in a mixed pattern, and logs the matching presets', async () => {
+    const user = userEvent.setup()
+    // Checkout (U2) and Deals (U5) nudged; the location prompt (U1) and Rewards (U6) neutral.
+    const app = renderApp(['U2', 'U5'], { screen: 'find_store', storeId: 'elm', cart: ['oat_milk'] })
+
+    const sheet = screen.getByRole('dialog')
+    expect(within(sheet).getByRole('switch', { name: 'Precise location' })).toHaveAttribute('aria-checked', 'false')
+    expect(within(sheet).getByRole('button', { name: 'Allow while using Bramble' })).toHaveAttribute('data-emphasis', 'plain')
+    await user.click(within(sheet).getByRole('button', { name: 'Allow once' }))
+
+    await user.click(screen.getByRole('button', { name: /^Cart/ }))
+    expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('checkbox')).toBeChecked()
+
+    await user.click(tab('Deals'))
+    expect(screen.getAllByRole('switch').map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'true'])
+
+    await user.click(tab('Rewards'))
+    expect(screen.getByRole('button', { name: 'Link' })).toHaveAttribute('data-emphasis', 'plain')
+
+    const shown = Object.fromEntries(app.eventsOf('prompt_shown').map((e) => [e.flowId, e.defaultShown]))
+    expect(shown).toMatchObject({
+      store_precise: 'general',
+      courier_live: 'share',
+      checkout_partner_offers: 'checked',
+      deals_personalized: 'on',
+      reward_keel: null,
+    })
+  })
+
+  it('records each flow at its own level in the export', async () => {
+    const { buildExport } = await import('../scripts/transform')
+    const result = buildExport('participants', [
+      { uid: 'u1', data: { prolificPid: 'p1', pattern: 'U2U5U6', withdrawn: false, appState: { flows: {} } }, events: [] },
+    ])
+    const level = Object.fromEntries(result.flows.map((r) => [r.flowId, [r.unit, r.friction, r.consentForm]]))
+    expect(level.store_location).toEqual(['U1', 'neutral', 'active_choice'])
+    expect(level.courier_live).toEqual(['U2', 'nudged', 'opt_out'])
+    expect(level.deals_partner_offers).toEqual(['U5', 'nudged', 'opt_out'])
+    expect(level.reward_university).toEqual(['U6', 'nudged', 'nudged_choice'])
+    expect(level.bg_between_orders).toEqual(['U4', 'neutral', 'active_choice'])
+    expect(result.participants[0]).toMatchObject({ pattern: 'U2U5U6', nudgedUnits: 'U2;U5;U6' })
+  })
+})

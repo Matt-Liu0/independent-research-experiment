@@ -14,7 +14,7 @@ const alice: RawParticipant = {
     createdAt: at(0),
     consentAt: at(1),
     completedAt: at(31),
-    friction: 'nudged',
+    pattern: 'U1U2U6',
     taskOrder: [1, 2, 3, 4, 5, 6],
     withdrawn: false,
     stage: 'done',
@@ -53,13 +53,13 @@ const alice: RawParticipant = {
 
 const bob: RawParticipant = {
   uid: 'uidB',
-  data: { prolificPid: 'PID_BOB', createdAt: at(10), friction: 'neutral', withdrawn: true, stage: 'done' },
+  data: { prolificPid: 'PID_BOB', createdAt: at(10), pattern: 'U3U4U5', withdrawn: true, stage: 'done' },
   events: [ev(11, 1, { type: 'stage' })],
 }
 
 const carol: RawParticipant = {
   uid: 'uidC',
-  data: { prolificPid: 'PID_CAROL', createdAt: at(5), friction: null, consentDeclined: true, withdrawn: false, stage: 'consent' },
+  data: { prolificPid: 'PID_CAROL', createdAt: at(5), pattern: null, consentDeclined: true, withdrawn: false, stage: 'consent' },
   events: [],
 }
 
@@ -79,7 +79,8 @@ describe('buildExport', () => {
     const a = result.participants[0]
     expect(a).toMatchObject({
       studyCode: 'P001',
-      friction: 'nudged',
+      pattern: 'U1U2U6',
+      nudgedUnits: 'U1;U2;U6',
       taskOrder: '1-2-3-4-5-6',
       completed: true,
       os: 'ios',

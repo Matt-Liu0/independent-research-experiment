@@ -8,7 +8,6 @@ describe('parseEntry', () => {
     expect(parseEntry(full)).toEqual({
       mode: 'study',
       params: { prolificPid: '5f1a2b3c4d5e6f7a8b9c0d1e', studyId: 'study1', sessionId: 'sess1', recruitment: 'prolific' },
-      demoFriction: null,
     })
   })
 
@@ -25,11 +24,13 @@ describe('parseEntry', () => {
     expect(parseEntry('?PROLIFIC_PID=a/b&STUDY_ID=s&SESSION_ID=x').params).toBeNull()
   })
 
-  it('supports demo links that pick the level and need no Prolific IDs', () => {
-    const entry = parseEntry('?demo=neutral')
-    expect(entry.mode).toBe('demo')
-    expect(entry.demoFriction).toBe('neutral')
-    expect(entry.params).not.toBeNull()
+  it('supports demo links that set every screen to one level, or mix them, with no Prolific IDs', () => {
+    const neutral = parseEntry('?demo=neutral')
+    expect(neutral.mode).toBe('demo')
+    expect(neutral.demoPattern).toBe('')
+    expect(neutral.params).not.toBeNull()
+    expect(parseEntry('?demo=nudged').demoPattern).toBe('U1U2U3U4U5U6')
+    expect(parseEntry('?demo=mixed').demoPattern).toBeNull()
   })
 
   it('ignores unknown demo levels', () => {
@@ -48,7 +49,6 @@ describe('participant codes', () => {
     expect(parseEntry('?code=S0123')).toEqual({
       mode: 'study',
       params: { prolificPid: 'S0123', studyId: 'CODE', sessionId: 'CODE', recruitment: 'code' },
-      demoFriction: null,
     })
     expect(parseEntry('?code=S0123&pilot=1').mode).toBe('pilot')
   })

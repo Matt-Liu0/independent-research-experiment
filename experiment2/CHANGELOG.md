@@ -8,6 +8,11 @@ Friction levels now follow Utz et al. (2019), as decided with Noah.
 
 - **Neutral settings start unchecked (off)** instead of requiring a choice: precise location (#2), courier sharing (#3) and both Deals settings (#8, #9). The partner-offers box (#4) already worked this way. The neutral consent form for these flows is now `opt_in`. This removes the extra tap needed to allow precise location in neutral, the disabled Allow buttons, the hidden-until-chosen deals, and the disabled Place order button.
 - **Nudged highlights only the sharing option:** the protective option is now an ordinary button of the same size, not a small text link. `data-emphasis` is `primary` or `plain`.
+- **Friction varies within each participant, by decision screen.**
+  - **How it's assigned:** the 12 flows sit on six screens (U1–U6). Each person gets three nudged and three neutral (`pattern`, e.g. `U1U3U5`), balanced so all 20 patterns, and therefore each screen, are used equally. This replaces the per-person `friction`.
+  - **Export:** `flows.csv` gains `unit`, and `friction` is now per row. `participants.csv` has `pattern` and `nudgedUnits`.
+  - **Agent links:** they take `nudged=U1-U3-U5` (or `none` / `all`), so Experiment 4 can replay a participant's pattern or its mirror image.
+  - **Demo and rules:** `?demo=mixed` previews a random pattern. The security rules check each pattern is set once, is valid, and is counted once.
 
 ## 0.9.1 (2026-10-06)
 

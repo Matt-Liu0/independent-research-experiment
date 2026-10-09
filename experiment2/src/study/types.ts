@@ -1,5 +1,5 @@
 import type { AppState } from '../bramble/appState'
-import type { Friction, TaskNumber } from '../bramble/types'
+import type { TaskNumber } from '../bramble/types'
 
 export const STAGES = ['device', 'consent', 'welcome', 'tasks', 'sus', 'suspicion', 'settings', 'done'] as const
 export type Stage = (typeof STAGES)[number]
@@ -70,7 +70,11 @@ export interface ParticipantDoc extends ProlificParams {
   appVersion: string
   consentVersion: string | null
   consentDeclined: boolean
-  friction: Friction | null
+  /**
+   * Which decision screens are nudged for this person, e.g. "U1U3U5" (see bramble/units.ts);
+   * the other screens are neutral. Set at consent.
+   */
+  pattern: string | null
   taskOrder: TaskNumber[] | null
   withdrawn: boolean
   device: DeviceInfo | null
@@ -101,7 +105,7 @@ export function newParticipant(params: ProlificParams, now = new Date()): Partic
     appVersion: __APP_VERSION__,
     consentVersion: null,
     consentDeclined: false,
-    friction: null,
+    pattern: null,
     taskOrder: null,
     withdrawn: false,
     device: null,

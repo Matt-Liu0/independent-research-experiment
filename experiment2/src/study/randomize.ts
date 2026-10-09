@@ -1,19 +1,11 @@
-import type { Friction, TaskNumber } from '../bramble/types'
+import type { TaskNumber } from '../bramble/types'
+import { PATTERNS, patternKey } from '../bramble/units'
 
 /** Uniform random number in [0, 1) from the browser's cryptographic generator. */
 export function cryptoRandom(): number {
   const buf = new Uint32Array(1)
   crypto.getRandomValues(buf)
   return buf[0] / 2 ** 32
-}
-
-export type Counts = Record<Friction, number>
-
-/** The level with fewer participants so far; a coin flip on a tie. */
-export function pickLevel(counts: Counts, random: () => number = cryptoRandom): Friction {
-  if (counts.nudged < counts.neutral) return 'nudged'
-  if (counts.neutral < counts.nudged) return 'neutral'
-  return random() < 0.5 ? 'nudged' : 'neutral'
 }
 
 /**
@@ -27,4 +19,18 @@ export function shuffleTasks(random: () => number = cryptoRandom): TaskNumber[] 
     ;[units[i], units[j]] = [units[j], units[i]]
   }
   return [...units.flat(), 6]
+}
+
+/** How many participants have each nudged-unit pattern, keyed by pattern ("U1U3U5"). Missing = 0. */
+export type PatternCounts = Record<string, number>
+
+/**
+ * The least-used of the 20 patterns (3 of 6 units nudged); a random one among ties.
+ * Using every pattern equally often also nudges each unit for exactly half the sample.
+ */
+export function pickPattern(counts: PatternCounts, random: () => number = cryptoRandom): string {
+  const keys = PATTERNS.map(patternKey)
+  const fewest = Math.min(...keys.map((k) => counts[k] ?? 0))
+  const tied = keys.filter((k) => (counts[k] ?? 0) === fewest)
+  return tied[Math.floor(random() * tied.length)]
 }

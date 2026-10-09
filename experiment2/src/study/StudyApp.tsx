@@ -145,7 +145,7 @@ export function StudyApp({ entry, store, detect = detectDevice }: Props) {
     <>
       {entry.mode === 'demo' && (
         <div className="demo-tag" aria-hidden="true">
-          Demo · {participant.friction ?? entry.demoFriction} · nothing saved
+          Demo · nudged: {participant.pattern || 'none'} · nothing saved
         </div>
       )}
       {entry.mode === 'pilot' && (

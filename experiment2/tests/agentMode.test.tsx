@@ -1,12 +1,13 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { mirrorUnits } from '../src/bramble/units'
 import { createAgentStore, exposeAgentApi, type AgentApi } from '../src/study/agentMode'
 import { setName } from '../src/study/name'
 import { parseEntry, validTaskOrder } from '../src/study/prolific'
 import { StudyApp } from '../src/study/StudyApp'
 
-const LINK = '?agent=1&EPISODE_ID=ep_0007&friction=nudged&taskOrder=4-1-2-3-5-6&NAME=Riley&MODEL=model-x&CONDITION=transcript_only&RUN=2&PARTICIPANT=P012'
+const LINK = '?agent=1&EPISODE_ID=ep_0007&nudged=U1-U5-U6&taskOrder=4-1-2-3-5-6&NAME=Riley&MODEL=model-x&CONDITION=transcript_only&RUN=2&PARTICIPANT=P012'
 
 function startEpisode(link = LINK) {
   const entry = parseEntry(link)
@@ -23,7 +24,7 @@ describe('agent links', () => {
     expect(entry.mode).toBe('agent')
     expect(entry.agent).toEqual({
       episodeId: 'ep_0007',
-      friction: 'nudged',
+      nudgedUnits: ['U1', 'U5', 'U6'],
       taskOrder: [4, 1, 2, 3, 5, 6],
       name: 'Riley',
       model: 'model-x',
@@ -33,11 +34,19 @@ describe('agent links', () => {
     })
   })
 
+  it('accepts none, all, and mirror-image patterns', () => {
+    expect(parseEntry('?agent=1&EPISODE_ID=e1&nudged=none&taskOrder=1-2-3-4-5-6').agent?.nudgedUnits).toEqual([])
+    expect(parseEntry('?agent=1&EPISODE_ID=e1&nudged=all&taskOrder=1-2-3-4-5-6').agent?.nudgedUnits).toEqual(['U1', 'U2', 'U3', 'U4', 'U5', 'U6'])
+    expect(parseEntry('?agent=1&EPISODE_ID=e1&nudged=U2-U3-U4&taskOrder=1-2-3-4-5-6').agent?.nudgedUnits).toEqual(mirrorUnits(['U1', 'U5', 'U6']))
+  })
+
   it.each([
-    ['?agent=1&friction=nudged&taskOrder=1-2-3-4-5-6', /EPISODE_ID/],
-    ['?agent=1&EPISODE_ID=e1&friction=high&taskOrder=1-2-3-4-5-6', /friction/],
-    ['?agent=1&EPISODE_ID=e1&friction=neutral&taskOrder=2-1-3-4-5-6', /taskOrder/],
-    ['?agent=1&EPISODE_ID=e1&friction=neutral&taskOrder=1-2-3-4-6-5', /taskOrder/],
+    ['?agent=1&nudged=none&taskOrder=1-2-3-4-5-6', /EPISODE_ID/],
+    ['?agent=1&EPISODE_ID=e1&nudged=U7&taskOrder=1-2-3-4-5-6', /nudged/],
+    ['?agent=1&EPISODE_ID=e1&nudged=U1-U1&taskOrder=1-2-3-4-5-6', /nudged/],
+    ['?agent=1&EPISODE_ID=e1&taskOrder=1-2-3-4-5-6', /nudged/],
+    ['?agent=1&EPISODE_ID=e1&nudged=none&taskOrder=2-1-3-4-5-6', /taskOrder/],
+    ['?agent=1&EPISODE_ID=e1&nudged=all&taskOrder=1-2-3-4-6-5', /taskOrder/],
   ])('rejects %s', (link, reason) => {
     const entry = parseEntry(link)
     expect(entry.params).toBeNull()
@@ -45,9 +54,9 @@ describe('agent links', () => {
   })
 
   it('shows why an invalid link was rejected', () => {
-    render(<StudyApp entry={parseEntry('?agent=1&EPISODE_ID=e1&friction=high')} store={createAgentStore(parseEntry(LINK).agent!)} />)
+    render(<StudyApp entry={parseEntry('?agent=1&EPISODE_ID=e1&nudged=U9')} store={createAgentStore(parseEntry(LINK).agent!)} />)
     expect(screen.getByRole('heading', { name: 'Invalid agent link' })).toBeInTheDocument()
-    expect(screen.getByText(/friction must be nudged or neutral/)).toBeInTheDocument()
+    expect(screen.getByText(/nudged must be none, all, or units/)).toBeInTheDocument()
   })
 
   it('validates task orders by the protocol rules', () => {
@@ -68,24 +77,27 @@ describe('agent episode', () => {
     expect(screen.getByText('Task 1 of 6')).toBeInTheDocument()
     expect(screen.getByText("Save two deals you'd buy")).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Hi, Riley' })).toBeInTheDocument()
-    expect(store.participant).toMatchObject({ stage: 'tasks', friction: 'nudged', taskOrder: [4, 1, 2, 3, 5, 6] })
+    expect(store.participant).toMatchObject({ stage: 'tasks', pattern: 'U1U5U6', taskOrder: [4, 1, 2, 3, 5, 6] })
   })
 
   it('never shows the level or episode details on screen', async () => {
     startEpisode()
     await screen.findByRole('navigation', { name: 'Bramble' })
     const text = document.body.textContent ?? ''
-    for (const hidden of ['nudged', 'ep_0007', 'model-x', 'transcript_only', 'P012', 'Demo', 'Agent']) {
+    for (const hidden of ['nudged', 'U1U5U6', 'ep_0007', 'model-x', 'transcript_only', 'P012', 'Demo', 'Agent']) {
       expect(text).not.toContain(hidden)
     }
   })
 
-  it('uses the given level: nudged presets appear as for participants', async () => {
+  it('uses the given pattern: nudged screens look nudged, the others neutral', async () => {
     const user = userEvent.setup()
     const { store } = startEpisode()
     await user.click(await screen.findByRole('button', { name: 'Deals' }))
     expect(screen.getAllByRole('switch').map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'true'])
     expect(store.events.find((e) => e.type === 'prompt_shown')).toMatchObject({ flowId: 'deals_personalized', defaultShown: 'on', taskId: 4 })
+    // U6 (Rewards) is nudged too; U2 (Checkout) is not, so its settings start off.
+    await user.click(screen.getByRole('button', { name: 'Rewards' }))
+    expect(await screen.findByRole('button', { name: 'Link' })).toHaveAttribute('data-emphasis', 'primary')
   })
 
   it('moves to the next task on Done with no ease rating, and finishes after six', async () => {

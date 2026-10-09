@@ -23,7 +23,7 @@ beforeAll(async () => {
     await setDoc(doc(db, COLLECTION, `exp_a_${run}`), {
       prolificPid: `EXPORT_A_${run}`,
       createdAt: t(0),
-      friction: 'neutral',
+      pattern: 'U1U2U6',
       withdrawn: false,
       stage: 'done',
       appState: { points: 220, flows: { reward_university: 'accept' } },
@@ -35,7 +35,7 @@ beforeAll(async () => {
       type: 'settled', flowId: 'reward_university', value: 'accept', msSincePrompt: 1500, clientT: 20, t: t(2),
     })
     await setDoc(doc(db, COLLECTION, `exp_w_${run}`), {
-      prolificPid: `EXPORT_W_${run}`, createdAt: t(3), friction: 'nudged', withdrawn: true, stage: 'done',
+      prolificPid: `EXPORT_W_${run}`, createdAt: t(3), pattern: 'U3U4U5', withdrawn: true, stage: 'done',
     })
   })
   if (!getApps().length) initializeApp({ projectId: 'demo-bramble' })
@@ -66,8 +66,9 @@ describe('export from Firestore', () => {
     const uni = Object.fromEntries(header.map((h, i) => [h, rows.find((r) => r.includes('reward_university'))![i]]))
     expect(uni).toMatchObject({
       studyCode: 'PL001',
-      friction: 'neutral',
-      consentForm: 'active_choice',
+      unit: 'U6',
+      friction: 'nudged',
+      consentForm: 'nudged_choice',
       ci_recipient: 'university_traffic_lab',
       status: 'chosen',
       firstChoice: 'accept',

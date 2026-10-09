@@ -26,7 +26,7 @@ What every stored field means and the values it can take. It covers the Firestor
 | `appVersion` | App build the person saw | e.g. `0.1.0` (see `CHANGELOG.md`) |
 | `consentVersion` | Version of the consent text agreed to | e.g. `v0-draft`; `null` before consent |
 | `consentDeclined` | Tapped "I do not agree" | `true` / `false` |
-| `friction` | Assigned level, set right after consent | `nudged` (high friction: sharing preset and emphasized) · `neutral` (low friction: nothing preset, equal buttons) · `null` before consent |
+| `pattern` | Which **decision screens are nudged** for this person, set right after consent: three of the six units joined, e.g. `U1U3U5` (see section 3); the other three screens are neutral | e.g. `U2U4U6`; `null` before consent. Balanced: each of the 20 possible patterns is used equally often, so each screen is nudged for half the sample |
 | `taskOrder` | Order the six tasks were shown in | list of 6 task numbers, e.g. `[4, 1, 2, 3, 5, 6]`; 3 always follows 2, and 6 is always last; `null` before consent |
 | `withdrawn` | Asked to withdraw their Part 1 data (set by the Part 2 debrief) | `true` / `false`; withdrawn people are left out of every export |
 
@@ -167,6 +167,17 @@ Append-only: once written, an event can't be changed or deleted by the participa
 
 The first value listed shares more; ★ marks the option that shares least (`privacyOption`).
 
+**Friction varies within each participant, by decision screen.** The 12 flows sit on six decision screens ("units"). Each participant gets three units nudged and three neutral (their `pattern`), so no screen mixes the two levels:
+
+| Unit | Screen | Flows |
+|---|---|---|
+| `U1` | Location prompt (Find a store) | #1, #2 |
+| `U2` | Checkout | #3, #4 |
+| `U3` | Order tracking | #5, #6 |
+| `U4` | "Keep background location on?" (on delivery) | #7 |
+| `U5` | Deals settings | #8, #9 |
+| `U6` | Rewards offers | #10, #11, #12 |
+
 The two levels follow Utz et al. (2019), *(Un)informed Consent*: **nudged** highlights only the sharing option (every other option looks like a neutral button) and pre-checks settings; **neutral** shows all options alike and leaves settings unchecked (off).
 
 | # | `flowId` | Task | Values | Nudged preset or emphasis | Neutral |
@@ -224,7 +235,7 @@ Each flow also has a one-sentence `statement` for codebooks. If the Part 2 quest
 | Document | Fields | Meaning |
 |---|---|---|
 | `pids/{prolificPid}` | `uid`, `createdAt` | Which browser login claimed this Prolific ID. Stops a second attempt from another browser |
-| `meta/assignment` | `nudged`, `neutral` | How many people have been assigned to each level (including people who later dropped out) |
+| `meta/assignment` | one count per pattern, e.g. `U1U3U5: 4` | How many people have each pattern (including people who later dropped out). New participants get the least-used pattern |
 
 Pilot runs use `pilot_pids` and `pilot_meta`.
 
@@ -266,7 +277,8 @@ Only participants who were assigned a level have rows.
 
 | Column | Meaning | Values |
 |---|---|---|
-| `studyCode`, `friction` | Who, and their level | `P001`…; `nudged` / `neutral` |
+| `studyCode`, `flowId`, `unit` | Who, which flow, and its decision screen | `P001`…; flow ID; `U1`–`U6` |
+| `friction` | This flow's level **for this person** (from their pattern and the flow's unit) | `nudged` / `neutral` |
 | `flowId`, `expectedTask` | Which flow, and the task it belongs to | section 3; `1`–`6` |
 | `consentForm` | How consent was asked for this person (their level) | `opt_out` · `opt_in` · `nudged_choice` · `active_choice` |
 | `ci_sender`, `ci_recipient`, `ci_recipientType`, `ci_subject`, `ci_informationType`, `ci_aim`, `ci_condition`, `ci_temporal`, `ci_points` | The flow's GKC-CI parameters (same for everyone; section 3) | see section 3 |
@@ -290,7 +302,7 @@ Includes everyone who arrived, also people who declined consent or failed the de
 
 | Columns | Meaning |
 |---|---|
-| `studyCode`, `pilot`, `recruitment`, `appVersion`, `consentVersion`, `consentDeclined`, `friction`, `taskOrder` (e.g. `4-1-2-3-5-6`), `stage`, `completed` (`stage` = `done`) | Identity, assignment and progress |
+| `studyCode`, `pilot`, `recruitment`, `appVersion`, `consentVersion`, `consentDeclined`, `pattern` (e.g. `U1U3U5`), `nudgedUnits` (e.g. `U1;U3;U5`), `taskOrder` (e.g. `4-1-2-3-5-6`), `stage`, `completed` (`stage` = `done`) | Identity, assignment and progress |
 | `os`, `screenW`, `screenH`, `passedDeviceCheck`, `deviceCheckSkipped`, `automated`, `userAgent`, `tzOffset`, `localStartHour`, `resumeCount` | Device and context |
 | `createdAt`, `consentAt`, `completedAt`, `minutesToComplete` (consent → completion) | Timing |
 | `ease_t1` … `ease_t6` | Ease ratings by task number |
@@ -307,7 +319,7 @@ Includes everyone who arrived, also people who declined consent or failed the de
 
 ### `flow-codebook.csv`: one row per flow (12 rows)
 
-`flowId`, `expectedTask`, `screen`, `options`, `privacyOption`, `dependsOn`, `consentForm_nudged`, `consentForm_neutral`, `verdictMap` (e.g. `while_using=allow;once=ask;dont_allow=block`), the `ci_*` columns and `ci_statement`. Use it to match the site flows with the Part 2 questionnaire items.
+`flowId`, `unit`, `unitScreen`, `expectedTask`, `screen`, `options`, `privacyOption`, `dependsOn`, `consentForm_nudged`, `consentForm_neutral`, `verdictMap` (e.g. `while_using=allow;once=ask;dont_allow=block`), the `ci_*` columns and `ci_statement`. Use it to match the site flows with the Part 2 questionnaire items.
 
 ### `id-map.csv`: study code → Prolific ID
 
@@ -318,7 +330,7 @@ Includes everyone who arrived, also people who declined consent or failed the de
 ## Quick checks when reading a participant
 
 1. **Did they finish?** `stage` = `done` and `completedAt` is set.
-2. **Which level?** `friction`.
+2. **Which screens were nudged?** `pattern` (and `friction` on each row of `flows.csv`).
 3. **What did they choose at each flow?** The `settled` events, or `flows.csv` → `firstChoice`.
 4. **Did they change anything later?** `decision` events with `source: account_page`, or `flows.csv` → `changedOnAccountPage`; `appState.flows` gives the final values.
 5. **Did they really do the tasks?** `taskOutcome.tN.done`.
@@ -331,14 +343,14 @@ Includes everyone who arrived, also people who declined consent or failed the de
 An agent link starts a fresh episode with the same app, flows, defaults, emphasis and logging as participants:
 
 ```
-/?agent=1&EPISODE_ID=ep_0007&friction=nudged&taskOrder=4-1-2-3-5-6
+/?agent=1&EPISODE_ID=ep_0007&nudged=U1-U5-U6&taskOrder=4-1-2-3-5-6
    &NAME=Riley&MODEL=…&CONDITION=transcript_only&RUN=2&PARTICIPANT=P012
 ```
 
-- **Required:** `EPISODE_ID` (letters, digits, `_` or `-`); `friction` (the matched participant's level); `taskOrder` (their order; must follow the protocol rules, 3 straight after 2 and 6 last).
+- **Required:** `EPISODE_ID` (letters, digits, `_` or `-`); `nudged` (the nudged units, joined by `-`, e.g. `U1-U5-U6`, or `none` / `all`: normally the matched participant's pattern, or its mirror image to measure the agent's own nudge effect); `taskOrder` (their order; must follow the protocol rules, 3 straight after 2 and 6 last).
 - **Optional:** `NAME` (shown in the app greeting, the pipeline's "[name]"), `MODEL`, `CONDITION`, `RUN` and `PARTICIPANT` (the matched participant's study code).
 - **What's skipped:** consent, the phone check, the name screen, task cards, ease ratings and all surveys. The harness gives each task's text; **Done** in the task bar is `finish_task`. After the sixth task the page shows "All tasks finished."
-- **Nothing on screen** shows the level, the episode or that this is an agent run.
+- **Nothing on screen** shows the pattern, the episode or that this is an agent run.
 - **Data stays in the page; nothing goes to Firestore.** The harness reads it from `window.__brambleAgent`:
   - `apiVersion`: `1`
   - `episodeId`

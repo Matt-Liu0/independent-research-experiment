@@ -58,18 +58,18 @@ describe('StudyApp', () => {
     expect(store.participant?.device?.passedCheck).toBe(false)
   })
 
-  it('assigns friction only after consent, then shows the welcome page', async () => {
+  it('assigns the nudged-screen pattern only after consent, then shows the welcome page', async () => {
     const user = userEvent.setup()
     const store = new MemoryStore()
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} detect={phone} />)
 
     await screen.findByRole('button', { name: /i agree/i })
     expect(store.participant?.stage).toBe('consent')
-    expect(store.participant?.friction).toBeNull()
+    expect(store.participant?.pattern).toBeNull()
 
     await user.click(screen.getByRole('button', { name: /i agree/i }))
     expect(await screen.findByRole('heading', { name: /welcome to bramble/i })).toBeInTheDocument()
-    expect(store.participant?.friction).toMatch(/nudged|neutral/)
+    expect(store.participant?.pattern).toMatch(/^(U[1-6]){3}$/)
     expect(store.participant?.taskOrder).toHaveLength(6)
     expect(store.participant?.consentVersion).toBeTruthy()
     expect(store.participant?.consentAt).toBeTypeOf('number')
@@ -83,7 +83,7 @@ describe('StudyApp', () => {
     await user.click(await screen.findByRole('button', { name: /do not agree/i }))
     expect(screen.getByText(/return this study on prolific/i)).toBeInTheDocument()
     expect(store.participant?.consentDeclined).toBe(true)
-    expect(store.participant?.friction).toBeNull()
+    expect(store.participant?.pattern).toBeNull()
   })
 
   it('keeps the name on the phone and out of the participant record', async () => {
@@ -118,10 +118,10 @@ describe('StudyApp', () => {
   it('lets demo links through on any device with the chosen level', async () => {
     const user = userEvent.setup()
     const entry = parseEntry('?demo=neutral')
-    const store = new MemoryStore({ friction: entry.demoFriction ?? undefined })
+    const store = new MemoryStore({ pattern: entry.demoPattern ?? undefined })
     render(<StudyApp entry={entry} store={store} detect={computer} />)
     await user.click(await screen.findByRole('button', { name: /i agree/i }))
     await screen.findByRole('heading', { name: /welcome/i })
-    expect(store.participant?.friction).toBe('neutral')
+    expect(store.participant?.pattern).toBe('')
   })
 })

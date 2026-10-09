@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { initialAppState, storableAppState, type AppState } from '../bramble/appState'
 import { BrambleApp } from '../bramble/BrambleApp'
 import { BrambleProvider, useBramble } from '../bramble/BrambleContext'
 import { Splash } from '../bramble/Loading'
 import { delayFor } from '../bramble/timing'
 import type { TaskNumber } from '../bramble/types'
+import { parsePattern } from '../bramble/units'
 import { logEvent, setLogContext } from '../log/logEvent'
 import { EaseRating } from '../surveys/EaseRating'
 import type { StageProps } from './stageProps'
@@ -25,6 +26,7 @@ export function TaskStage({ participant, mode, update, advance }: StageProps) {
   // The app keeps its own state across tasks; the record only saves copies of it.
   // Saved state is laid over the defaults, so records from older app versions gain any new fields.
   const [initialState] = useState<AppState>(() => ({ ...initialAppState(), ...participant.appState }))
+  const nudgedUnits = useMemo(() => parsePattern(participant.pattern), [participant.pattern])
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const latest = useRef<AppState>(initialState)
 
@@ -73,7 +75,7 @@ export function TaskStage({ participant, mode, update, advance }: StageProps) {
   }
 
   return (
-    <BrambleProvider friction={participant.friction ?? 'neutral'} initialState={initialState} onChange={saveAppState}>
+    <BrambleProvider nudgedUnits={nudgedUnits} initialState={initialState} onChange={saveAppState}>
       {taskPhase === 'rating' ? (
         <EaseRating key={task} taskNumber={taskIndex + 1} total={total} onSubmit={rate} />
       ) : (

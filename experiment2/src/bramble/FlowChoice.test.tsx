@@ -5,6 +5,7 @@ import { createMemorySink, setEventSink } from '../log/logEvent'
 import { initialAppState, type AppState } from './appState'
 import { BrambleProvider, useBramble } from './BrambleContext'
 import { FlowChoice } from './FlowChoice'
+import { uniformUnits } from './units'
 import type { FlowId, Friction } from './types'
 
 let sink: ReturnType<typeof createMemorySink>
@@ -17,7 +18,7 @@ function Probe() {
 
 function renderFlow(friction: Friction, flowId: FlowId) {
   return render(
-    <BrambleProvider friction={friction} initialState={initialAppState()}>
+    <BrambleProvider nudgedUnits={uniformUnits(friction)} initialState={initialAppState()}>
       <FlowChoice flowId={flowId} />
       <Probe />
     </BrambleProvider>,
@@ -62,7 +63,7 @@ describe('FlowChoice', () => {
     const user = userEvent.setup()
     const view = renderFlow('neutral', 'bg_during_order')
     view.rerender(
-      <BrambleProvider friction="neutral" initialState={initialAppState()}>
+      <BrambleProvider nudgedUnits={[]} initialState={initialAppState()}>
         <FlowChoice flowId="bg_during_order" />
         <Probe />
       </BrambleProvider>,

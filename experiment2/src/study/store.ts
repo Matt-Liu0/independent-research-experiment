@@ -1,6 +1,6 @@
-import type { Friction, TaskNumber } from '../bramble/types'
+import type { TaskNumber } from '../bramble/types'
 import type { EventSink, StudyEvent } from '../log/logEvent'
-import { pickLevel, shuffleTasks, type Counts } from './randomize'
+import { pickPattern, shuffleTasks, type PatternCounts } from './randomize'
 import type { ParticipantDoc, ProlificParams, StartResult, TimestampField } from './types'
 import { newParticipant } from './types'
 
@@ -10,8 +10,8 @@ export interface StudyStore {
   start(params: ProlificParams): Promise<StartResult>
   /** Merge fields into the participant record. Fire-and-forget: writes queue while offline. */
   update(fields: Partial<ParticipantDoc>, stamp?: TimestampField[]): void
-  /** Balanced assignment of friction and task order (once per participant). */
-  assign(): Promise<{ friction: Friction; taskOrder: TaskNumber[] }>
+  /** Balanced assignment of the nudged-screen pattern and task order (once per participant). */
+  assign(): Promise<{ pattern: string; taskOrder: TaskNumber[] }>
   sink: EventSink
   /** Resolves once every queued write has reached the server. */
   flush(): Promise<void>
@@ -21,9 +21,10 @@ export interface StudyStore {
 export class MemoryStore implements StudyStore {
   participant: ParticipantDoc | null = null
   events: StudyEvent[] = []
-  counts: Counts = { nudged: 0, neutral: 0 }
+  counts: PatternCounts = {}
   takenPids = new Set<string>()
-  readonly forcedFriction: Friction | null
+  /** Demo links fix the pattern instead of balancing. */
+  readonly forcedPattern: string | null
   readonly sink: EventSink = { write: (e) => this.events.push(e) }
 
   private preset: ParticipantDoc | null
@@ -32,8 +33,8 @@ export class MemoryStore implements StudyStore {
    * existing: a record from an earlier visit (start() resumes it).
    * preset: a fresh record to start with (agent episodes arrive already assigned).
    */
-  constructor(options: { friction?: Friction; existing?: ParticipantDoc; preset?: ParticipantDoc } = {}) {
-    this.forcedFriction = options.friction ?? null
+  constructor(options: { pattern?: string; existing?: ParticipantDoc; preset?: ParticipantDoc } = {}) {
+    this.forcedPattern = options.pattern ?? null
     this.participant = options.existing ?? null
     this.preset = options.preset ?? null
   }
@@ -64,12 +65,12 @@ export class MemoryStore implements StudyStore {
   async assign() {
     const p = this.participant
     if (!p) throw new Error('assign before start')
-    if (p.friction && p.taskOrder) return { friction: p.friction, taskOrder: p.taskOrder }
-    const friction = this.forcedFriction ?? pickLevel(this.counts)
-    this.counts[friction]++
+    if (p.pattern !== null && p.taskOrder) return { pattern: p.pattern, taskOrder: p.taskOrder }
+    const pattern = this.forcedPattern ?? pickPattern(this.counts)
+    this.counts[pattern] = (this.counts[pattern] ?? 0) + 1
     const taskOrder = shuffleTasks()
-    this.update({ friction, taskOrder })
-    return { friction, taskOrder }
+    this.update({ pattern, taskOrder })
+    return { pattern, taskOrder }
   }
 
   async flush(): Promise<void> {}

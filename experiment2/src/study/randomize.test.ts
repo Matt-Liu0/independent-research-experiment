@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { pickLevel, shuffleTasks } from './randomize'
+import { PATTERNS, UNITS, parsePattern, patternKey } from '../bramble/units'
+import { pickPattern, shuffleTasks } from './randomize'
 
 describe('shuffleTasks', () => {
   it('keeps 3 straight after 2 and 6 last, over 10,000 runs', () => {
@@ -27,20 +28,31 @@ describe('shuffleTasks', () => {
   })
 })
 
-describe('pickLevel', () => {
-  it('picks the smaller group', () => {
-    expect(pickLevel({ nudged: 3, neutral: 5 })).toBe('nudged')
-    expect(pickLevel({ nudged: 5, neutral: 3 })).toBe('neutral')
+describe('pickPattern', () => {
+  it('has 20 patterns, each nudging 3 of the 6 screens', () => {
+    expect(PATTERNS).toHaveLength(20)
+    expect(new Set(PATTERNS.map(patternKey)).size).toBe(20)
+    for (const p of PATTERNS) expect(p).toHaveLength(3)
   })
 
-  it('flips a coin on a tie', () => {
-    expect(pickLevel({ nudged: 2, neutral: 2 }, () => 0.1)).toBe('nudged')
-    expect(pickLevel({ nudged: 2, neutral: 2 }, () => 0.9)).toBe('neutral')
+  it('picks a least-used pattern', () => {
+    const counts = Object.fromEntries(PATTERNS.map((p) => [patternKey(p), 2]))
+    counts['U2U4U6'] = 1
+    expect(pickPattern(counts)).toBe('U2U4U6')
   })
 
-  it('stays balanced over 200 sequential participants', () => {
-    const counts = { nudged: 0, neutral: 0 }
-    for (let i = 0; i < 200; i++) counts[pickLevel(counts)]++
-    expect(counts).toEqual({ nudged: 100, neutral: 100 })
+  it('balances patterns, and so nudges each screen for exactly half of 200 sequential participants', () => {
+    const counts: Record<string, number> = {}
+    for (let i = 0; i < 200; i++) {
+      const k = pickPattern(counts)
+      counts[k] = (counts[k] ?? 0) + 1
+    }
+    expect(Object.values(counts)).toEqual(Array(20).fill(10))
+    for (const unit of UNITS) {
+      const nudged = Object.entries(counts)
+        .filter(([k]) => parsePattern(k).includes(unit))
+        .reduce((n, [, c]) => n + c, 0)
+      expect(nudged, unit).toBe(100)
+    }
   })
 })

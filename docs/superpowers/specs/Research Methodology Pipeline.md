@@ -118,10 +118,10 @@ The cost is that participants may answer the questionnaire in line with what the
 
 **Design.** Within-subject with Experiment 1: the same participants act on the site and later state their preferences. The norming sample does not take part.
 
-Friction is a between-subjects factor with two levels, assigned independently of elicitation arm:
+Friction is a **within-subjects** factor with two levels (decided Oct 8, 2026). The 12 decision points sit on six decision screens; each participant gets three screens at each level, assigned independently of elicitation arm. Patterns are balanced so that each screen is nudged for exactly half the sample. Flows that share a screen always share a level, so no screen mixes nudged and neutral options. The two levels follow Utz et al. (2019):
 
-* *Low friction:* allowing and declining each take one click, and nothing is pre-selected (the partner-offers box starts unchecked).  
-* *High friction:* the permissive option is the default or the prominent button.
+* *Low friction (non-nudging):* all options are formatted the same, and settings start unchecked (off).  
+* *High friction (nudging):* only the permissive option is highlighted, and settings are pre-checked (on).
 
 Only defaults and button prominence differ between levels. The flows, wording, points and the extra steps after declining (e.g. searching by ZIP code after refusing location) are identical in both, so friction is a single manipulation (decided Oct 5, 2026).
 
@@ -138,7 +138,7 @@ Every decision point is built from one battery flow, so A(f) and S(f) refer to t
 > **Task:** Find the nearest store that has oat milk in stock.  
 >  **Prompt:** *Bramble would like to use your precise location to find stores near you.*  
 >  \[Allow while using app\] \[Allow once\] \[Don't allow\]  
->  *(High friction, if declined: type a ZIP code and scroll a longer list.)*  
+>  *(If declined, at either level: type a ZIP code and scroll a longer list.)*  
 >  **Flow:** (you → Bramble, you, precise location, store search, while browsing)  
 >  **Battery counterpart:** "Bramble wants your exact location to find nearby stores, while you're browsing."
 
@@ -187,7 +187,7 @@ Task order is randomized. Otherwise, consent fatigue late in the session would a
 
 A flow is also marked unstable when both answers are given with confidence 1 or 2. Repeats within one sitting overstate stability, so some "say–do gap" flows may really be unstable statements; we report this as a limitation. Experiments 3 and 4 use these labels to score agent errors separately on consistent and inconsistent flows.
 
-**Participants.** The same people as the three Experiment 1 arms (planning figure 120), split evenly between friction levels within each arm. We over-recruit to cover dropout between the two sessions.
+**Participants.** The same people as the three Experiment 1 arms (planning figure 120), with friction varied within each person. We over-recruit to cover dropout between the two sessions.
 
 **Outputs passed on.**
 
@@ -320,7 +320,9 @@ The main analysis is a mixed-effects logistic regression of correctness on model
 
 * ### Runs: 3 per combination.
 
-* ### Environment: the same Bramble app as Part 1, with the same defaults, highlighted buttons and points. Each episode uses the task order the matched participant had, so position effects line up.
+* ### Environment: the same Bramble app as Part 1, with the same defaults, highlighted buttons and points. Each episode uses the matched participant's task order and nudged-screen pattern, so position effects and nudges line up flow by flow.
+
+* ### Mirror runs (optional, suggested Oct 8, 2026): agent runs are cheap, so each transcript can also be run with the mirror-image pattern (every nudged screen neutral and vice versa). Each agent then meets every flow at both levels, which directly estimates how susceptible each agent is to nudging and allows comparison with human susceptibility. This is the dark-patterns question of whether bots are less susceptible than people.
 
 ### **Materials.**
 

@@ -23,7 +23,7 @@ function createStore(): StudyStore {
     return store
   }
   if (entry.mode === 'agent') return new MemoryStore()
-  if (entry.mode === 'demo') return new MemoryStore({ friction: entry.demoFriction ?? undefined })
+  if (entry.mode === 'demo') return new MemoryStore({ pattern: entry.demoPattern ?? undefined })
   const { db, auth } = getFirebase()
   return new FirestoreStore(db, auth, collectionNames(entry.mode === 'pilot'))
 }

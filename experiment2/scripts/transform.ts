@@ -2,7 +2,8 @@
 // Pure functions only, so they can be tested without Firebase.
 import { consentForm, verdictOf } from '../src/bramble/ci'
 import { FLOWS } from '../src/bramble/flows'
-import type { FlowDef, FlowStatus, Friction } from '../src/bramble/types'
+import type { FlowDef, FlowStatus } from '../src/bramble/types'
+import { UNIT_SCREENS, frictionOf, parsePattern } from '../src/bramble/units'
 
 export type Row = Record<string, string | number | boolean | null>
 
@@ -79,6 +80,8 @@ export function ciColumns(flow: FlowDef): Row {
 export function flowCodebook(): Row[] {
   return FLOWS.map((flow) => ({
     flowId: flow.id,
+    unit: flow.unit,
+    unitScreen: UNIT_SCREENS[flow.unit],
     expectedTask: flow.task,
     screen: flow.screen,
     options: flow.options.join(';'),
@@ -115,11 +118,14 @@ function flowRows(code: string, data: Record<string, unknown>, events: Record<st
       (e, i) => e.type === 'decision' && e.flowId === flow.id && e.source === 'prompt' && i <= settledIndex,
     )
     const shown = events.find((e) => e.type === 'prompt_shown' && e.flowId === flow.id)
-    const friction = (data.friction as Friction | null) ?? null
+    // Friction varies by decision screen within each person: look up this flow's screen.
+    const pattern = typeof data.pattern === 'string' ? data.pattern : null
+    const friction = pattern === null ? null : frictionOf(flow, parsePattern(pattern))
     return {
       studyCode: code,
-      friction,
       flowId: flow.id,
+      unit: flow.unit,
+      friction,
       consentForm: friction ? consentForm(flow, friction) : null,
       ...ciColumns(flow),
       expectedTask: flow.task,
@@ -151,7 +157,8 @@ function participantRow(code: string, collection: string, data: Record<string, u
     appVersion: scalar(data.appVersion),
     consentVersion: scalar(data.consentVersion),
     consentDeclined: scalar(data.consentDeclined),
-    friction: scalar(data.friction),
+    pattern: scalar(data.pattern),
+    nudgedUnits: typeof data.pattern === 'string' ? parsePattern(data.pattern).join(';') : null,
     taskOrder: Array.isArray(data.taskOrder) ? data.taskOrder.join('-') : null,
     stage: scalar(data.stage),
     completed: data.stage === 'done',
@@ -234,7 +241,7 @@ export function buildExport(collection: string, raw: RawParticipant[]): ExportRe
     result.idMap.push({ studyCode: code, prolificPid: scalar(p.data.prolificPid), uid: p.uid })
     result.participants.push(participantRow(code, collection, p.data, events))
     result.events.push(...events.map((e) => eventRow(code, e)))
-    if (p.data.friction) result.flows.push(...flowRows(code, p.data, events))
+    if (typeof p.data.pattern === 'string') result.flows.push(...flowRows(code, p.data, events))
   })
   return result
 }

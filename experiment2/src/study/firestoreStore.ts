@@ -11,9 +11,9 @@ import {
   waitForPendingWrites,
   type Firestore,
 } from 'firebase/firestore'
-import type { Friction, TaskNumber } from '../bramble/types'
+import type { TaskNumber } from '../bramble/types'
 import type { EventSink, StudyEvent } from '../log/logEvent'
-import { pickLevel, shuffleTasks, type Counts } from './randomize'
+import { pickPattern, shuffleTasks, type PatternCounts } from './randomize'
 import type { StudyStore } from './store'
 import type { ParticipantDoc, ProlificParams, StartResult, TimestampField } from './types'
 import { newParticipant } from './types'
@@ -106,23 +106,22 @@ export class FirestoreStore implements StudyStore {
     setDoc(this.participantRef(), data, { merge: true }).catch((err) => console.error('update failed', err))
   }
 
-  async assign(): Promise<{ friction: Friction; taskOrder: TaskNumber[] }> {
+  async assign(): Promise<{ pattern: string; taskOrder: TaskNumber[] }> {
     const ref = this.participantRef()
     const metaRef = doc(this.db, this.names.meta, 'assignment')
     return runTransaction(this.db, async (tx) => {
       const participant = (await tx.get(ref)).data() as ParticipantDoc | undefined
-      if (participant?.friction && participant.taskOrder) {
-        return { friction: participant.friction, taskOrder: participant.taskOrder }
+      if (participant?.pattern && participant.taskOrder) {
+        return { pattern: participant.pattern, taskOrder: participant.taskOrder }
       }
       const meta = await tx.get(metaRef)
-      const counts: Counts = meta.exists() ? (meta.data() as Counts) : { nudged: 0, neutral: 0 }
-      const friction = pickLevel(counts)
+      const counts = (meta.exists() ? meta.data() : {}) as PatternCounts
+      const pattern = pickPattern(counts)
       const taskOrder = shuffleTasks()
-      const next = { ...counts, [friction]: counts[friction] + 1 }
-      if (meta.exists()) tx.update(metaRef, next)
-      else tx.set(metaRef, next)
-      tx.update(ref, { friction, taskOrder })
-      return { friction, taskOrder }
+      // Only this pattern's counter changes (the security rules check exactly that).
+      tx.set(metaRef, { [pattern]: (counts[pattern] ?? 0) + 1 }, { merge: true })
+      tx.update(ref, { pattern, taskOrder })
+      return { pattern, taskOrder }
     })
   }
 

@@ -14,7 +14,7 @@ function atTasks(overrides: Partial<ParticipantDoc> = {}): MemoryStore {
   const existing: ParticipantDoc = {
     ...newParticipant({ prolificPid: 'pid1', studyId: 's', sessionId: 'x' }),
     stage: 'tasks',
-    friction: 'neutral',
+    pattern: '',
     taskOrder: [4, 1, 2, 3, 5, 6],
     ...overrides,
   }

@@ -25,8 +25,8 @@ Phone web app for Part 1 of the location-privacy study. What every stored field 
 | `/?code=S0123` | Participants recruited directly (e.g. students), with a code you hand out; ends without Prolific |
 | add `&pilot=1` | Pilot runs; data goes to `pilot_` collections |
 | add `&anydevice=1` | **Local or emulator testing only:** skip the phone check on a computer. Ignored on the deployed study (real Firebase project with `VITE_USE_EMULATORS=false`). Recorded as `device.checkSkipped` |
-| `/?demo=nudged` or `/?demo=neutral` | Researcher preview: any device, chosen level, nothing saved |
-| `/?agent=1&EPISODE_ID=…&friction=…&taskOrder=…` | Experiment 4 agent episode, driven by the MCP harness; data read from `window.__brambleAgent` (see `DATA.md` section 8) |
+| `/?demo=nudged`, `/?demo=neutral` or `/?demo=mixed` | Researcher preview: any device, nothing saved. `nudged`/`neutral` set every screen to that level; `mixed` gives a random 3-of-6 pattern, as participants get |
+| `/?agent=1&EPISODE_ID=…&nudged=U1-U3-U5&taskOrder=…` | Experiment 4 agent episode, driven by the MCP harness; data read from `window.__brambleAgent` (see `DATA.md` section 8) |
 
 To try the app locally: `npm run dev`, then open http://localhost:5173/?demo=nudged. For a run that saves to the emulator, start `npm run emulators` too and use `http://localhost:5173/?PROLIFIC_PID=test1&STUDY_ID=s&SESSION_ID=x` (the device check needs a phone, or Chrome DevTools' phone emulation).
 
@@ -52,6 +52,7 @@ To change the area, edit `src/bramble/mapConfig.ts` (location, store pins, `MAP_
 | Path | Contents |
 | --- | --- |
 | `src/bramble/flows.ts` | The 12 flows and the only place the friction levels differ |
+| `src/bramble/units.ts` | The six decision screens (units), the 20 nudged-screen patterns, and per-flow friction |
 | `src/bramble/BrambleContext.tsx` | App state plus the show / choose / settle logging rules |
 | `src/bramble/screens/` | Shop, Find a store, Checkout, Orders, Deals, Rewards, Account |
 | `src/study/` | Prolific entry, device check, consent, assignment, tasks, Firestore store |

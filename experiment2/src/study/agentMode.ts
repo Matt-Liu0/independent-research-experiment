@@ -1,8 +1,9 @@
 // Experiment 4: AI agents use the same app through an MCP harness that drives a browser.
-// An agent link starts a fresh episode straight at the tasks, with the matched participant's
-// friction level and task order. Data stays in the page; the harness reads it from
+// An agent link starts a fresh episode straight at the tasks, with the given nudged-screen
+// pattern (usually the matched participant's) and task order. Data stays in the page; the harness reads it from
 // window.__brambleAgent and saves it. Nothing on screen reveals the level or that this is an episode.
 import type { StudyEvent } from '../log/logEvent'
+import { patternKey } from '../bramble/units'
 import { detectDevice } from './device'
 import type { AgentEntry } from './prolific'
 import { MemoryStore } from './store'
@@ -12,7 +13,7 @@ export function agentParticipant(agent: AgentEntry, now = new Date()): Participa
   return {
     ...newParticipant({ prolificPid: `AGENT-${agent.episodeId}`, studyId: 'AGENT', sessionId: agent.episodeId }, now),
     stage: 'tasks',
-    friction: agent.friction,
+    pattern: patternKey(agent.nudgedUnits),
     taskOrder: agent.taskOrder,
     device: detectDevice(),
     agent: {
@@ -35,7 +36,7 @@ export interface AgentApi {
   episodeId: string
   /** True once the sixth task is finished. */
   isDone(): boolean
-  /** The participant-style record: friction, task order, task outcomes, final app state. */
+  /** The participant-style record: pattern, task order, task outcomes, final app state. */
   getRecord(): ParticipantDoc | null
   /** Every event, in order, in the same format as for participants. */
   getEvents(): StudyEvent[]

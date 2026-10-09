@@ -46,7 +46,7 @@ function newRecord(pid: string) {
     appVersion: '0.1.0',
     consentVersion: null,
     consentDeclined: false,
-    friction: null,
+    pattern: null,
     taskOrder: null,
     withdrawn: false,
     device: null,
@@ -66,19 +66,20 @@ async function enroll(uid: string, pid = `pid_${uid}`, prefix = '') {
   return d
 }
 
-/** The assignment transaction's writes, as one batch. */
-function assignBatch(d: Firestore, uid: string, friction: 'nudged' | 'neutral', counts: { nudged: number; neutral: number } | null, prefix = '') {
+type Counts = Record<string, number>
+
+/** The assignment transaction's writes, as one batch: this pattern's counter + 1, and the pattern on the record. */
+function assignBatch(d: Firestore, uid: string, pattern: string, counts: Counts | null, prefix = '') {
   const batch = writeBatch(d)
   const meta = doc(d, `${prefix}meta`, 'assignment')
-  const next = { ...(counts ?? { nudged: 0, neutral: 0 }) }
-  next[friction] += 1
-  if (counts) batch.update(meta, next)
+  const next = { [pattern]: (counts?.[pattern] ?? 0) + 1 }
+  if (counts) batch.set(meta, next, { merge: true })
   else batch.set(meta, next)
-  batch.update(doc(d, `${prefix}participants`, uid), { friction, taskOrder: [1, 2, 3, 4, 5, 6] })
+  batch.update(doc(d, `${prefix}participants`, uid), { pattern, taskOrder: [1, 2, 3, 4, 5, 6] })
   return batch
 }
 
-async function seedCounts(counts: { nudged: number; neutral: number }, prefix = '') {
+async function seedCounts(counts: Counts, prefix = '') {
   await env.withSecurityRulesDisabled(async (ctx) => {
     await setDoc(doc(ctx.firestore() as unknown as Firestore, `${prefix}meta`, 'assignment'), counts)
   })
@@ -100,10 +101,10 @@ describe('participant records', () => {
     await assertFails(setDoc(doc(d, 'participants', 'bob'), newRecord('pid_a')))
   })
 
-  it('refuses a record that arrives with a level already set', async () => {
+  it('refuses a record that arrives with a pattern already set', async () => {
     const d = db('alice')
     await setDoc(doc(d, 'pids', 'pid_a'), { uid: 'alice', createdAt: serverTimestamp() })
-    await assertFails(setDoc(doc(d, 'participants', 'alice'), { ...newRecord('pid_a'), friction: 'neutral' }))
+    await assertFails(setDoc(doc(d, 'participants', 'alice'), { ...newRecord('pid_a'), pattern: 'U1U2U3' }))
   })
 
   it('lets the owner read and update their progress', async () => {
@@ -183,61 +184,72 @@ describe('events', () => {
 })
 
 describe('assignment', () => {
-  it('assigns the first participant and creates the counters', async () => {
+  it('assigns the first participant and creates the counter', async () => {
     const d = await enroll('alice')
-    await assertSucceeds(assignBatch(d, 'alice', 'neutral', null).commit())
+    await assertSucceeds(assignBatch(d, 'alice', 'U1U3U5', null).commit())
   })
 
-  it('assigns to the smaller group', async () => {
-    await seedCounts({ nudged: 3, neutral: 2 })
+  it("adds 1 to an existing pattern's counter", async () => {
+    await seedCounts({ U1U3U5: 2, U2U4U6: 1 })
     const d = await enroll('alice')
-    await assertSucceeds(assignBatch(d, 'alice', 'neutral', { nudged: 3, neutral: 2 }).commit())
+    await assertSucceeds(assignBatch(d, 'alice', 'U2U4U6', { U1U3U5: 2, U2U4U6: 1 }).commit())
   })
 
-  it('refuses joining the larger group', async () => {
-    await seedCounts({ nudged: 3, neutral: 2 })
+  it('starts a new counter for a pattern not used yet', async () => {
+    await seedCounts({ U1U3U5: 2 })
     const d = await enroll('alice')
-    await assertFails(assignBatch(d, 'alice', 'nudged', { nudged: 3, neutral: 2 }).commit())
+    await assertSucceeds(assignBatch(d, 'alice', 'U4U5U6', { U1U3U5: 2 }).commit())
   })
 
-  it('allows either group on a tie', async () => {
-    await seedCounts({ nudged: 2, neutral: 2 })
-    const d = await enroll('alice')
-    await assertSucceeds(assignBatch(d, 'alice', 'nudged', { nudged: 2, neutral: 2 }).commit())
+  it('refuses patterns that are not 3 of the 6 screens', async () => {
+    for (const bad of ['U1U3', 'U1U3U5U6', 'U1U3U7', 'nudged']) {
+      await env.clearFirestore()
+      const d = await enroll('alice')
+      await assertFails(assignBatch(d, 'alice', bad, null).commit())
+    }
   })
 
-  it('refuses setting a level without incrementing the counter', async () => {
-    await seedCounts({ nudged: 0, neutral: 0 })
+  it('refuses setting a pattern without incrementing its counter', async () => {
+    await seedCounts({ U1U3U5: 0 })
     const d = await enroll('alice')
-    await assertFails(updateDoc(doc(d, 'participants', 'alice'), { friction: 'nudged', taskOrder: [1, 2, 3, 4, 5, 6] }))
+    await assertFails(updateDoc(doc(d, 'participants', 'alice'), { pattern: 'U1U3U5', taskOrder: [1, 2, 3, 4, 5, 6] }))
   })
 
-  it('refuses bumping the counter without assigning yourself', async () => {
-    await seedCounts({ nudged: 0, neutral: 0 })
+  it('refuses bumping a counter without assigning yourself', async () => {
+    await seedCounts({ U1U3U5: 0 })
     const d = await enroll('alice')
-    await assertFails(updateDoc(doc(d, 'meta', 'assignment'), { nudged: 1, neutral: 0 }))
+    await assertFails(updateDoc(doc(d, 'meta', 'assignment'), { U1U3U5: 1 }))
+  })
+
+  it("refuses changing another pattern's counter in the same write", async () => {
+    await seedCounts({ U1U3U5: 1, U2U4U6: 1 })
+    const d = await enroll('alice')
+    const batch = writeBatch(d)
+    batch.set(doc(d, 'meta', 'assignment'), { U1U3U5: 2, U2U4U6: 0 }, { merge: true })
+    batch.update(doc(d, 'participants', 'alice'), { pattern: 'U1U3U5', taskOrder: [1, 2, 3, 4, 5, 6] })
+    await assertFails(batch.commit())
   })
 
   it('refuses incrementing by more than 1', async () => {
-    await seedCounts({ nudged: 0, neutral: 0 })
+    await seedCounts({ U1U3U5: 0 })
     const d = await enroll('alice')
     const batch = writeBatch(d)
-    batch.update(doc(d, 'meta', 'assignment'), { nudged: 2, neutral: 0 })
-    batch.update(doc(d, 'participants', 'alice'), { friction: 'nudged', taskOrder: [1, 2, 3, 4, 5, 6] })
+    batch.set(doc(d, 'meta', 'assignment'), { U1U3U5: 2 }, { merge: true })
+    batch.update(doc(d, 'participants', 'alice'), { pattern: 'U1U3U5', taskOrder: [1, 2, 3, 4, 5, 6] })
     await assertFails(batch.commit())
   })
 
   it('refuses a second assignment', async () => {
     const d = await enroll('alice')
-    await assertSucceeds(assignBatch(d, 'alice', 'neutral', null).commit())
-    await assertFails(assignBatch(d, 'alice', 'nudged', { nudged: 0, neutral: 1 }).commit())
+    await assertSucceeds(assignBatch(d, 'alice', 'U1U3U5', null).commit())
+    await assertFails(assignBatch(d, 'alice', 'U2U4U6', { U1U3U5: 1 }).commit())
   })
 
   it('refuses a malformed task order', async () => {
     const d = await enroll('alice')
     const batch = writeBatch(d)
-    batch.set(doc(d, 'meta', 'assignment'), { nudged: 1, neutral: 0 })
-    batch.update(doc(d, 'participants', 'alice'), { friction: 'nudged', taskOrder: [1, 2] })
+    batch.set(doc(d, 'meta', 'assignment'), { U1U3U5: 1 })
+    batch.update(doc(d, 'participants', 'alice'), { pattern: 'U1U3U5', taskOrder: [1, 2] })
     await assertFails(batch.commit())
   })
 })
@@ -245,7 +257,7 @@ describe('assignment', () => {
 describe('pilot collections', () => {
   it('apply the same rules under the pilot_ prefix', async () => {
     const d = await enroll('alice', 'pid_p', 'pilot_')
-    await assertSucceeds(assignBatch(d, 'alice', 'nudged', null, 'pilot_').commit())
+    await assertSucceeds(assignBatch(d, 'alice', 'U2U4U6', null, 'pilot_').commit())
     await assertFails(getDoc(doc(db('bob'), 'pilot_participants', 'alice')))
   })
 
