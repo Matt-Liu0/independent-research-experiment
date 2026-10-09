@@ -118,7 +118,9 @@ describe('buildExport', () => {
       ci_sender: 'participant',
       ci_recipient: 'courier',
       ci_recipientType: 'service_provider',
-      ci_informationType: 'live_location',
+      ci_informationCategory: 'digital_activity',
+      ci_attribute: 'location',
+      ci_temporality: 'continuous',
       ci_aim: 'courier_handoff',
       ci_temporal: 'until_delivery',
       ci_points: 0,
@@ -163,7 +165,8 @@ describe('flowCodebook', () => {
       consentForm_nudged: 'opt_out',
       consentForm_neutral: 'opt_in',
       ci_recipient: 'partner_brands',
-      ci_informationType: 'home_address',
+      ci_informationCategory: 'demographic',
+      ci_attribute: 'home_address',
     })
   })
 })

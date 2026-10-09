@@ -27,14 +27,36 @@ export type RecipientType =
   | 'third_party_commercial'
   | 'third_party_research'
 
-export type InformationType =
-  | 'current_location'
-  | 'location_precision'
-  | 'live_location'
-  | 'background_location'
-  | 'home_address'
+/**
+ * Broad category of information, by the social domain whose norms govern it (Matt's list):
+ * health = Medical and Health; financial = Financial; demographic = Demographic and
+ * Biographical; communication = Communal and Communicative Content; digital_activity =
+ * Digital Activity and Behavioral Data (location tracking is here); biometric = Biometrical
+ * and Physical Data.
+ */
+export type InformationCategory = 'health' | 'financial' | 'demographic' | 'communication' | 'digital_activity' | 'biometric'
+
+/** What exactly is shared, within its category. */
+export type Attribute =
+  | 'location'
   | 'location_history'
-  | 'deidentified_location_history'
+  | 'home_address'
+  | 'birthday'
+  | 'payment_card'
+  | 'heart_rate'
+  | 'health_history'
+  | 'sleep_history'
+  | 'activity_history'
+  | 'workout'
+  | 'face_scan'
+
+/** exact: precise values; approximate: coarsened (e.g. general area, daily summaries); unspecified: set by another flow. */
+export type Granularity = 'exact' | 'approximate' | 'unspecified'
+
+/** point_in_time: one reading; continuous: a live or background stream; historical: a record over time; static: a fixed fact. */
+export type Temporality = 'point_in_time' | 'continuous' | 'historical' | 'static'
+
+export type Identifiability = 'identified' | 'deidentified'
 
 export type Aim =
   | 'find_stores'
@@ -59,7 +81,11 @@ export interface CIFlow {
   recipient: Actor
   recipientType: RecipientType
   subject: 'participant'
-  informationType: InformationType
+  informationCategory: InformationCategory
+  attribute: Attribute
+  granularity: Granularity
+  temporality: Temporality
+  identifiability: Identifiability
   transmissionPrinciple: {
     aim: Aim
     condition: Condition

@@ -205,22 +205,22 @@ The two levels follow Utz et al. (2019), *(Un)informed Consent*: **nudged** high
 
 Each flow is also described as a Contextual Integrity information flow, with the transmission principle split into Institutional Grammar parts (GKC-CI). The coding lives in `src/bramble/ci.ts` and the `ci` field of each flow in `src/bramble/flows.ts`. It is the same in both levels: the manipulation changes only the **consent form**.
 
-| # | `flowId` | Sender → Recipient (type) | Information type | Aim | Condition | Temporal | Points | Consent form: nudged / neutral |
+| # | `flowId` | Sender → Recipient (type) | Information (category: attribute, granularity, temporality, identifiability) | Aim | Condition | Temporal | Points | Consent form: nudged / neutral |
 |---|---|---|---|---|---|---|---|---|
-| 1 | `store_location` | participant → bramble (first party) | current_location | find_stores | with_permission | once_or_while_using | 0 | nudged_choice / active_choice |
-| 2 | `store_precise` | participant → bramble (first party) | location_precision | find_stores | with_permission | once_or_while_using | 0 | opt_out / opt_in |
-| 3 | `courier_live` | participant → courier (service provider) | live_location | courier_handoff | with_consent | until_delivery | 0 | opt_out / opt_in |
-| 4 | `checkout_partner_offers` | bramble → partner_brands (third party, commercial) | home_address | marketing_offers | with_consent | ongoing | 0 | opt_out / opt_in |
-| 5 | `bg_during_order` | participant → bramble (first party) | background_location | accurate_arrival_time | with_permission | while_order_active | 0 | nudged_choice / active_choice |
-| 6 | `sam_share` | participant → housemate_sam (personal) | live_location | coordinate_with_housemate | with_consent | until_delivery | 0 | nudged_choice / active_choice |
-| 7 | `bg_between_orders` | participant → bramble (first party) | background_location | speed_up_future_orders | with_permission | ongoing | 0 | nudged_choice / active_choice |
-| 8 | `deals_personalized` | bramble → bramble_deals (first party, secondary use) | location_history | personalized_deals | with_consent | ongoing | 0 | opt_out / opt_in |
-| 9 | `deals_partner_offers` | bramble → partner_brands (third party, commercial) | location_history | marketing_offers | with_consent | ongoing | 0 | opt_out / opt_in |
-| 10 | `reward_keel` | bramble → keel_auto_insurance (third party, commercial) | location_history | insurance_pricing | with_consent_for_payment | ongoing | 200 | nudged_choice / active_choice |
-| 11 | `reward_university` | bramble → university_traffic_lab (third party, research) | deidentified_location_history | research | with_consent_for_payment | ongoing | 100 | nudged_choice / active_choice |
-| 12 | `reward_data_partners` | bramble → data_partners (third party, commercial) | location_history | market_research | with_consent_for_payment | ongoing | 150 | nudged_choice / active_choice |
+| 1 | `store_location` | participant → bramble (first party) | digital_activity: location, unspecified, point_in_time, identified | find_stores | with_permission | once_or_while_using | 0 | nudged_choice / active_choice |
+| 2 | `store_precise` | participant → bramble (first party) | digital_activity: location, exact, point_in_time, identified | find_stores | with_permission | once_or_while_using | 0 | opt_out / opt_in |
+| 3 | `courier_live` | participant → courier (service provider) | digital_activity: location, exact, continuous, identified | courier_handoff | with_consent | until_delivery | 0 | opt_out / opt_in |
+| 4 | `checkout_partner_offers` | bramble → partner_brands (third party, commercial) | demographic: home_address, exact, static, identified | marketing_offers | with_consent | ongoing | 0 | opt_out / opt_in |
+| 5 | `bg_during_order` | participant → bramble (first party) | digital_activity: location, exact, continuous, identified | accurate_arrival_time | with_permission | while_order_active | 0 | nudged_choice / active_choice |
+| 6 | `sam_share` | participant → housemate_sam (personal) | digital_activity: location, exact, continuous, identified | coordinate_with_housemate | with_consent | until_delivery | 0 | nudged_choice / active_choice |
+| 7 | `bg_between_orders` | participant → bramble (first party) | digital_activity: location, exact, continuous, identified | speed_up_future_orders | with_permission | ongoing | 0 | nudged_choice / active_choice |
+| 8 | `deals_personalized` | bramble → bramble_deals (first party, secondary use) | digital_activity: location_history, exact, historical, identified | personalized_deals | with_consent | ongoing | 0 | opt_out / opt_in |
+| 9 | `deals_partner_offers` | bramble → partner_brands (third party, commercial) | digital_activity: location_history, exact, historical, identified | marketing_offers | with_consent | ongoing | 0 | opt_out / opt_in |
+| 10 | `reward_keel` | bramble → keel_auto_insurance (third party, commercial) | digital_activity: location_history, exact, historical, identified | insurance_pricing | with_consent_for_payment | ongoing | 200 | nudged_choice / active_choice |
+| 11 | `reward_university` | bramble → university_traffic_lab (third party, research) | digital_activity: location_history, exact, historical, deidentified | research | with_consent_for_payment | ongoing | 100 | nudged_choice / active_choice |
+| 12 | `reward_data_partners` | bramble → data_partners (third party, commercial) | digital_activity: location_history, exact, historical, identified | market_research | with_consent_for_payment | ongoing | 150 | nudged_choice / active_choice |
 
-Subject is always the participant. **Consent forms** (worked out from each level's settings, so they always match the app):
+Subject is always the participant. **Information categories** follow Matt's list: `health` (Medical and Health), `financial`, `demographic` (Demographic and Biographical), `communication` (Communal and Communicative), `digital_activity` (Digital Activity and Behavioral, which includes location tracking), `biometric` (Biometrical and Physical). Within a category, `attribute` says what is shared, and `granularity` (exact / approximate / unspecified), `temporality` (point_in_time / continuous / historical / static) and `identifiability` (identified / deidentified) describe it. **Consent forms** (worked out from each level's settings, so they always match the app):
 - `opt_out`: sharing is preset; the participant must act to stop it
 - `opt_in`: not sharing is preset; the participant must act to share
 - `nudged_choice`: no preset, but the sharing option is emphasized
@@ -281,7 +281,7 @@ Only participants who were assigned a level have rows.
 | `friction` | This flow's level **for this person** (from their pattern and the flow's unit) | `nudged` / `neutral` |
 | `flowId`, `expectedTask` | Which flow, and the task it belongs to | section 3; `1`–`6` |
 | `consentForm` | How consent was asked for this person (their level) | `opt_out` · `opt_in` · `nudged_choice` · `active_choice` |
-| `ci_sender`, `ci_recipient`, `ci_recipientType`, `ci_subject`, `ci_informationType`, `ci_aim`, `ci_condition`, `ci_temporal`, `ci_points` | The flow's GKC-CI parameters (same for everyone; section 3) | see section 3 |
+| `ci_sender`, `ci_recipient`, `ci_recipientType`, `ci_subject`, `ci_informationCategory`, `ci_attribute`, `ci_granularity`, `ci_temporality`, `ci_identifiability`, `ci_aim`, `ci_condition`, `ci_temporal`, `ci_points` | The flow's GKC-CI parameters (same for everyone; section 3) | see section 3 |
 | `taskId` | Task actually in progress when it settled | `1`–`6`, or empty |
 | `status` | What happened | `chosen` (first choice recorded) · `not_applicable` (#2 after refusing location; #7 after refusing background location) · `shown_not_settled` (saw it but never committed, e.g. opened checkout and never ordered) · `not_shown` (never reached that screen) |
 | `firstChoice` | Value when it settled: **the behavior measure** | flow value, or empty |

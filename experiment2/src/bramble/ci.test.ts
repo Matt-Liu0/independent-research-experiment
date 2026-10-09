@@ -68,3 +68,15 @@ describe('verdictOf', () => {
     expect(verdictOf(FLOWS[0], null)).toBeNull()
   })
 })
+
+describe('information coding', () => {
+  it('codes each flow with a category, attribute and modifiers', () => {
+    const coded = Object.fromEntries(
+      FLOWS.map((f) => [f.id, [f.ci.informationCategory, f.ci.attribute, f.ci.granularity, f.ci.temporality, f.ci.identifiability].join(' ')]),
+    )
+    expect(coded.store_precise).toBe('digital_activity location exact point_in_time identified')
+    expect(coded.checkout_partner_offers).toBe('demographic home_address exact static identified')
+    expect(coded.reward_university).toBe('digital_activity location_history exact historical deidentified')
+    expect(coded.sam_share).toBe('digital_activity location exact continuous identified')
+  })
+})
