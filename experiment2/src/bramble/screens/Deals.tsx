@@ -1,6 +1,6 @@
 import { useBramble } from '../BrambleContext'
 import { DEALS } from '../data'
-import { FlowChoice } from '../FlowChoice'
+import { FlowChoice } from '../../core/FlowChoice'
 import { FLOWS } from '../flows'
 import { HeartIcon } from '../icons'
 

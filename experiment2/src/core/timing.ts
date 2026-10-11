@@ -1,5 +1,3 @@
-import type { ScreenId } from './types'
-
 /**
  * Every delay in the practice app, in ms. Fixed (not random) and identical in both friction
  * levels, so they add no noise between participants. Loading never sits between a prompt
@@ -41,10 +39,4 @@ export function delayFor(key: TimingKey): number {
 /** Tests set this to 0, which makes every delay happen immediately and synchronously. */
 export function setTimingScale(next: number): void {
   scale = next
-}
-
-const DATA_SCREENS: ScreenId[] = ['find_store', 'deals', 'rewards', 'orders']
-
-export function screenLoadingKey(screen: ScreenId): TimingKey {
-  return DATA_SCREENS.includes(screen) ? 'dataSkeleton' : 'tabSkeleton'
 }

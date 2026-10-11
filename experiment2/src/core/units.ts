@@ -1,7 +1,7 @@
 // Friction varies within each participant, by decision screen ("unit"): each person gets three
 // of the six units nudged and three neutral. Flows that share a screen share a unit, so no
 // screen mixes nudged and neutral options. Decided with Noah, Oct 2026.
-import type { FlowDef, Friction } from './types'
+import type { FlowDef, Friction } from './flowTypes'
 
 export const UNITS = ['U1', 'U2', 'U3', 'U4', 'U5', 'U6'] as const
 export type UnitId = (typeof UNITS)[number]

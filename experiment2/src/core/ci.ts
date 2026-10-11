@@ -6,7 +6,7 @@
 // Vocabularies are deliberately small. If the Part 2 coding uses different terms, change
 // them here so both sides match.
 
-import type { FlowDef, Friction, LevelDef } from './types'
+import type { FlowDef, Friction, LevelDef } from './flowTypes'
 
 export type Actor =
   | 'participant'
@@ -119,7 +119,7 @@ export function consentForm(flow: FlowDef, friction: Friction): ConsentForm {
 export type Verdict = 'allow' | 'ask' | 'block'
 
 /** Options that map to something other than the default rule below. */
-const VERDICT_EXCEPTIONS: Partial<Record<FlowDef['id'], Record<string, Verdict>>> = {
+const VERDICT_EXCEPTIONS: Record<string, Record<string, Verdict>> = {
   store_location: { once: 'ask' },
 }
 

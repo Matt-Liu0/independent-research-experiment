@@ -3,10 +3,10 @@ import { logEvent } from '../../log/logEvent'
 import { bonusDollars } from '../appState'
 import { useBramble } from '../BrambleContext'
 import { REDEEM_COST } from '../data'
-import { FlowChoice } from '../FlowChoice'
+import { FlowChoice } from '../../core/FlowChoice'
 import { FLOWS } from '../flows'
-import { Spinner } from '../Loading'
-import { useBusy } from '../useBusy'
+import { Spinner } from '../../core/Loading'
+import { useBusy } from '../../core/useBusy'
 
 const OFFERS = FLOWS.filter((f) => f.screen === 'rewards')
 

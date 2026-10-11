@@ -1,18 +1,12 @@
+import { coreReducer, isCoreAction, type CoreAction, type CoreState } from '../core/engine'
 import { MOVE_ADDRESS, PRACTICE_ADDRESS, REDEEM_COST, START_POINTS } from './data'
-import { dependentsOf, emptyFlowValues, isApplicable } from './flows'
-import type { FlowId, FlowValues, ScreenId } from './types'
+import { BRAMBLE_FLOWS, emptyFlowValues } from './flows'
+import type { FlowId, ScreenId } from './types'
 
 export type OrderStatus = 'none' | 'placed' | 'packed' | 'on_the_way' | 'delivered'
 
 /** Everything the practice app remembers. Saved to the participant record after each change. */
-export interface AppState {
-  screen: ScreenId
-  flows: FlowValues
-  /** Flows whose prompt or control has appeared at least once. */
-  shown: FlowId[]
-  /** Flows whose first choice is fixed (see SettleOn). */
-  settled: FlowId[]
-  points: number
+export interface AppState extends CoreState<FlowId, ScreenId> {
   storeId: string | null
   cart: string[]
   order: OrderStatus
@@ -35,8 +29,6 @@ export interface AppState {
     firstVisitMs: number | null
     msToFind: number | null
   }
-  accountPageVisits: number
-  accountPageMs: number
 }
 
 export function initialAppState(): AppState {
@@ -63,11 +55,8 @@ export function initialAppState(): AppState {
   }
 }
 
-export type AppAction =
-  | { type: 'navigate'; screen: ScreenId }
-  | { type: 'show'; flowId: FlowId; preset: string | null }
-  | { type: 'set'; flowId: FlowId; value: string }
-  | { type: 'settle'; flowId: FlowId }
+/** Bramble's own actions; the engine's (navigate, show, set, …) are in CoreAction. */
+export type BrambleAction =
   | { type: 'visitFindStore'; atMs: number }
   | { type: 'zipSearch'; storesViewed: number }
   | { type: 'viewStores'; storesViewed: number }
@@ -80,40 +69,17 @@ export type AppAction =
   | { type: 'orderStep'; step: 'packed' | 'on_the_way' | 'delivered' }
   | { type: 'toggleDeal'; dealId: string }
   | { type: 'redeem' }
-  | { type: 'addPoints'; amount: number }
   | { type: 'saveAddress'; address: string }
-  | { type: 'accountVisit' }
-  | { type: 'accountLeave'; ms: number }
+
+export type AppAction = BrambleAction | CoreAction<FlowId, ScreenId>
 
 export const ORDER_STEPS: OrderStatus[] = ['none', 'placed', 'packed', 'on_the_way', 'delivered']
 
 const addOnce = <T,>(list: T[], item: T): T[] => (list.includes(item) ? list : [...list, item])
 
 export function appReducer(state: AppState, action: AppAction): AppState {
+  if (isCoreAction<FlowId, ScreenId>(action)) return coreReducer(BRAMBLE_FLOWS, state, action)
   switch (action.type) {
-    case 'navigate':
-      return state.screen === action.screen ? state : { ...state, screen: action.screen }
-
-    case 'show': {
-      const flows =
-        state.flows[action.flowId] === null && action.preset !== null && !state.shown.includes(action.flowId)
-          ? { ...state.flows, [action.flowId]: action.preset }
-          : state.flows
-      return { ...state, flows, shown: addOnce(state.shown, action.flowId) }
-    }
-
-    case 'set': {
-      const flows = { ...state.flows, [action.flowId]: action.value }
-      // A dependent flow that no longer applies has no value (e.g. precise location once location is off).
-      for (const dep of dependentsOf(action.flowId)) {
-        if (!isApplicable(dep, flows)) flows[dep] = null
-      }
-      return { ...state, flows }
-    }
-
-    case 'settle':
-      return { ...state, settled: addOnce(state.settled, action.flowId) }
-
     case 'visitFindStore':
       if (state.storeSearch.firstVisitMs !== null) return state
       return { ...state, storeSearch: { ...state.storeSearch, firstVisitMs: action.atMs } }
@@ -182,19 +148,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       if (state.deliveryRedeemed || state.points < REDEEM_COST) return state
       return { ...state, points: state.points - REDEEM_COST, deliveryRedeemed: true }
 
-    case 'addPoints':
-      return { ...state, points: state.points + action.amount }
-
     case 'saveAddress': {
       const address = action.address.trim()
       return address ? { ...state, address } : state
     }
-
-    case 'accountVisit':
-      return { ...state, accountPageVisits: state.accountPageVisits + 1 }
-
-    case 'accountLeave':
-      return { ...state, accountPageMs: state.accountPageMs + Math.max(0, Math.round(action.ms)) }
   }
 }
 

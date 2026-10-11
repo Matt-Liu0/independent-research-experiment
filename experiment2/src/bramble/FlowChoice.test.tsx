@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { createMemorySink, setEventSink } from '../log/logEvent'
 import { initialAppState, type AppState } from './appState'
 import { BrambleProvider, useBramble } from './BrambleContext'
-import { FlowChoice } from './FlowChoice'
-import { uniformUnits } from './units'
+import { FlowChoice } from '../core/FlowChoice'
+import { uniformUnits } from '../core/units'
 import type { FlowId, Friction } from './types'
 
 let sink: ReturnType<typeof createMemorySink>

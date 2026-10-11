@@ -3,7 +3,7 @@ import { initialAppState, type AppState } from '../bramble/appState'
 import { BrambleApp } from '../bramble/BrambleApp'
 import { BrambleProvider, useBramble, type Bramble } from '../bramble/BrambleContext'
 import type { Friction } from '../bramble/types'
-import { uniformUnits, type UnitId } from '../bramble/units'
+import { uniformUnits, type UnitId } from '../core/units'
 import { createMemorySink, setEventSink, setLogContext } from '../log/logEvent'
 
 /**

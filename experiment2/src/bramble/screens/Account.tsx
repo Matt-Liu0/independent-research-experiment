@@ -2,9 +2,9 @@ import { useState, type FormEvent } from 'react'
 import { OTHER_ADDRESS, addressMatches } from '../appState'
 import { useBramble } from '../BrambleContext'
 import { FLOWS, getFlow, isApplicable } from '../flows'
-import { Spinner } from '../Loading'
+import { Spinner } from '../../core/Loading'
 import type { FlowDef } from '../types'
-import { useBusy } from '../useBusy'
+import { useBusy } from '../../core/useBusy'
 
 export function Account() {
   const { state, dispatch, act } = useBramble()

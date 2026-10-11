@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { consentForm } from './ci'
+import { consentForm } from '../core/ci'
 import { FLOWS } from './flows'
 
 describe('GKC-CI coding', () => {
@@ -51,7 +51,7 @@ describe('GKC-CI coding', () => {
 
 describe('verdictOf', () => {
   it('maps every option of every flow to the pipeline verdicts', async () => {
-    const { verdictOf } = await import('./ci')
+    const { verdictOf } = await import('../core/ci')
     const map = Object.fromEntries(FLOWS.map((f) => [f.id, Object.fromEntries(f.options.map((o) => [o, verdictOf(f, o)]))]))
     expect(map).toEqual({
       store_location: { while_using: 'allow', once: 'ask', dont_allow: 'block' },

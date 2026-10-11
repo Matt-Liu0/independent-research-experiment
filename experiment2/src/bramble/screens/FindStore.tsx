@@ -10,13 +10,13 @@ import {
   searchStores,
   type Store,
 } from '../data'
-import { FlowChoice } from '../FlowChoice'
+import { FlowChoice } from '../../core/FlowChoice'
 import { getFlow } from '../flows'
 import { PinIcon, SearchIcon } from '../icons'
-import { LoadingBlock, Spinner } from '../Loading'
-import { ScreenHeader } from '../ScreenHeader'
-import { Sheet } from '../Sheet'
-import { useBusy } from '../useBusy'
+import { LoadingBlock, Spinner } from '../../core/Loading'
+import { ScreenHeader } from '../../core/ScreenHeader'
+import { Sheet } from '../../core/Sheet'
+import { useBusy } from '../../core/useBusy'
 
 const RealStoreMap = lazy(() => import('./RealStoreMap'))
 

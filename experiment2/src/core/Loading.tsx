@@ -32,10 +32,10 @@ export function LoadingBlock({ label }: { label: string }) {
 }
 
 /** The app "opening" at the start of each task. */
-export function Splash() {
+export function Splash({ name = 'Bramble' }: { name?: string }) {
   return (
-    <div className="splash" aria-busy="true" aria-label="Opening Bramble">
-      <span className="logo splash-logo">bramble</span>
+    <div className="splash" aria-busy="true" aria-label={`Opening ${name}`}>
+      <span className="logo splash-logo">{name.toLowerCase()}</span>
       <Spinner />
     </div>
   )

@@ -1,5 +1,5 @@
 import type { TaskNumber } from '../bramble/types'
-import { PATTERNS, patternKey } from '../bramble/units'
+import { PATTERNS, patternKey } from '../core/units'
 
 /** Uniform random number in [0, 1) from the browser's cryptographic generator. */
 export function cryptoRandom(): number {

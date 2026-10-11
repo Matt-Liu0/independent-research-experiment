@@ -1,5 +1,5 @@
 import type { AppState } from './appState'
-import { delayFor } from './timing'
+import { delayFor } from '../core/timing'
 
 /**
  * The order's next step, if it's due. Placed → Packed → On the way run on visible time.

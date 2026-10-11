@@ -1,9 +1,9 @@
 // Turns raw participant records and event logs into analysis-ready rows.
 // Pure functions only, so they can be tested without Firebase.
-import { consentForm, verdictOf } from '../src/bramble/ci'
+import { consentForm, verdictOf } from '../src/core/ci'
 import { FLOWS } from '../src/bramble/flows'
 import type { FlowDef, FlowStatus } from '../src/bramble/types'
-import { UNIT_SCREENS, frictionOf, parsePattern } from '../src/bramble/units'
+import { UNIT_SCREENS, frictionOf, parsePattern } from '../src/core/units'
 
 export type Row = Record<string, string | number | boolean | null>
 

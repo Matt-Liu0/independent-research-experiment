@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { mirrorUnits } from '../src/bramble/units'
+import { mirrorUnits } from '../src/core/units'
 import { createAgentStore, exposeAgentApi, type AgentApi } from '../src/study/agentMode'
 import { setName } from '../src/study/name'
 import { parseEntry, validTaskOrder } from '../src/study/prolific'

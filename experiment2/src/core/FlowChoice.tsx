@@ -1,14 +1,14 @@
 import { useEffect, useId, useRef } from 'react'
-import { useBramble, type DecisionSource } from './BrambleContext'
-import { getFlow, levelOf } from './flows'
-import type { FlowDef, FlowId, LevelDef } from './types'
+import { useEngine, type DecisionSource } from './engine'
+import { levelOf } from './flowRegistry'
+import type { FlowDef, LevelDef } from './flowTypes'
 
 /** Visual prominence of a choice button (see data-emphasis). */
 export type Emphasis = 'primary' | 'plain'
 
 /** Logs prompt_shown when the element first scrolls into view (immediately where IntersectionObserver is missing). */
-export function useShownWhenVisible(id: FlowId) {
-  const { showFlow } = useBramble()
+export function useShownWhenVisible(id: string) {
+  const { showFlow } = useEngine()
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const el = ref.current
@@ -32,7 +32,7 @@ export function useShownWhenVisible(id: FlowId) {
 }
 
 interface Props {
-  flowId: FlowId
+  flowId: string
   /** Prompt buttons side by side (Rewards, background location) or stacked (sheets). */
   layout?: 'row' | 'stack'
   /** Filled-button color for the emphasized option. */
@@ -48,8 +48,8 @@ interface Props {
  * Prompts draw only their buttons (the screen shows the title); settings draw their own text.
  */
 export function FlowChoice({ flowId, layout = 'stack', tone = 'green', onChosen, source = 'prompt' }: Props) {
-  const { frictionOf, state, chooseFlow } = useBramble()
-  const flow = getFlow(flowId)
+  const { app, frictionOf, state, chooseFlow } = useEngine()
+  const flow = app.registry.getFlow(flowId)
   const level = levelOf(flow, frictionOf(flowId))
   const ref = useShownWhenVisible(flowId)
   const value = state.flows[flowId] ?? level.default

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PATTERNS, UNITS, parsePattern, patternKey } from '../bramble/units'
+import { PATTERNS, UNITS, parsePattern, patternKey } from '../core/units'
 import { pickPattern, shuffleTasks } from './randomize'
 
 describe('shuffleTasks', () => {

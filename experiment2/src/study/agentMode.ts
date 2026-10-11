@@ -3,7 +3,7 @@
 // pattern (usually the matched participant's) and task order. Data stays in the page; the harness reads it from
 // window.__brambleAgent and saves it. Nothing on screen reveals the level or that this is an episode.
 import type { StudyEvent } from '../log/logEvent'
-import { patternKey } from '../bramble/units'
+import { patternKey } from '../core/units'
 import { detectDevice } from './device'
 import type { AgentEntry } from './prolific'
 import { MemoryStore } from './store'

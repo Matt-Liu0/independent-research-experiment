@@ -90,12 +90,6 @@ export const SearchIcon = () => (
   </svg>
 )
 
-export const BackIcon = () => (
-  <svg {...base}>
-    <path d="m15 5-7 7 7 7" />
-  </svg>
-)
-
 export const CheckIcon = () => (
   <svg {...base} strokeWidth={2.4}>
     <path d="m5 12.5 4.5 4.5L19 7.5" />

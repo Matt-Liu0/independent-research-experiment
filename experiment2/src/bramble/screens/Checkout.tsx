@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { displayAddress } from '../appState'
 import { useBramble } from '../BrambleContext'
 import { DELIVERY_FEE, findProduct, findStore } from '../data'
-import { FlowChoice } from '../FlowChoice'
+import { FlowChoice } from '../../core/FlowChoice'
 import { FLOWS } from '../flows'
-import { Spinner } from '../Loading'
-import { ScreenHeader } from '../ScreenHeader'
+import { Spinner } from '../../core/Loading'
+import { ScreenHeader } from '../../core/ScreenHeader'
 import { deliveryWindow } from '../orderTimeline'
-import { useBusy } from '../useBusy'
+import { useBusy } from '../../core/useBusy'
 
 const CHECKOUT_FLOWS = FLOWS.filter((f) => f.screen === 'checkout')
 

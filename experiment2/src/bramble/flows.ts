@@ -1,5 +1,5 @@
-import type { Friction, FlowDef, FlowId, FlowValues, LevelDef } from './types'
-import { FLOW_IDS } from './types'
+import { createFlowRegistry, levelOf } from '../core/flowRegistry'
+import type { FlowDef, LevelDef } from './types'
 
 // The two levels follow Utz et al. (2019), "(Un)informed Consent", CCS:
 //  - one-tap prompts: nudging = only the sharing option highlighted; non-nudging = all
@@ -20,6 +20,7 @@ const unchecked = (privacyOption: string): LevelDef => ({ control: 'switch', def
 export const FLOWS: readonly FlowDef[] = [
   {
     id: 'store_location',
+    app: 'bramble',
     task: 1,
     screen: 'find_store',
     unit: 'U1',
@@ -31,6 +32,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: "Bramble uses your location to find stores near you and show what's in stock.",
     privacyOption: 'dont_allow',
     dependsOn: null,
+    counterpart: null,
     account: {
       label: 'Location access',
       labels: { while_using: 'While using', once: 'Ask each time', dont_allow: 'Never' },
@@ -53,6 +55,7 @@ export const FLOWS: readonly FlowDef[] = [
   },
   {
     id: 'store_precise',
+    app: 'bramble',
     task: 1,
     screen: 'find_store',
     unit: 'U1',
@@ -64,6 +67,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Your exact spot, or only your general area.',
     privacyOption: 'general',
     dependsOn: { flowId: 'store_location', notEquals: 'dont_allow' },
+    counterpart: null,
     account: { label: 'Precise location', labels: { exact: 'On', general: 'Off' } },
     ci: {
       sender: 'participant',
@@ -83,6 +87,7 @@ export const FLOWS: readonly FlowDef[] = [
   },
   {
     id: 'courier_live',
+    app: 'bramble',
     task: 2,
     screen: 'checkout',
     unit: 'U2',
@@ -94,6 +99,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: "Helps your courier find you if you're not at the door.",
     privacyOption: 'dont_share',
     dependsOn: null,
+    counterpart: null,
     account: { label: 'Live location with courier', labels: { share: 'On', dont_share: 'Off' } },
     ci: {
       sender: 'participant',
@@ -113,6 +119,7 @@ export const FLOWS: readonly FlowDef[] = [
   },
   {
     id: 'checkout_partner_offers',
+    app: 'bramble',
     task: 2,
     screen: 'checkout',
     unit: 'U2',
@@ -124,6 +131,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: '',
     privacyOption: 'unchecked',
     dependsOn: null,
+    counterpart: null,
     account: { label: 'Partner offers by address', labels: { checked: 'On', unchecked: 'Off' } },
     ci: {
       sender: 'bramble',
@@ -143,6 +151,7 @@ export const FLOWS: readonly FlowDef[] = [
   },
   {
     id: 'bg_during_order',
+    app: 'bramble',
     task: 3,
     screen: 'orders',
     unit: 'U3',
@@ -154,6 +163,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Let Bramble use your location in the background while this order is on its way.',
     privacyOption: 'not_now',
     dependsOn: null,
+    counterpart: null,
     account: { label: 'Background location during orders', labels: { allow: 'On', not_now: 'Off' } },
     ci: {
       sender: 'participant',
@@ -173,6 +183,7 @@ export const FLOWS: readonly FlowDef[] = [
   },
   {
     id: 'sam_share',
+    app: 'bramble',
     task: 3,
     screen: 'orders',
     unit: 'U3',
@@ -184,6 +195,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Your housemate Sam wants to know when the groceries will arrive.',
     privacyOption: 'arrival_only',
     dependsOn: null,
+    counterpart: null,
     account: { label: 'Live location with Sam', labels: { live_location: 'On', arrival_only: 'Off' } },
     ci: {
       sender: 'participant',
@@ -203,6 +215,7 @@ export const FLOWS: readonly FlowDef[] = [
   },
   {
     id: 'bg_between_orders',
+    app: 'bramble',
     task: 3,
     screen: 'orders',
     unit: 'U4',
@@ -215,6 +228,7 @@ export const FLOWS: readonly FlowDef[] = [
       "Bramble can keep using your location in the background to speed up your next order, even when you don't have an order in progress.",
     privacyOption: 'turn_off',
     dependsOn: { flowId: 'bg_during_order', equals: 'allow' },
+    counterpart: null,
     account: { label: 'Background location between orders', labels: { keep_on: 'On', turn_off: 'Off' } },
     ci: {
       sender: 'participant',
@@ -234,6 +248,7 @@ export const FLOWS: readonly FlowDef[] = [
   },
   {
     id: 'deals_personalized',
+    app: 'bramble',
     task: 4,
     screen: 'deals',
     unit: 'U5',
@@ -245,6 +260,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Bramble uses the stores you visit (your location history) to choose deals.',
     privacyOption: 'off',
     dependsOn: null,
+    counterpart: null,
     account: { label: 'Deals picked for you', labels: { on: 'On', off: 'Off' } },
     ci: {
       sender: 'bramble',
@@ -264,6 +280,7 @@ export const FLOWS: readonly FlowDef[] = [
   },
   {
     id: 'deals_partner_offers',
+    app: 'bramble',
     task: 4,
     screen: 'deals',
     unit: 'U5',
@@ -275,6 +292,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Partner brands send you offers based on your location history.',
     privacyOption: 'off',
     dependsOn: null,
+    counterpart: null,
     account: { label: 'Offers from partner brands', labels: { on: 'On', off: 'Off' } },
     ci: {
       sender: 'bramble',
@@ -294,6 +312,7 @@ export const FLOWS: readonly FlowDef[] = [
   },
   {
     id: 'reward_keel',
+    app: 'bramble',
     task: 5,
     screen: 'rewards',
     unit: 'U6',
@@ -305,6 +324,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Link your Bramble location history to Keel Auto for a safe-driving discount.',
     privacyOption: 'decline',
     dependsOn: null,
+    counterpart: null,
     points: 200,
     account: { label: 'Keel Auto Insurance', labels: { accept: 'Linked', decline: 'Not linked' } },
     ci: {
@@ -325,6 +345,7 @@ export const FLOWS: readonly FlowDef[] = [
   },
   {
     id: 'reward_university',
+    app: 'bramble',
     task: 5,
     screen: 'rewards',
     unit: 'U6',
@@ -336,6 +357,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Donate your de-identified location history to a university traffic lab.',
     privacyOption: 'decline',
     dependsOn: null,
+    counterpart: null,
     points: 100,
     account: { label: 'University traffic study', labels: { accept: 'Donating', decline: 'Not donating' } },
     ci: {
@@ -356,6 +378,7 @@ export const FLOWS: readonly FlowDef[] = [
   },
   {
     id: 'reward_data_partners',
+    app: 'bramble',
     task: 5,
     screen: 'rewards',
     unit: 'U6',
@@ -367,6 +390,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Let Bramble share your location history with data partners for market research.',
     privacyOption: 'decline',
     dependsOn: null,
+    counterpart: null,
     points: 150,
     account: { label: 'Bramble data partners', labels: { accept: 'Sharing', decline: 'Not sharing' } },
     ci: {
@@ -387,6 +411,7 @@ export const FLOWS: readonly FlowDef[] = [
   },
   {
     id: 'save_card',
+    app: 'bramble',
     task: 2,
     screen: 'checkout',
     unit: 'U2',
@@ -398,6 +423,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: '',
     privacyOption: 'unchecked',
     dependsOn: null,
+    counterpart: null,
     account: { label: 'Saved card', labels: { checked: 'Saved', unchecked: 'Not saved' } },
     ci: {
       sender: 'participant',
@@ -417,6 +443,7 @@ export const FLOWS: readonly FlowDef[] = [
   },
   {
     id: 'birthday_deals',
+    app: 'bramble',
     task: 4,
     screen: 'deals',
     unit: 'U5',
@@ -428,6 +455,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Bramble uses the birthday on your practice profile (May 14) to send you a birthday deal.',
     privacyOption: 'off',
     dependsOn: null,
+    counterpart: null,
     account: { label: 'Birthday deals', labels: { on: 'On', off: 'Off' } },
     ci: {
       sender: 'participant',
@@ -447,34 +475,8 @@ export const FLOWS: readonly FlowDef[] = [
   },
 ]
 
-const BY_ID = new Map(FLOWS.map((f) => [f.id, f]))
+export const BRAMBLE_FLOWS = createFlowRegistry(FLOWS)
 
-export function getFlow(id: FlowId): FlowDef {
-  const flow = BY_ID.get(id)
-  if (!flow) throw new Error(`Unknown flow: ${id}`)
-  return flow
-}
+export const { getFlow, isApplicable, dependentsOf, emptyFlowValues } = BRAMBLE_FLOWS
 
-export function levelOf(flow: FlowDef, friction: Friction): LevelDef {
-  return flow[friction]
-}
-
-/** Whether a dependent flow applies, given the current values of the flows it depends on. */
-export function isApplicable(id: FlowId, values: FlowValues): boolean {
-  const dep = getFlow(id).dependsOn
-  if (!dep) return true
-  const parent = values[dep.flowId]
-  if (parent === null) return false
-  if (dep.equals !== undefined) return parent === dep.equals
-  if (dep.notEquals !== undefined) return parent !== dep.notEquals
-  return true
-}
-
-/** Flows whose applicability depends on the given flow. */
-export function dependentsOf(id: FlowId): FlowId[] {
-  return FLOWS.filter((f) => f.dependsOn?.flowId === id).map((f) => f.id)
-}
-
-export function emptyFlowValues(): FlowValues {
-  return Object.fromEntries(FLOW_IDS.map((id) => [id, null])) as FlowValues
-}
+export { levelOf }

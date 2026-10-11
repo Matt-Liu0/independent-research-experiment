@@ -1,7 +1,7 @@
 // Loading delays with real timings (fake clock). Other tests run them at zero.
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { TIMING, setTimingScale } from '../src/bramble/timing'
+import { TIMING, setTimingScale } from '../src/core/timing'
 import { parseEntry } from '../src/study/prolific'
 import { MemoryStore } from '../src/study/store'
 import { StudyApp } from '../src/study/StudyApp'

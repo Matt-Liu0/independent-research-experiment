@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { initialAppState, type AppState } from './appState'
 import { courierProgress, deliveryWindow, minutesAway, nextOrderStep } from './orderTimeline'
-import { TIMING, setTimingScale } from './timing'
+import { TIMING, setTimingScale } from '../core/timing'
 
 const tracking = (patch: Partial<AppState>): AppState => ({
   ...initialAppState(),

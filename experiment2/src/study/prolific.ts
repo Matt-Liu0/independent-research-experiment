@@ -1,5 +1,5 @@
 import type { TaskNumber } from '../bramble/types'
-import { UNITS, patternKey, uniformUnits, type UnitId } from '../bramble/units'
+import { UNITS, patternKey, uniformUnits, type UnitId } from '../core/units'
 import type { AgentMeta, Mode, ProlificParams } from './types'
 
 export interface AgentEntry extends AgentMeta {
