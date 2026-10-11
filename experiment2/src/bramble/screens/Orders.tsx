@@ -3,7 +3,7 @@ import { displayAddress, type AppState } from '../appState'
 import { useBramble } from '../BrambleContext'
 import { FlowChoice } from '../../core/FlowChoice'
 import { getFlow, isApplicable } from '../flows'
-import { CheckIcon, ClockIcon, PeopleIcon, PinIcon } from '../icons'
+import { CheckIcon, ClockIcon, PeopleIcon, PinIcon } from '../../core/icons'
 import { arrivalTime, courierProgress, minutesAway } from '../orderTimeline'
 import { Sheet } from '../../core/Sheet'
 

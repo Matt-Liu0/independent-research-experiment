@@ -2,7 +2,7 @@ import { useBramble } from '../BrambleContext'
 import { DEALS } from '../data'
 import { FlowChoice } from '../../core/FlowChoice'
 import { FLOWS } from '../flows'
-import { HeartIcon } from '../icons'
+import { HeartIcon } from '../../core/icons'
 
 const DEAL_FLOWS = FLOWS.filter((f) => f.screen === 'deals')
 

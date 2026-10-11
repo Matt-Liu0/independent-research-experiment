@@ -101,3 +101,35 @@ export const ChatIcon = () => (
     <path d="M5 5h14v11H9l-4 3V5Z" />
   </svg>
 )
+
+export const SunIcon = () => (
+  <svg {...base}>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4" />
+  </svg>
+)
+
+export const PulseIcon = () => (
+  <svg {...base}>
+    <path d="M3 12h4l2-5 4 10 2-5h6" />
+  </svg>
+)
+
+export const ListIcon = () => (
+  <svg {...base}>
+    <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />
+  </svg>
+)
+
+export const FaceIcon = () => (
+  <svg {...base}>
+    <path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2" />
+    <path d="M9 10v1M15 10v1M12 10v3h-1M9.5 15.5a3.5 3.5 0 0 0 5 0" />
+  </svg>
+)
+
+export const MoonIcon = () => (
+  <svg {...base}>
+    <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />
+  </svg>
+)

@@ -4,7 +4,7 @@
  * appearing and the participant answering it.
  */
 export const TIMING = {
-  /** Bramble logo when a task starts. */
+  /** App logo when a task starts. */
   splash: 700,
   /** Placeholder shapes when switching to a screen with little data. */
   tabSkeleton: 250,
@@ -26,6 +26,15 @@ export const TIMING = {
   orderMinOnTheWay: 15000,
   /** How often the order timeline updates. */
   orderTick: 500,
+  /** Stride: after answering the health-access prompt (whatever the answer). */
+  syncingHealth: 500,
+  startWorkout: 600,
+  unlockReport: 500,
+  /** Workout timeline, in visible ms since Start workout. */
+  workoutMainSet: 8000,
+  /** Minimum visible ms in the main set before cool-down (it also waits for both workout prompts). */
+  workoutMinMainSet: 12000,
+  workoutCoolDown: 4000,
 } as const
 
 export type TimingKey = keyof typeof TIMING

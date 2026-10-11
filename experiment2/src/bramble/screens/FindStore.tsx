@@ -12,7 +12,7 @@ import {
 } from '../data'
 import { FlowChoice } from '../../core/FlowChoice'
 import { getFlow } from '../flows'
-import { PinIcon, SearchIcon } from '../icons'
+import { PinIcon, SearchIcon } from '../../core/icons'
 import { LoadingBlock, Spinner } from '../../core/Loading'
 import { ScreenHeader } from '../../core/ScreenHeader'
 import { Sheet } from '../../core/Sheet'

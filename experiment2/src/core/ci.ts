@@ -1,4 +1,4 @@
-// GKC-CI encoding of the 12 site flows: the Contextual Integrity parameters (Nissenbaum)
+// GKC-CI encoding of the site flows (both apps): the Contextual Integrity parameters (Nissenbaum)
 // with the transmission principle broken into Institutional Grammar components, as in the
 // GKC-CI framework (Shvartzshnaider, Sanfilippo & Apthorpe). Used to join site behavior with
 // Part 2 questionnaire items that describe the same flows.
@@ -18,6 +18,11 @@ export type Actor =
   | 'keel_auto_insurance'
   | 'university_traffic_lab'
   | 'data_partners'
+  | 'stride'
+  | 'stride_plans'
+  | 'coach_maya'
+  | 'keel_health_insurance'
+  | 'university_sleep_lab'
 
 export type RecipientType =
   | 'first_party' // the app itself
@@ -43,6 +48,7 @@ export type Attribute =
   | 'home_address'
   | 'birthday'
   | 'payment_card'
+  | 'health_metrics'
   | 'heart_rate'
   | 'health_history'
   | 'sleep_history'
@@ -71,12 +77,24 @@ export type Aim =
   | 'market_research'
   | 'faster_checkout'
   | 'birthday_offers'
+  | 'health_tracking'
+  | 'faster_sign_in'
+  | 'live_coaching'
+  | 'accurate_workout_stats'
+  | 'all_day_monitoring'
+  | 'personalized_plans'
 
 /** Institutional Grammar "condition": what the flow is conditioned on. */
 export type Condition = 'with_permission' | 'with_consent' | 'with_consent_for_payment'
 
 /** Institutional Grammar execution constraint: how long the flow lasts. */
-export type Temporal = 'once_or_while_using' | 'until_delivery' | 'while_order_active' | 'ongoing'
+export type Temporal =
+  | 'once_or_while_using'
+  | 'until_delivery'
+  | 'while_order_active'
+  | 'during_workouts'
+  | 'while_workout_active'
+  | 'ongoing'
 
 export interface CIFlow {
   sender: Actor
@@ -121,6 +139,7 @@ export type Verdict = 'allow' | 'ask' | 'block'
 /** Options that map to something other than the default rule below. */
 const VERDICT_EXCEPTIONS: Record<string, Record<string, Verdict>> = {
   store_location: { once: 'ask' },
+  stride_health_access: { once: 'ask' },
 }
 
 /**

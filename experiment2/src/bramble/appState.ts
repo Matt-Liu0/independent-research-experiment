@@ -183,7 +183,4 @@ export function displayAddress(address: string): string {
   return address === OTHER_ADDRESS ? 'Your new address' : address
 }
 
-/** 100 points = $0.10. */
-export function bonusDollars(points: number): number {
-  return Math.round(points / 10) / 100
-}
+export { bonusDollars } from '../core/bonus'

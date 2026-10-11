@@ -1,0 +1,115 @@
+import { useState } from 'react'
+import { FlowChoice } from '../../core/FlowChoice'
+import { FaceIcon, MoonIcon, PulseIcon } from '../../core/icons'
+import { LoadingBlock } from '../../core/Loading'
+import { Sheet } from '../../core/Sheet'
+import { useBusy } from '../../core/useBusy'
+import { getName } from '../../study/name'
+import { TODAY_STATS } from '../data'
+import { STRIDE_FLOWS } from '../flows'
+import { useStride } from '../StrideContext'
+
+export function Today() {
+  const { state, settleFlow } = useStride()
+  const [busy, run] = useBusy()
+  // The health-access sheet opens from the Connect button, as an app's setup step would.
+  const [asking, setAsking] = useState(false)
+  const name = getName()
+  const access = state.flows.stride_health_access
+  const accessAnswered = state.settled.includes('stride_health_access')
+  const faceAnswered = state.settled.includes('stride_face_unlock')
+  const flow = STRIDE_FLOWS.getFlow('stride_health_access')
+  const face = STRIDE_FLOWS.getFlow('stride_face_unlock')
+
+  const onAccessChosen = (value: string) => {
+    if (value !== 'dont_allow') settleFlow('stride_health_detail')
+    setAsking(false)
+    // Same wait whatever the answer, so neither choice feels faster.
+    run('syncingHealth', () => {})
+  }
+
+  let health
+  if (busy === 'syncingHealth') health = <LoadingBlock label="Syncing your health data…" />
+  else if (!accessAnswered)
+    health = (
+      <div className="card card-tint">
+        <div className="row" style={{ alignItems: 'flex-start' }}>
+          <span className="icon-circle icon-circle-white">
+            <PulseIcon />
+          </span>
+          <div style={{ flex: 1 }}>
+            <div className="strong">Connect your health data</div>
+            <div className="muted">See your heart rate, sleep and activity in one place.</div>
+          </div>
+        </div>
+        <button type="button" className="btn btn-green" onClick={() => setAsking(true)}>
+          Connect
+        </button>
+      </div>
+    )
+  else if (access === 'dont_allow')
+    health = <p className="notice">Health data is off. Your stats will appear here if you turn it on in Profile.</p>
+  else
+    health = (
+      <div className="card">
+        <div className="eyebrow-small">Today</div>
+        <div className="stat-grid">
+          <div>
+            <div className="stat-value">{TODAY_STATS.steps}</div>
+            <div className="muted small">steps</div>
+          </div>
+          <div>
+            <div className="stat-value">{TODAY_STATS.sleep}</div>
+            <div className="muted small">sleep</div>
+          </div>
+          <div>
+            <div className="stat-value">{TODAY_STATS.restingHeartRate}</div>
+            <div className="muted small">resting bpm</div>
+          </div>
+        </div>
+        {state.flows.stride_health_detail === 'summary' && <p className="muted small">Showing daily summaries only.</p>}
+      </div>
+    )
+
+  return (
+    <section className="screen">
+      <h1 className="screen-title">{name ? `Good morning, ${name}` : 'Today'}</h1>
+      {health}
+
+      <div className="card">
+        <div className="row" style={{ alignItems: 'flex-start' }}>
+          <span className="icon-circle">
+            <FaceIcon />
+          </span>
+          <div style={{ flex: 1 }}>
+            <div className="eyebrow-small">Sign-in</div>
+            <div className="strong">{face.title}</div>
+            <div className="muted">{face.description}</div>
+          </div>
+        </div>
+        {faceAnswered ? (
+          <p className="small strong">{state.flows.stride_face_unlock === 'set_up' ? 'Face Unlock is on.' : 'You can set up Face Unlock later in Profile.'}</p>
+        ) : (
+          <FlowChoice flowId="stride_face_unlock" layout="row" />
+        )}
+      </div>
+
+      <div className="card row">
+        <span className="icon-circle">
+          <MoonIcon />
+        </span>
+        <div style={{ flex: 1 }}>
+          <div className="strong">Premium sleep report</div>
+          <div className="muted small">Unlock it with coins in Rewards.</div>
+        </div>
+      </div>
+
+      {asking && !accessAnswered && (
+        <Sheet icon={<PulseIcon />} title={flow.title} description={flow.description}>
+          <FlowChoice flowId="stride_health_detail" />
+          <FlowChoice flowId="stride_health_access" onChosen={onAccessChosen} />
+        </Sheet>
+      )}
+    </section>
+  )
+}

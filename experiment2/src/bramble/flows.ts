@@ -32,7 +32,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: "Bramble uses your location to find stores near you and show what's in stock.",
     privacyOption: 'dont_allow',
     dependsOn: null,
-    counterpart: null,
+    counterpart: 'stride_health_access',
     account: {
       label: 'Location access',
       labels: { while_using: 'While using', once: 'Ask each time', dont_allow: 'Never' },
@@ -67,7 +67,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Your exact spot, or only your general area.',
     privacyOption: 'general',
     dependsOn: { flowId: 'store_location', notEquals: 'dont_allow' },
-    counterpart: null,
+    counterpart: 'stride_health_detail',
     account: { label: 'Precise location', labels: { exact: 'On', general: 'Off' } },
     ci: {
       sender: 'participant',
@@ -99,7 +99,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: "Helps your courier find you if you're not at the door.",
     privacyOption: 'dont_share',
     dependsOn: null,
-    counterpart: null,
+    counterpart: 'stride_coach_live',
     account: { label: 'Live location with courier', labels: { share: 'On', dont_share: 'Off' } },
     ci: {
       sender: 'participant',
@@ -131,7 +131,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: '',
     privacyOption: 'unchecked',
     dependsOn: null,
-    counterpart: null,
+    counterpart: 'stride_partner_offers',
     account: { label: 'Partner offers by address', labels: { checked: 'On', unchecked: 'Off' } },
     ci: {
       sender: 'bramble',
@@ -163,7 +163,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Let Bramble use your location in the background while this order is on its way.',
     privacyOption: 'not_now',
     dependsOn: null,
-    counterpart: null,
+    counterpart: 'stride_bg_workout',
     account: { label: 'Background location during orders', labels: { allow: 'On', not_now: 'Off' } },
     ci: {
       sender: 'participant',
@@ -195,7 +195,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Your housemate Sam wants to know when the groceries will arrive.',
     privacyOption: 'arrival_only',
     dependsOn: null,
-    counterpart: null,
+    counterpart: 'stride_sam_share',
     account: { label: 'Live location with Sam', labels: { live_location: 'On', arrival_only: 'Off' } },
     ci: {
       sender: 'participant',
@@ -228,7 +228,7 @@ export const FLOWS: readonly FlowDef[] = [
       "Bramble can keep using your location in the background to speed up your next order, even when you don't have an order in progress.",
     privacyOption: 'turn_off',
     dependsOn: { flowId: 'bg_during_order', equals: 'allow' },
-    counterpart: null,
+    counterpart: 'stride_hr_all_day',
     account: { label: 'Background location between orders', labels: { keep_on: 'On', turn_off: 'Off' } },
     ci: {
       sender: 'participant',
@@ -260,7 +260,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Bramble uses the stores you visit (your location history) to choose deals.',
     privacyOption: 'off',
     dependsOn: null,
-    counterpart: null,
+    counterpart: 'stride_plans_personalized',
     account: { label: 'Deals picked for you', labels: { on: 'On', off: 'Off' } },
     ci: {
       sender: 'bramble',
@@ -292,7 +292,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Partner brands send you offers based on your location history.',
     privacyOption: 'off',
     dependsOn: null,
-    counterpart: null,
+    counterpart: 'stride_plans_partner_offers',
     account: { label: 'Offers from partner brands', labels: { on: 'On', off: 'Off' } },
     ci: {
       sender: 'bramble',
@@ -324,7 +324,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Link your Bramble location history to Keel Auto for a safe-driving discount.',
     privacyOption: 'decline',
     dependsOn: null,
-    counterpart: null,
+    counterpart: 'stride_reward_insurer',
     points: 200,
     account: { label: 'Keel Auto Insurance', labels: { accept: 'Linked', decline: 'Not linked' } },
     ci: {
@@ -357,7 +357,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Donate your de-identified location history to a university traffic lab.',
     privacyOption: 'decline',
     dependsOn: null,
-    counterpart: null,
+    counterpart: 'stride_reward_university',
     points: 100,
     account: { label: 'University traffic study', labels: { accept: 'Donating', decline: 'Not donating' } },
     ci: {
@@ -390,7 +390,7 @@ export const FLOWS: readonly FlowDef[] = [
     description: 'Let Bramble share your location history with data partners for market research.',
     privacyOption: 'decline',
     dependsOn: null,
-    counterpart: null,
+    counterpart: 'stride_reward_data_partners',
     points: 150,
     account: { label: 'Bramble data partners', labels: { accept: 'Sharing', decline: 'Not sharing' } },
     ci: {

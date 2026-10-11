@@ -1,0 +1,52 @@
+/* Stride: the same layout system as Bramble, with its own colors (cool blue and coral). */
+
+.stride {
+  --green: #2563a8;
+  --green-dark: #1a4a80;
+  --green-tint: #e2ecf8;
+  --berry: #d0553a;
+  --berry-tint: #fbe7e1;
+  --cream: #eef2f7;
+  --sand: #e3e8ef;
+  --line: #d8dfe9;
+
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--cream);
+}
+
+.stride .logo {
+  font-family: var(--font-body);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plan-swatch {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
