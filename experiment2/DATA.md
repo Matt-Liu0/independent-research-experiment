@@ -27,7 +27,7 @@ What every stored field means and the values it can take. It covers the Firestor
 | `consentVersion` | Version of the consent text agreed to | e.g. `v0-draft`; `null` before consent |
 | `consentDeclined` | Tapped "I do not agree" | `true` / `false` |
 | `pattern` | Which **decision screens are nudged** for this person, set right after consent: three of the six units joined, e.g. `U1U3U5` (see section 3); the other three screens are neutral | e.g. `U2U4U6`; `null` before consent. Balanced: each of the 20 possible patterns is used equally often, so each screen is nudged for half the sample |
-| `taskOrder` | Order the six tasks were shown in | list of 6 task numbers, e.g. `[4, 1, 2, 3, 5, 6]`; 3 always follows 2, and 6 is always last; `null` before consent |
+| `taskOrder` | Order the six tasks were shown in | list of 6 task numbers, e.g. `[4, 1, 2, 3, 5, 6]`; 1 always comes before 2 (a store is set before ordering), 3 always follows 2, and 6 is always last, so there are 12 possible orders, all equally likely; `null` before consent |
 | `withdrawn` | Asked to withdraw their Part 1 data (set by the Part 2 debrief) | `true` / `false`; withdrawn people are left out of every export |
 
 ### Device and context
@@ -353,7 +353,7 @@ An agent link starts a fresh episode with the same app, flows, defaults, emphasi
    &NAME=Riley&MODEL=…&CONDITION=transcript_only&RUN=2&PARTICIPANT=P012
 ```
 
-- **Required:** `EPISODE_ID` (letters, digits, `_` or `-`); `nudged` (the nudged units, joined by `-`, e.g. `U1-U5-U6`, or `none` / `all`: normally the matched participant's pattern, or its mirror image to measure the agent's own nudge effect); `taskOrder` (their order; must follow the protocol rules, 3 straight after 2 and 6 last).
+- **Required:** `EPISODE_ID` (letters, digits, `_` or `-`); `nudged` (the nudged units, joined by `-`, e.g. `U1-U5-U6`, or `none` / `all`: normally the matched participant's pattern, or its mirror image to measure the agent's own nudge effect); `taskOrder` (their order; must follow the protocol rules: 1 before 2, 3 straight after 2, and 6 last).
 - **Optional:** `NAME` (shown in the app greeting, the pipeline's "[name]"), `MODEL`, `CONDITION`, `RUN` and `PARTICIPANT` (the matched participant's study code).
 - **What's skipped:** consent, the phone check, the name screen, task cards, ease ratings and all surveys. The harness gives each task's text; **Done** in the task bar is `finish_task`. After the sixth task the page shows "All tasks finished."
 - **Nothing on screen** shows the pattern, the episode or that this is an agent run.

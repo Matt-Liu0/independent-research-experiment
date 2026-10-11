@@ -27,7 +27,7 @@ Stages run in a fixed order. `stage` is saved after each one, so a reload resume
 3. **Consent.** The text comes from the IRB, and `consentVersion` is recorded.
 4. **Assignment.** This happens only after consent. See Randomization.
 5. **Welcome.** The protocol's welcome text, then the name prompt. The name is kept in `localStorage` only.
-6. **Tasks.** Six tasks in random order, with Task 3 straight after Task 2 and Task 6 last. A bar at the top of the screen shows the current task; tapping it reopens the full text, and an "I've finished this task" button sits beside it. The Bramble app fills the rest of the screen. After each task comes a 1–7 ease rating.
+6. **Tasks.** Six tasks in random order, with Task 1 before Task 2 (added Oct 11, 2026, so the store is set before ordering), Task 3 straight after Task 2, and Task 6 last. A bar at the top of the screen shows the current task; tapping it reopens the full text, and an "I've finished this task" button sits beside it. The Bramble app fills the rest of the screen. After each task comes a 1–7 ease rating.
 7. **SUS.** The standard ten items, unchanged.
 8. **Suspicion question.**
 9. **Settings check.** The protocol's seven questions, showing iPhone or Android paths based on the detected OS.
@@ -91,7 +91,7 @@ type LevelDef = {
 ## Randomization
 
 - After consent, a Firestore transaction on `meta/assignment` assigns whichever level has fewer participants, choosing at random on a tie, and increments its counter. Participants who later drop out keep their count.
-- Task order is shuffled at the same moment, with the 2→3 and 6-last rules applied.
+- Task order is shuffled at the same moment, with the 1-before-2, 2→3 and 6-last rules applied (12 equally likely orders).
 - Each `prolificPid` can start only once. On entry the app creates `pids/{prolificPid}` → `{ uid }`. If that document already exists for a different `uid`, it shows "You've already started this study in another browser. Please go back to it." In the same browser, Anonymous Auth keeps the `uid`, so the participant resumes.
 
 ## Data model

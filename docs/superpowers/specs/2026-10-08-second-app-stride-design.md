@@ -36,7 +36,7 @@ Task numbers are unique across apps, so existing per-task data (ease ratings, ou
 
 | # | App | Task | Order rule |
 |---|---|---|---|
-| 1–6 | Bramble | As now | 3 right after 2; 6 last within Bramble |
+| 1–6 | Bramble | As now | 1 before 2; 3 right after 2; 6 last within Bramble |
 | 7 | Stride | Connect your health data to Stride and set up sign-in. | First within Stride |
 | 8 | Stride | Do the 10-minute guided workout with coach Maya, and let Sam know how it went. | Random among 8–10 |
 | 9 | Stride | Browse this week's training plans and save two you'd try. | Random among 8–10 |

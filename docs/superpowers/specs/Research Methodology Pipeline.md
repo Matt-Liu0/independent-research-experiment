@@ -149,7 +149,7 @@ Decision points come in **minimal pairs**: two decision points that differ in ex
 * *Recipient:* location-based offers from Bramble vs. from "partner companies."  
 * *Aim:* a partner rewards offer vs. donating data to a university traffic study.
 
-Task order is randomized. Otherwise, consent fatigue late in the session would always fall on the same flows.
+Task order is randomized. Otherwise, consent fatigue late in the session would always fall on the same flows. Three constraints keep the tasks coherent: Task 1 (set a store) comes before Task 2 (order from it), Task 3 (track the order) comes straight after Task 2, and Task 6 (change address) is last. That leaves 12 equally likely orders.
 
 **Schedule.** The site comes first, because the cover story only works for people who don't yet know the study is about privacy. Experiment 1 can't hide that.
 

@@ -47,6 +47,7 @@ describe('agent links', () => {
     ['?agent=1&EPISODE_ID=e1&taskOrder=1-2-3-4-5-6', /nudged/],
     ['?agent=1&EPISODE_ID=e1&nudged=none&taskOrder=2-1-3-4-5-6', /taskOrder/],
     ['?agent=1&EPISODE_ID=e1&nudged=all&taskOrder=1-2-3-4-6-5', /taskOrder/],
+    ['?agent=1&EPISODE_ID=e1&nudged=all&taskOrder=4-2-3-1-5-6', /taskOrder/],
   ])('rejects %s', (link, reason) => {
     const entry = parseEntry(link)
     expect(entry.params).toBeNull()
@@ -61,7 +62,8 @@ describe('agent links', () => {
 
   it('validates task orders by the protocol rules', () => {
     expect(validTaskOrder([1, 2, 3, 4, 5, 6])).toBe(true)
-    expect(validTaskOrder([5, 2, 3, 1, 4, 6])).toBe(true)
+    expect(validTaskOrder([5, 1, 4, 2, 3, 6])).toBe(true)
+    expect(validTaskOrder([5, 2, 3, 1, 4, 6])).toBe(false)
     expect(validTaskOrder([1, 3, 2, 4, 5, 6])).toBe(false)
   })
 })

@@ -9,8 +9,10 @@ export function cryptoRandom(): number {
 }
 
 /**
- * Random task order with Task 3 straight after Task 2 and Task 6 last.
- * Shuffles the units {1, [2,3], 4, 5}, so all 24 valid orders are equally likely.
+ * Random task order with Task 1 (set a store) before Task 2 (order from it), Task 3 straight
+ * after Task 2, and Task 6 last. Shuffles the units {1, [2,3], 4, 5}, then swaps 1 and [2,3]
+ * if they came out the wrong way round. Each of the 12 valid orders comes from exactly two
+ * shuffles, so all are equally likely.
  */
 export function shuffleTasks(random: () => number = cryptoRandom): TaskNumber[] {
   const units: TaskNumber[][] = [[1], [2, 3], [4], [5]]
@@ -18,6 +20,9 @@ export function shuffleTasks(random: () => number = cryptoRandom): TaskNumber[] 
     const j = Math.floor(random() * (i + 1))
     ;[units[i], units[j]] = [units[j], units[i]]
   }
+  const store = units.findIndex((u) => u[0] === 1)
+  const order = units.findIndex((u) => u[0] === 2)
+  if (order < store) [units[store], units[order]] = [units[order], units[store]]
   return [...units.flat(), 6]
 }
 

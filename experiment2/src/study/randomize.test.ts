@@ -3,28 +3,41 @@ import { PATTERNS, UNITS, parsePattern, patternKey } from '../bramble/units'
 import { pickPattern, shuffleTasks } from './randomize'
 
 describe('shuffleTasks', () => {
-  it('keeps 3 straight after 2 and 6 last, over 10,000 runs', () => {
+  it('keeps 1 before 2, 3 straight after 2 and 6 last, over 10,000 runs', () => {
     const seen = new Set<string>()
     for (let i = 0; i < 10_000; i++) {
       const order = shuffleTasks()
       expect([...order].sort()).toEqual([1, 2, 3, 4, 5, 6])
       expect(order[5]).toBe(6)
       expect(order[order.indexOf(2) + 1]).toBe(3)
+      expect(order.indexOf(1)).toBeLessThan(order.indexOf(2))
       seen.add(order.join(''))
     }
-    // 4 units → 24 valid orders, and all should appear.
-    expect(seen.size).toBe(24)
+    // 4 units → 24 orders, half with 1 before [2,3] → 12 valid orders, and all should appear.
+    expect(seen.size).toBe(12)
   })
 
-  it('makes each task about equally likely to come first', () => {
+  it('makes all 12 orders equally likely', () => {
+    const counts: Record<string, number> = {}
+    const runs = 24_000
+    for (let i = 0; i < runs; i++) {
+      const key = shuffleTasks().join('')
+      counts[key] = (counts[key] ?? 0) + 1
+    }
+    for (const n of Object.values(counts)) expect(Math.abs(n / runs - 1 / 12)).toBeLessThan(0.012)
+  })
+
+  it('puts Task 1 first half the time, and 4 or 5 first a quarter each', () => {
     const first: Record<number, number> = {}
     const runs = 20_000
     for (let i = 0; i < runs; i++) {
       const t = shuffleTasks()[0]
       first[t] = (first[t] ?? 0) + 1
     }
-    expect(Object.keys(first).sort()).toEqual(['1', '2', '4', '5'])
-    for (const n of Object.values(first)) expect(Math.abs(n / runs - 0.25)).toBeLessThan(0.02)
+    expect(Object.keys(first).sort()).toEqual(['1', '4', '5'])
+    expect(Math.abs(first[1] / runs - 0.5)).toBeLessThan(0.02)
+    expect(Math.abs(first[4] / runs - 0.25)).toBeLessThan(0.02)
+    expect(Math.abs(first[5] / runs - 0.25)).toBeLessThan(0.02)
   })
 })
 

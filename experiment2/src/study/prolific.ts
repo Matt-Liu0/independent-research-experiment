@@ -39,12 +39,13 @@ const DEMO_PARAMS: ProlificParams = { prolificPid: 'DEMO', studyId: 'DEMO', sess
 // Used as Firestore document IDs, so no slashes; Prolific IDs are 24 hex characters.
 const SAFE_ID = /^[A-Za-z0-9_-]{1,64}$/
 
-/** Task order rules from the protocol: all six tasks, Task 3 straight after Task 2, Task 6 last. */
+/** Task order rules from the protocol: all six tasks, Task 1 before Task 2 (a store is set before ordering), Task 3 straight after Task 2, Task 6 last. */
 export function validTaskOrder(order: number[]): order is TaskNumber[] {
   return (
     order.length === 6 &&
     [...order].sort().join('') === '123456' &&
     order[5] === 6 &&
+    order.indexOf(1) < order.indexOf(2) &&
     order[order.indexOf(2) + 1] === 3
   )
 }
@@ -73,7 +74,7 @@ function parseAgent(q: URLSearchParams): Entry {
   const nudgedUnits = parseNudged(q.get('nudged'))
   if (!nudgedUnits) return reject('nudged must be none, all, or units U1-U6 joined by "-" (e.g. U1-U3-U5)')
   const taskOrder = (q.get('taskOrder') ?? '').split('-').map(Number)
-  if (!validTaskOrder(taskOrder)) return reject('taskOrder must list tasks 1-6, with 3 right after 2 and 6 last')
+  if (!validTaskOrder(taskOrder)) return reject('taskOrder must list tasks 1-6, with 1 before 2, 3 right after 2, and 6 last')
   const text = (key: string) => {
     const v = q.get(key)?.trim()
     return v ? v.slice(0, 100) : null

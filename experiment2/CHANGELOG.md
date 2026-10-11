@@ -9,6 +9,7 @@ Every build participants see has a version (`appVersion` on each record). Bump `
   - #13 `save_card`: save a practice card at checkout (financial; unit U2).
   - #14 `birthday_deals`: birthday deals from the practice profile's birthday (demographic; unit U5).
   Both use practice values only and follow the same Utz levels.
+- **Task 1 always comes before Task 2:** previously, half of all orders put the ordering task before the store task, so the store (and the location prompt, #1–#2) was chosen inside Task 2. There are now 12 equally likely orders. Agent links with Task 2 before Task 1 are rejected.
 
 ## 0.10.0 (2026-10-08)
 
