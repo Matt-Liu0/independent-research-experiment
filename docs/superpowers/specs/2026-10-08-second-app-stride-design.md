@@ -98,3 +98,15 @@ Loading, Back, skeletons, splash and emphasis markers all work as in Bramble. Vi
 ## Out of scope here
 
 Part 2 battery changes (adding the new flows, about 74+ items). Noted for the Experiment 1 build.
+
+## As built (v0.12.0, Oct 11, 2026)
+
+Differences from the plan above, decided while building:
+
+- **SUS order** follows the app order (the app used first is rated first), rather than always Bramble first.
+- **Assignment** balances 40 cells (20 patterns × 2 app orders), so app order is crossed with the nudge pattern. The counter keys are the pattern plus `B` or `S`.
+- **Declining health access** costs nothing extra in Stride. Bramble's location refusal leads to a ZIP search, but a manual health-data entry would invite participants to type real data.
+- **Agents** go straight from one app to the other with no introduction page. Their app order is the one `taskOrder` implies.
+- **Still to do outside the site:**
+  - **Experiment 4 agent prompt:** it still says "Use the Bramble app … how their location should be handled". It needs wording that covers both apps and health data.
+  - **Part 2 battery:** it needs items for the 15 new flows.

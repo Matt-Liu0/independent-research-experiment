@@ -2,6 +2,26 @@
 
 Every build participants see has a version (`appVersion` on each record). Bump `version` in `package.json` and add an entry here for any change made once data collection starts.
 
+
+## 0.12.0 (2026-10-11)
+
+A second app, **Stride** (fitness and health), in the same session as Bramble. Spec: `docs/superpowers/specs/2026-10-08-second-app-stride-design.md`.
+
+- **Stride:** four tasks (7–10) and 13 flows on the same six decision screens as Bramble. Twelve mirror a Bramble flow (`counterpart`) with health instead of location information; one is biometric (Face Unlock). Same Utz levels, same points structure (coins).
+- **Session:**
+  - Everyone uses both apps; each app's tasks run as one block.
+  - **Assignment:** app order (`appOrder`) is balanced and crossed with the nudge pattern, as one of 40 cells in `meta/assignment`, e.g. `U1U3U5B`. The same pattern applies in both apps.
+  - **Order:** `taskOrder` lists all 10 tasks. A "Now try …" page comes before the second app, and the SUS is asked once per app, in app order.
+  - **Bonus:** the bonus is both balances together.
+  - **Wording:** the welcome, consent draft (`v1-draft`) and page title mention both apps.
+- **Data:**
+  - Records gain `appOrder`, `strideState` and `sus.bramble` / `sus.stride`; every event has `app`.
+  - **`flows.csv`:** 27 rows per person, with `app` and `counterpart`.
+  - **`participants.csv`:** `bramblePoints`, `strideCoins`, per-app SUS, and Stride outcomes and settings-page timing.
+- **Links:** agent links take 10-task orders (the app order is implied), and demo links accept `&first=stride|bramble`.
+- **Code:**
+  - The app-independent engine moved to `src/core/`, and Bramble and Stride both run on it.
+  - The offer cards and settings list are shared.
 ## 0.11.0 (2026-10-08)
 
 - **Information coding split:** `informationType` is replaced by `informationCategory` (Matt's list: health, financial, demographic, communication, digital_activity, biometric), `attribute`, `granularity`, `temporality` and `identifiability`. The `ci_*` export columns follow.

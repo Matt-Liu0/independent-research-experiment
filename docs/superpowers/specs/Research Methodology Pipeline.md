@@ -127,11 +127,12 @@ Only defaults and button prominence differ between levels. The flows, wording, p
 
 Studies of consent interfaces show that defaults and button asymmetry shift choices substantially (Utz et al., 2019; Nouwens et al., 2020). Without some cost to the protective choice, actions would simply mirror statements and the gap would be artificially small. The low/high contrast also works as a manipulation check: if friction doesn't widen the gap, the environment isn't producing realistic behavior.
 
-**Environment.** The site is a simulated mobile web app for a fictional grocery delivery service ("Bramble"), presented to participants as trying a new app ("use Bramble as if it were your own account"). It is deliberately not called a usability test: a testing frame invites exploring rather than using, so final settings would reflect curiosity.
+**Environment.** The site contains two simulated mobile web apps, used in one session in a balanced random order (decided Oct 8, 2026): a fictional grocery delivery service ("Bramble") and a fictional fitness and health app ("Stride"). It is presented to participants as trying two new apps ("use each app as if it were your own account"). It is deliberately not called a usability test: a testing frame invites exploring rather than using, so final settings would reflect curiosity.
 
-* Participants complete about six ordinary tasks: find a store, order an item, track a delivery, redeem a reward, and so on.  
-* There are 12 privacy decision points across the six tasks, about two per task. Task 6, changing the address, has none and leads to the Account settings page, where every setting can be revisited.  
-* No real location data is collected; the app shows a simulated location.
+* **Bramble:** six ordinary tasks (find a store, order an item, track a delivery, save deals, redeem a reward, change the address) with 14 privacy decision points, mostly location, plus a saved card (financial) and birthday deals (demographic). Task 6 leads to the Account settings page, where every setting can be revisited.
+* **Stride:** four tasks (connect health data and set up sign-in, a guided workout, save training plans, unlock a sleep report) with 13 decision points. Twelve mirror Bramble's one for one: the same decision screen, recipient type, consent condition and points, but health information instead of location (e.g. location history → an auto insurer becomes heart-rate history → a health insurer). The thirteenth is biometric (Face Unlock). The matched pairs vary information type while holding everything else fixed.
+* The same nudge pattern applies in both apps, so each matched pair is always at the same friction level for a given person.
+* No real location, address or health data is collected; the apps use practice details.
 
 Every decision point is built from one battery flow, so A(f) and S(f) refer to the same f:
 
@@ -155,15 +156,15 @@ Task order is randomized. Otherwise, consent fatigue late in the session would a
 
 | WHEN | SESSION | CONTENTS |
 | :---- | :---- | :---- |
-| **Day 1** | Experiment 2 (online, \~30 min) | Site tasks under the "try a new app" cover story |
+| **Day 1** | Experiment 2 (online, \~45–50 min) | Site tasks in both apps under the "try two new apps" cover story |
 | **Day 8** | Experiment 1 (\~40 min) | Elicitation, questionnaire, background survey, full debrief |
 
 **Procedure (Day 1).**
 
 1. Consent. The form describes trying a new app, with a second session a week later. The deception is IRB-approved and disclosed at the Day 8 debrief.  
 2. A short onboarding in the app.  
-3. The six tasks, in randomized order.  
-4. The System Usability Scale, which fits the cover story without calling the session a usability test.  
+3. The tasks of both apps: each app's tasks as one block, the app order balanced across participants and crossed with the nudge pattern. Within Bramble the six tasks are randomized with Task 1 before Task 2 and Task 3 straight after it; within Stride, Task 7 comes first.  
+4. The System Usability Scale, once per app, which fits the cover story without calling the session a usability test.  
 5. A suspicion probe: *"In one sentence, what do you think this study was about?"*
 
 **Measures.**
@@ -320,7 +321,7 @@ The main analysis is a mixed-effects logistic regression of correctness on model
 
 * ### Runs: 3 per combination.
 
-* ### Environment: the same Bramble app as Part 1, with the same defaults, highlighted buttons and points. Each episode uses the matched participant's task order and nudged-screen pattern, so position effects and nudges line up flow by flow.
+* ### Environment: the same two apps as Part 1 (Bramble and Stride), with the same defaults, highlighted buttons and points. Each episode uses the matched participant's task order and nudged-screen pattern, so position effects and nudges line up flow by flow.
 
 * ### Mirror runs (optional, suggested Oct 8, 2026): agent runs are cheap, so each transcript can also be run with the mirror-image pattern (every nudged screen neutral and vice versa). Each agent then meets every flow at both levels, which directly estimates how susceptible each agent is to nudging and allows comparison with human susceptibility. This is the dark-patterns question of whether bots are less susceptible than people.
 

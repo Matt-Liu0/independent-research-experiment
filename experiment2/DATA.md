@@ -1,6 +1,8 @@
-# Data dictionary: Experiment 2 (Part 1, Bramble site)
+# Data dictionary: Experiment 2 (Part 1: the Bramble and Stride site)
 
 What every stored field means and the values it can take. It covers the Firestore records and the CSVs from `npm run export`.
+
+Each participant uses **two practice apps** in one session, in a balanced random order: **Bramble** (grocery delivery, tasks 1–6, location data) and **Stride** (fitness and health, tasks 7–10, health and biometric data). Stride's flows mirror Bramble's decision screen by decision screen, so each pair differs in information type (section 3b).
 
 **Conventions**
 - `null` means "not happened yet" or "doesn't apply". It never means "declined"; declining is always an explicit value.
@@ -23,11 +25,12 @@ What every stored field means and the values it can take. It covers the Firestor
 | `recruitment` | How the participant arrived | `prolific` (Prolific link) · `code` (a code handed out, e.g. to students; then `studyId` and `sessionId` are `CODE`) |
 | `studyId` | Prolific study ID | text |
 | `sessionId` | Prolific session ID | text |
-| `appVersion` | App build the person saw | e.g. `0.1.0` (see `CHANGELOG.md`) |
-| `consentVersion` | Version of the consent text agreed to | e.g. `v0-draft`; `null` before consent |
+| `appVersion` | App build the person saw | e.g. `0.12.0` (see `CHANGELOG.md`) |
+| `consentVersion` | Version of the consent text agreed to | e.g. `v1-draft`; `null` before consent |
 | `consentDeclined` | Tapped "I do not agree" | `true` / `false` |
 | `pattern` | Which **decision screens are nudged** for this person, set right after consent: three of the six units joined, e.g. `U1U3U5` (see section 3); the other three screens are neutral | e.g. `U2U4U6`; `null` before consent. Balanced: each of the 20 possible patterns is used equally often, so each screen is nudged for half the sample |
-| `taskOrder` | Order the six tasks were shown in | list of 6 task numbers, e.g. `[4, 1, 2, 3, 5, 6]`; 1 always comes before 2 (a store is set before ordering), 3 always follows 2, and 6 is always last, so there are 12 possible orders, all equally likely; `null` before consent |
+| `appOrder` | Which app came first, set with `pattern` | `bramble_first` · `stride_first`; `null` before consent. Balanced and crossed with the pattern (section 4) |
+| `taskOrder` | Order the ten tasks were shown in: each app's tasks as one block, in `appOrder` | list of 10 task numbers, e.g. `[4, 1, 2, 3, 5, 6, 7, 9, 8, 10]`. **Bramble block:** 1 before 2 (a store is set before ordering), 3 straight after 2, 6 last (12 orders). **Stride block:** 7 first, then 8–10 in any order (6 orders). `null` before consent |
 | `withdrawn` | Asked to withdraw their Part 1 data (set by the Part 2 debrief) | `true` / `false`; withdrawn people are left out of every export |
 
 ### Device and context
@@ -49,9 +52,9 @@ What every stored field means and the values it can take. It covers the Firestor
 
 | Field | Meaning | Values |
 |---|---|---|
-| `stage` | Furthest stage reached | `device` → `consent` → `welcome` → `tasks` → `sus` → `suspicion` → `settings` → `done` |
-| `taskIndex` | Position in `taskOrder` currently on | `0`–`5` (0 = first task shown) |
-| `taskPhase` | Within that task | `doing` (using the app) · `rating` (ease question showing) |
+| `stage` | Furthest stage reached | `device` → `consent` → `welcome` → `tasks` (both apps) → `sus` (one per app) → `suspicion` → `settings` → `done` |
+| `taskIndex` | Position in `taskOrder` currently on | `0`–`9` (0 = first task shown) |
+| `taskPhase` | Within that task | `doing` (using the app) · `rating` (ease question showing) · `intro` (the "Now try …" page before the second app's first task) |
 | `createdAt` | Arrived from Prolific | server time |
 | `consentAt` | Agreed to consent | server time; missing if never agreed |
 | `completedAt` | Submitted the settings check, the last question | server time; missing if unfinished |
@@ -60,12 +63,12 @@ What every stored field means and the values it can take. It covers the Firestor
 
 | Field | Meaning | Values |
 |---|---|---|
-| `ease.t1` … `ease.t6` | "How easy was that task?", keyed by **task number** (not position) | `1` (very hard) – `7` (very easy) |
-| `sus` | System Usability Scale, items 1–10 in standard order | list of 10 numbers, each `1` (strongly disagree) – `5` (strongly agree); `null` until submitted |
+| `ease.t1` … `ease.t10` | "How easy was that task?", keyed by **task number** (not position) | `1` (very hard) – `7` (very easy) |
+| `sus.bramble`, `sus.stride` | System Usability Scale for each app, items 1–10 in standard order, asked in the order the apps were used | list of 10 numbers, each `1` (strongly disagree) – `5` (strongly agree); `sus` is `null` until the first is submitted |
 | `suspicion` | "In one sentence, what do you think this study is about?" | free text (up to 1,000 characters) |
 | `settingsCheck.q1` … `q7` | The settings check; see section 5 | see section 5 |
 
-### Task outcomes: `taskOutcome.t1` … `t6`
+### Task outcomes: `taskOutcome.t1` … `t10`
 
 Computed when the participant taps **Done** on a task. They show whether the task was actually completed, not just whether Done was tapped.
 
@@ -82,8 +85,16 @@ Computed when the participant taps **Done** on a task. They show whether the tas
 | `t4.dealsSaved` | Deals saved at that moment | `0`–`4` |
 | `t5.done`, `t5.deliveryRedeemed` | Redeemed free delivery with points | `true` / `false` |
 | `t6.done`, `t6.addressMatches` | Saved address is "40 Oak Street" (case, spacing, "St" and punctuation ignored) | `true` / `false` |
+| `t7.done` | Answered both the health-data prompt and Face Unlock | `true` / `false` |
+| `t7.healthAnswered`, `t7.signInAnswered` | Each of the two | `true` / `false` |
+| `t8.done` | Finished the workout and answered the "Let Sam know" prompt | `true` / `false` |
+| `t8.workoutDone`, `t8.samNotified` | Each of the two | `true` / `false` |
+| `t9.done`, `t9.plansSaved` | Saved at least two plans; how many | `true` / `false`; `0`–`4` |
+| `t10.done`, `t10.reportUnlocked` | Unlocked the premium sleep report with coins | `true` / `false` |
 
-### `appState`: the practice app as the participant left it
+### `appState`: Bramble as the participant left it
+
+(The name predates Stride; Stride's state is `strideState`, below.)
 
 Saved about every 0.3 s while using the app, and at the end of each task.
 
@@ -112,6 +123,24 @@ Saved about every 0.3 s while using the app, and at the end of each task.
 | `appState.accountPageMs` | Total visible ms on the Account page | number |
 | `appState.screen` | Screen open when last saved | `shop` · `find_store` · `checkout` · `orders` · `deals` · `rewards` · `account` |
 
+### `strideState`: Stride as the participant left it
+
+The same engine fields as `appState` (`flows`, `shown`, `settled`, `points`, `accountPageVisits`, `accountPageMs`, `screen`), for Stride's flows, plus:
+
+| Field | Meaning | Values |
+|---|---|---|
+| `strideState.flows.<flowId>` | **Current** value of each of the 13 Stride flows, including Profile-page changes | section 3b; `null` = not answered or not applicable |
+| `strideState.points` | Coin balance | starts at `420`; −300 for the sleep report; +200 / +100 / +150 for accepted offers |
+| `strideState.accountPageVisits`, `accountPageMs` | Visits to and visible ms on the **Profile** page (Stride's settings page) | numbers |
+| `strideState.workout` | Guided workout phase | `none` → `warm_up` → `main_set` → `cool_down` → `done` |
+| `strideState.workoutElapsedMs` | Visible ms since Start workout (pauses while hidden) | number |
+| `strideState.workoutMainSetAtMs`, `workoutCoolDownAtMs` | `workoutElapsedMs` when those phases began | number or `null` |
+| `strideState.savedPlans` | Plans saved (hearted) | list of: `run_5k` · `sleep_yoga` · `strength` · `walking` |
+| `strideState.reportUnlocked` | Unlocked the premium sleep report | `true` / `false` |
+| `strideState.screen` | Screen open when last saved | `today` · `workout_setup` · `workout` · `plans` · `rewards` · `profile` |
+
+**Workout timeline** (the counterpart of Bramble's order): warm-up for 8 s, then the main set, where the two workout prompts (#5′, #6′) appear. Cool-down starts once both are answered and at least 12 s of the main set have passed; 4 s later the workout is done, and "Keep heart-rate monitoring on all day?" (#7′) appears if background heart rate was allowed.
+
 ---
 
 ## 2. `participants/{uid}/events/{id}`: one document per event
@@ -128,7 +157,8 @@ Append-only: once written, an event can't be changed or deleted by the participa
 | `clientTime` | Phone clock when the event happened (even if it reached the server later) | epoch ms |
 | `t` | When the server received it | server time |
 | `clientT` | ms since this page load, on the phone | number (restarts after a reload) |
-| `taskId` | Task in progress | `1`–`6`, or `null` outside a task (consent, surveys, ease ratings) |
+| `taskId` | Task in progress | `1`–`10`, or `null` outside a task (consent, surveys, ease ratings, the second app's intro) |
+| `app` | Practice app the event happened in | `bramble` · `stride`, or `null` outside the apps |
 | `screen` | App screen open at the time | screen ID (section 1, `appState.screen`) or `null` before the app opens |
 
 ### Flow events: the core measures
@@ -153,9 +183,9 @@ Append-only: once written, an event can't be changed or deleted by the participa
 | Type | Extra fields and values |
 |---|---|
 | `screen` | `from`, `to`: screen IDs; `via`: `tap` (tab, button or link) or `back` (the ‹ button or the phone's Back); `loadingMs`: how long the loading placeholder shows before the screen (`250` or `400`) |
-| `task` | `event`: `start` (with `task`, `position` 1–6) · `reopen` (tapped the task bar to reread; `task`) · `finish` (tapped Done; `task`, `position`, `outcome`: same object as `taskOutcome.tN`) · `ease` (`task`, `value` 1–7) |
+| `task` | `event`: `start` (with `task`, `position` 1–10) · `reopen` (tapped the task bar to reread; `task`) · `finish` (tapped Done; `task`, `position`, `outcome`: same object as `taskOutcome.tN`) · `ease` (`task`, `value` 1–7) |
 | `action` | `name`, one of: `phone_back` (`handled`: `true` if it moved back a screen, `false` if there was nowhere to go, a prompt was open, or the participant was outside the app, e.g. in a survey) · `map_shown` (`kind`: `real` (street map) or `drawn` (fallback on phones that can't show it); logged when the nearby-stores map appears) · `map_moved` (`gesture`: `drag` or `zoom`; one per gesture, only ones the participant made) · `map_recentered` (tapped the recenter button) · `store_card_opened` (`storeId`; `via`: `pin` on the map or `list`) · `store_search` (`item`: `oat_milk` / `sourdough` / `null` for a store-name search; `results`: number of stores shown; the typed text is not logged) · `store_set` (`storeId`, `hasOatMilk`) · `zip_search` (no ZIP stored) · `zip_show_more` · `cart_add` / `cart_remove` (`productId`) · `order_placed` (`items`: product IDs; `freeDelivery`: `true`/`false`) · `order_status` (`step`: `packed`, `on_the_way` or `delivered`) · `deal_toggled` (`dealId`, `saved`: `true` = hearted, `false` = un-hearted) · `delivery_redeemed` · `address_saved` (`matches`: `true`/`false`; the typed text is not logged) |
-| `points` | `amount` (`+200`, `+100`, `+150`, their negatives, or `-300`); `pointsBefore`; and either `flowId` with `reason` `offer_accepted` (first answer) or `offer_changed` (an answered offer changed, on the Rewards card or the Account page), or `reason: redeem_delivery`. Points always match the current answers, so accepting and then unlinking earns nothing |
+| `points` | `amount` (`+200`, `+100`, `+150`, their negatives, or `-300`); `pointsBefore`; and either `flowId` with `reason` `offer_accepted` (first answer) or `offer_changed` (an answered offer changed, on the Rewards card or the settings page), or `reason: redeem_delivery` (Bramble) / `unlock_report` (Stride). In Stride the amounts are coins. Points always match the current answers, so accepting and then unlinking earns nothing |
 | `stage` | Moving through the study. Either `from` / `to` (stage names), or `name` with details: `entry` (`mode`: `study` / `pilot` / `demo`) · `device_check` (`passed`) · `consent` (`agreed`, `version`) · `sus_submitted` · `suspicion_submitted` · `settings_check_submitted` |
 | `visibility` | `state`: `hidden` (left the browser, locked the phone) · `visible` (came back) |
 | `resume` | Page reopened mid-study; `stage`: where they resumed |
@@ -163,13 +193,13 @@ Append-only: once written, an event can't be changed or deleted by the participa
 
 ---
 
-## 3. The 14 flows: IDs and values
+## 3. Bramble's 14 flows: IDs and values
 
 Flows #13 (`save_card`) and #14 (`birthday_deals`) were added in 0.11.0 to cover the financial and demographic categories. They use practice values only (a practice Visa ending 4242, a practice birthday of May 14), never the participant's own.
 
 The first value listed shares more; ★ marks the option that shares least (`privacyOption`).
 
-**Friction varies within each participant, by decision screen.** The 14 flows sit on six decision screens ("units"). Each participant gets three units nudged and three neutral (their `pattern`), so no screen mixes the two levels:
+**Friction varies within each participant, by decision screen.** Bramble's 14 flows sit on six decision screens ("units"). Each participant gets three units nudged and three neutral (their `pattern`), so no screen mixes the two levels:
 
 | Unit | Screen | Flows |
 |---|---|---|
@@ -179,6 +209,8 @@ The first value listed shares more; ★ marks the option that shares least (`pri
 | `U4` | "Keep background location on?" (on delivery) | #7 |
 | `U5` | Deals settings | #8, #9, #14 |
 | `U6` | Rewards offers | #10, #11, #12 |
+
+**The same pattern applies in both apps:** Stride has the same six units (section 3b), so a participant's nudged units are nudged in Bramble and in Stride, and each matched pair of flows is always at the same level for that person.
 
 The two levels follow Utz et al. (2019), *(Un)informed Consent*: **nudged** highlights only the sharing option (every other option looks like a neutral button) and pre-checks settings; **neutral** shows all options alike and leaves settings unchecked (off).
 
@@ -236,12 +268,38 @@ Each flow also has a one-sentence `statement` for codebooks. If the Part 2 quest
 
 ---
 
+## 3b. Stride's 13 flows
+
+Each Stride flow mirrors a Bramble flow (its `counterpart`): same unit, kind, settling rule, recipient type, consent condition, points and option positions, with health or biometric information instead of location. Labels are identical in both levels; the levels work exactly as in Bramble. ★ = privacy option.
+
+| Unit | `flowId` | Task | Values | Counterpart | Nudged | Neutral |
+|---|---|---|---|---|---|---|
+| U1 | `stride_health_access`: "Allow Stride to read your heart rate, sleep and activity?" | 7 | `while_using` · `once` · `dont_allow` ★ | `store_location` | "Allow while using" filled | 3 equal buttons |
+| U1 | `stride_health_detail`: "Detailed health data" (every reading vs daily summaries); applies only if access is not `dont_allow` | 7 | `detailed` · `summary` ★ | `store_precise` | switch on | switch off |
+| U1 | `stride_face_unlock`: "Set up Face Unlock? Stride saves a scan of your face to sign you in faster." | 7 | `set_up` · `not_now` ★ | none (biometric extra) | "Set up Face Unlock" filled | equal buttons |
+| U2 | `stride_coach_live`: live heart rate with coach Maya during workouts | 8 | `share` · `dont_share` ★ | `courier_live` | switch on | switch off |
+| U2 | `stride_partner_offers`: partner offers based on workouts | 8 | `checked` · `unchecked` ★ | `checkout_partner_offers` | box checked | box unchecked |
+| U3 | `stride_bg_workout`: "Keep your workout stats accurate?" (background heart rate) | 8 | `allow` · `not_now` ★ | `bg_during_order` | "Allow in background" filled | equal buttons |
+| U3 | `stride_sam_share`: "Let Sam know" (live workout vs summary) | 8 | `live_workout` · `summary_only` ★ | `sam_share` | "Share my live workout" filled | equal buttons |
+| U4 | `stride_hr_all_day`: "Keep heart-rate monitoring on all day?"; applies only if #5′ is `allow` | 8 | `keep_on` · `turn_off` ★ | `bg_between_orders` | "Keep it on" filled | equal buttons |
+| U5 | `stride_plans_personalized`: "Plans picked for you" (heart-rate and sleep history) | 9 | `on` · `off` ★ | `deals_personalized` | switch on | switch off |
+| U5 | `stride_plans_partner_offers`: partner offers from health history | 9 | `on` · `off` ★ | `deals_partner_offers` | switch on | switch off |
+| U6 | `stride_reward_insurer`: Keel Health Insurance, wellness discount | 10 | `accept` (+200 coins) · `decline` ★ | `reward_keel` | "Link" filled | equal buttons |
+| U6 | `stride_reward_university`: university sleep study, de-identified | 10 | `accept` (+100 coins) · `decline` ★ | `reward_university` | "Donate" filled | equal buttons |
+| U6 | `stride_reward_data_partners`: Stride data partners, market research | 10 | `accept` (+150 coins) · `decline` ★ | `reward_data_partners` | "Share" filled | equal buttons |
+
+**CI coding:** every Stride flow is `informationCategory: health` except Face Unlock (`biometric`: `face_scan`). Attributes: `health_metrics` (#1′, #2′), `heart_rate` (#3′, #5′, #7′), `activity_history` (#4′, #12′), `workout` (#6′), `health_history` (#8′, #9′, #10′), `sleep_history` (#11′, de-identified). The full coding is in `flow-codebook.csv` and `src/stride/flows.ts`.
+
+**One difference from Bramble:** declining health access costs nothing extra (Bramble's location refusal leads to a ZIP search). Asking people to type health numbers by hand would invite real data, so Stride shows "Health data is off" instead.
+
+---
+
 ## 4. Other collections
 
 | Document | Fields | Meaning |
 |---|---|---|
 | `pids/{prolificPid}` | `uid`, `createdAt` | Which browser login claimed this Prolific ID. Stops a second attempt from another browser |
-| `meta/assignment` | one count per pattern, e.g. `U1U3U5: 4` | How many people have each pattern (including people who later dropped out). New participants get the least-used pattern |
+| `meta/assignment` | one count per **cell** (pattern × app order), e.g. `U1U3U5B: 4` (Bramble first) or `U1U3U5S: 3` (Stride first) | How many people have each cell (including people who later dropped out). New participants get the least-used of the 40 cells, which balances the screens nudged, the app order, and their crossing |
 
 Pilot runs use `pilot_pids` and `pilot_meta`.
 
@@ -277,18 +335,18 @@ Pilot runs use `pilot_pids` and `pilot_meta`.
 
 Every row uses a **study code** (`P001`, `P002`, … or `PL001`, … for pilots) instead of the Prolific ID. Codes go in order of arrival. Withdrawn participants are left out.
 
-### `flows.csv`: one row per participant × flow (12 rows each). The main Experiment 2 table
+### `flows.csv`: one row per participant × flow (27 rows each: 14 Bramble, 13 Stride). The main Experiment 2 table
 
 Only participants who were assigned a level have rows.
 
 | Column | Meaning | Values |
 |---|---|---|
-| `studyCode`, `flowId`, `unit` | Who, which flow, and its decision screen | `P001`…; flow ID; `U1`–`U6` |
+| `studyCode`, `flowId`, `app`, `counterpart`, `unit` | Who, which flow, its app, its matched flow in the other app, and its decision screen | `P001`…; flow ID; `bramble` / `stride`; flow ID or empty; `U1`–`U6` |
 | `friction` | This flow's level **for this person** (from their pattern and the flow's unit) | `nudged` / `neutral` |
-| `flowId`, `expectedTask` | Which flow, and the task it belongs to | section 3; `1`–`6` |
+| `expectedTask` | The task the flow belongs to | `1`–`10` |
 | `consentForm` | How consent was asked for this person (their level) | `opt_out` · `opt_in` · `nudged_choice` · `active_choice` |
 | `ci_sender`, `ci_recipient`, `ci_recipientType`, `ci_subject`, `ci_informationCategory`, `ci_attribute`, `ci_granularity`, `ci_temporality`, `ci_identifiability`, `ci_aim`, `ci_condition`, `ci_temporal`, `ci_points` | The flow's GKC-CI parameters (same for everyone; section 3) | see section 3 |
-| `taskId` | Task actually in progress when it settled | `1`–`6`, or empty |
+| `taskId` | Task actually in progress when it settled | `1`–`10`, or empty |
 | `status` | What happened | `chosen` (first choice recorded) · `not_applicable` (#2 after refusing location; #7 after refusing background location) · `shown_not_settled` (saw it but never committed, e.g. opened checkout and never ordered) · `not_shown` (never reached that screen) |
 | `firstChoice` | Value when it settled: **the behavior measure** | flow value, or empty |
 | `finalValue` | Value at the end, after any Account-page changes | flow value, or empty |
@@ -299,8 +357,8 @@ Only participants who were assigned a level have rows.
 | `changedFromDefault` | Moved off a preset | `true` / `false` / empty |
 | `msSincePrompt` | Decision time: visible ms from appearing to settling | number |
 | `toggleCount` | Taps on the flow (on the app screen) up to settling, across reloads | `0`, `1`, … (high values suggest "testing" rather than "using") |
-| `changedLater` | Changed at all after the first choice was fixed (Rewards **Change** button or Account page) | `true` / `false` |
-| `changedOnAccountPage` | Changed later on the Account page specifically | `true` / `false` |
+| `changedLater` | Changed at all after the first choice was fixed (Rewards **Change** button, or the Account / Profile page) | `true` / `false` |
+| `changedOnAccountPage` | Changed later on the app's settings page (Bramble's Account, Stride's Profile) | `true` / `false` |
 
 ### `participants.csv`: one row per participant
 
@@ -308,24 +366,24 @@ Includes everyone who arrived, also people who declined consent or failed the de
 
 | Columns | Meaning |
 |---|---|
-| `studyCode`, `pilot`, `recruitment`, `appVersion`, `consentVersion`, `consentDeclined`, `pattern` (e.g. `U1U3U5`), `nudgedUnits` (e.g. `U1;U3;U5`), `taskOrder` (e.g. `4-1-2-3-5-6`), `stage`, `completed` (`stage` = `done`) | Identity, assignment and progress |
+| `studyCode`, `pilot`, `recruitment`, `appVersion`, `consentVersion`, `consentDeclined`, `pattern` (e.g. `U1U3U5`), `appOrder`, `nudgedUnits` (e.g. `U1;U3;U5`), `taskOrder` (e.g. `4-1-2-3-5-6-7-9-8-10`), `stage`, `completed` (`stage` = `done`) | Identity, assignment and progress |
 | `os`, `screenW`, `screenH`, `passedDeviceCheck`, `deviceCheckSkipped`, `automated`, `userAgent`, `tzOffset`, `localStartHour`, `resumeCount` | Device and context |
 | `createdAt`, `consentAt`, `completedAt`, `minutesToComplete` (consent → completion) | Timing |
-| `ease_t1` … `ease_t6` | Ease ratings by task number |
-| `sus_1` … `sus_10`, `susScore` | SUS answers and the standard 0–100 score |
+| `ease_t1` … `ease_t10` | Ease ratings by task number |
+| `sus_bramble_1` … `sus_bramble_10`, `susScore_bramble`, `sus_stride_1` … `sus_stride_10`, `susScore_stride` | SUS answers and the standard 0–100 score, per app |
 | `suspicion` | Suspicion answer |
 | `settings_q1` … `settings_q7` | Settings check (`q1` joined with `;`) |
-| `t1_done`, `t1_storeId`, `t1_usedZipSearch`, `t1_storesViewed`, `t1_msToFind`, `t2_done`, `t3_done`, `t3_samNotified`, `t4_done`, `t4_dealsSaved`, `t5_done`, `t5_deliveryRedeemed`, `t6_done`, `t6_addressMatches` | Task outcomes |
-| `finalPoints`, `bonusUSD` (points ÷ 1,000), `deliveryRedeemed` | Points and bonus to pay |
-| `accountPageVisits`, `accountPageMs`, `taskCardReopens`, `mapShown` (`real` / `drawn`), `mapMoves`, `mapRecenters`, `timesHidden`, `errors`, `eventCount` | Behavior and data-quality flags (many map moves or Account visits suggest exploring like a tester) |
+| `t1_done` … `t10_done`, plus each task's details (`t1_storeId`, `t1_usedZipSearch`, …, `t7_healthAnswered`, `t8_workoutDone`, `t9_plansSaved`, `t10_reportUnlocked`) | Task outcomes |
+| `bramblePoints`, `strideCoins`, `bonusUSD` (both balances ÷ 1,000, added in whole cents), `deliveryRedeemed`, `reportUnlocked` | Balances and the bonus to pay: $0.24–$1.14 |
+| `accountPageVisits`, `accountPageMs` (Bramble), `profilePageVisits`, `profilePageMs` (Stride), `taskCardReopens`, `mapShown` (`real` / `drawn`), `mapMoves`, `mapRecenters`, `timesHidden`, `errors`, `eventCount` | Behavior and data-quality flags (many map moves or settings-page visits suggest exploring like a tester) |
 
 ### `events.csv`: one row per event, sorted by time
 
 `studyCode`, then every event field from section 2, in phone order (`pageLoadAt`, then `seq`). Lists are joined with `;`, and nested objects (such as a task `outcome`) are written as JSON.
 
-### `flow-codebook.csv`: one row per flow (12 rows)
+### `flow-codebook.csv`: one row per flow (27 rows)
 
-`flowId`, `unit`, `unitScreen`, `expectedTask`, `screen`, `options`, `privacyOption`, `dependsOn`, `consentForm_nudged`, `consentForm_neutral`, `verdictMap` (e.g. `while_using=allow;once=ask;dont_allow=block`), the `ci_*` columns and `ci_statement`. Use it to match the site flows with the Part 2 questionnaire items.
+`flowId`, `app`, `counterpart`, `unit`, `unitScreen`, `expectedTask`, `screen`, `options`, `privacyOption`, `dependsOn`, `consentForm_nudged`, `consentForm_neutral`, `verdictMap` (e.g. `while_using=allow;once=ask;dont_allow=block`), the `ci_*` columns and `ci_statement`. Use it to match the site flows with the Part 2 questionnaire items.
 
 ### `id-map.csv`: study code → Prolific ID
 
@@ -349,13 +407,13 @@ Includes everyone who arrived, also people who declined consent or failed the de
 An agent link starts a fresh episode with the same app, flows, defaults, emphasis and logging as participants:
 
 ```
-/?agent=1&EPISODE_ID=ep_0007&nudged=U1-U5-U6&taskOrder=4-1-2-3-5-6
+/?agent=1&EPISODE_ID=ep_0007&nudged=U1-U5-U6&taskOrder=4-1-2-3-5-6-7-9-8-10
    &NAME=Riley&MODEL=…&CONDITION=transcript_only&RUN=2&PARTICIPANT=P012
 ```
 
-- **Required:** `EPISODE_ID` (letters, digits, `_` or `-`); `nudged` (the nudged units, joined by `-`, e.g. `U1-U5-U6`, or `none` / `all`: normally the matched participant's pattern, or its mirror image to measure the agent's own nudge effect); `taskOrder` (their order; must follow the protocol rules: 1 before 2, 3 straight after 2, and 6 last).
+- **Required:** `EPISODE_ID` (letters, digits, `_` or `-`); `nudged` (the nudged units, joined by `-`, e.g. `U1-U5-U6`, or `none` / `all`: normally the matched participant's pattern, or its mirror image to measure the agent's own nudge effect); `taskOrder` (all 10 tasks in their order, as two app blocks: Bramble 1–6 with 1 before 2, 3 straight after 2 and 6 last; Stride 7–10 with 7 first; either app first).
 - **Optional:** `NAME` (shown in the app greeting, the pipeline's "[name]"), `MODEL`, `CONDITION`, `RUN` and `PARTICIPANT` (the matched participant's study code).
-- **What's skipped:** consent, the phone check, the name screen, task cards, ease ratings and all surveys. The harness gives each task's text; **Done** in the task bar is `finish_task`. After the sixth task the page shows "All tasks finished."
+- **What's skipped:** consent, the phone check, the name screen, task cards, ease ratings and all surveys. The harness gives each task's text; **Done** in the task bar is `finish_task`. After the tenth task the page shows "All tasks finished." The agent moves straight from the first app to the second, with no introduction page; the app order is the one `taskOrder` implies.
 - **Nothing on screen** shows the pattern, the episode or that this is an agent run.
 - **Data stays in the page; nothing goes to Firestore.** The harness reads it from `window.__brambleAgent`:
   - `apiVersion`: `1`

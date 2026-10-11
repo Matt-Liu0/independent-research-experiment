@@ -50,3 +50,9 @@
   height: 44px;
   border-radius: 12px;
 }
+
+/* The moving stripe on the current progress step, in Stride's blue. */
+.stride .progress-step.current .progress-bar {
+  background: linear-gradient(90deg, var(--green) 0%, #6f9fd8 50%, var(--green) 100%);
+  background-size: 200% 100%;
+}

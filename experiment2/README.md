@@ -1,6 +1,6 @@
-# Experiment 2: Bramble site (Part 1)
+# Experiment 2: Bramble and Stride site (Part 1)
 
-Phone web app for Part 1 of the location-privacy study. What every stored field means: `DATA.md`. Design: `../docs/superpowers/specs/2026-10-01-experiment2-bramble-site-design.md`. Plan: `../docs/superpowers/plans/2026-10-03-experiment2-bramble-site-plan.md`.
+Phone web app for Part 1 of the study: two practice apps in one session, **Bramble** (grocery delivery, location data) and **Stride** (fitness and health, health and biometric data), in a balanced random order. What every stored field means: `DATA.md`. Design: `../docs/superpowers/specs/2026-10-01-experiment2-bramble-site-design.md` and, for Stride, `../docs/superpowers/specs/2026-10-08-second-app-stride-design.md`. Plans: `../docs/superpowers/plans/`.
 
 ## Commands
 
@@ -25,8 +25,8 @@ Phone web app for Part 1 of the location-privacy study. What every stored field 
 | `/?code=S0123` | Participants recruited directly (e.g. students), with a code you hand out; ends without Prolific |
 | add `&pilot=1` | Pilot runs; data goes to `pilot_` collections |
 | add `&anydevice=1` | **Local or emulator testing only:** skip the phone check on a computer. Ignored on the deployed study (real Firebase project with `VITE_USE_EMULATORS=false`). Recorded as `device.checkSkipped` |
-| `/?demo=nudged`, `/?demo=neutral` or `/?demo=mixed` | Researcher preview: any device, nothing saved. `nudged`/`neutral` set every screen to that level; `mixed` gives a random 3-of-6 pattern, as participants get |
-| `/?agent=1&EPISODE_ID=…&nudged=U1-U3-U5&taskOrder=…` | Experiment 4 agent episode, driven by the MCP harness; data read from `window.__brambleAgent` (see `DATA.md` section 8) |
+| `/?demo=nudged`, `/?demo=neutral` or `/?demo=mixed` | Researcher preview: any device, nothing saved. `nudged`/`neutral` set every screen to that level; `mixed` gives a random 3-of-6 pattern, as participants get. Add `&first=stride` or `&first=bramble` to choose the app order (otherwise random) |
+| `/?agent=1&EPISODE_ID=…&nudged=U1-U3-U5&taskOrder=4-1-2-3-5-6-7-9-8-10` | Experiment 4 agent episode, driven by the MCP harness; data read from `window.__brambleAgent` (see `DATA.md` section 8) |
 
 To try the app locally: `npm run dev`, then open http://localhost:5173/?demo=nudged. For a run that saves to the emulator, start `npm run emulators` too and use `http://localhost:5173/?PROLIFIC_PID=test1&STUDY_ID=s&SESSION_ID=x` (the device check needs a phone, or Chrome DevTools' phone emulation).
 
@@ -51,11 +51,13 @@ To change the area, edit `src/bramble/mapConfig.ts` (location, store pins, `MAP_
 
 | Path | Contents |
 | --- | --- |
-| `src/bramble/flows.ts` | The 14 flows and the only place the friction levels differ |
-| `src/bramble/units.ts` | The six decision screens (units), the 20 nudged-screen patterns, and per-flow friction |
-| `src/bramble/BrambleContext.tsx` | App state plus the show / choose / settle logging rules |
+| `src/core/` | Shared by both apps: the show / choose / settle engine (`engine.tsx`), flow types, units and patterns (`units.ts`), GKC-CI coding (`ci.ts`), `FlowChoice`, prompt sheet, loading, timing, offers and settings list |
+| `src/bramble/flows.ts` | Bramble's 14 flows and the only place its friction levels differ |
 | `src/bramble/screens/` | Shop, Find a store, Checkout, Orders, Deals, Rewards, Account |
-| `src/study/` | Prolific entry, device check, consent, assignment, tasks, Firestore store |
+| `src/stride/flows.ts` | Stride's 13 flows, each mirroring a Bramble flow (`counterpart`) |
+| `src/stride/screens/` | Today, Workout setup, Workout, Plans, Rewards, Profile |
+| `src/study/apps.ts`, `sessionApps.tsx` | Which tasks belong to which app, the app order, and how the task stage runs each app |
+| `src/study/` | Prolific entry, device check, consent, assignment (pattern × app order), tasks, Firestore store |
 | `src/study/consentText.ts` | **DRAFT** consent text: replace with the IRB version and bump `version` |
 | `src/surveys/` | Ease rating, SUS, suspicion question, settings check, closing |
 | `firestore.rules` | Security rules |
@@ -77,4 +79,4 @@ GCLOUD_PROJECT=<project-id> npm run export            # → exports/<date>/
 GCLOUD_PROJECT=<project-id> npm run export -- --pilot # pilot data
 ```
 
-Writes `participants.csv` (one row per person), `events.csv` (one row per event), `flows.csv` (one row per person × flow, with status, first choice, final value, default shown, decision time and toggle count) and `id-map.csv` (study code → Prolific ID; keep it off shared drives). Withdrawn participants are left out. `exports/` is git-ignored.
+Writes `participants.csv` (one row per person), `events.csv` (one row per event), `flows.csv` (one row per person × flow in both apps, with status, first choice, final value, default shown, decision time and toggle count) and `id-map.csv` (study code → Prolific ID; keep it off shared drives). Withdrawn participants are left out. `exports/` is git-ignored.
