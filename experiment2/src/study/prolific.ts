@@ -1,5 +1,5 @@
-import type { TaskNumber } from '../bramble/types'
 import { UNITS, patternKey, uniformUnits, type UnitId } from '../core/units'
+import { appOfTask, type AppOrder, type TaskNumber } from './apps'
 import type { AgentMeta, Mode, ProlificParams } from './types'
 
 export interface AgentEntry extends AgentMeta {
@@ -19,6 +19,8 @@ export interface Entry {
    * or null for ?demo=mixed (a random 3-of-6 pattern, as participants get). Not used otherwise.
    */
   demoPattern?: string | null
+  /** Demo links: which app comes first (&first=bramble|stride), or null for random. */
+  demoAppOrder?: AppOrder | null
   /** Set for agent links (?agent=1). */
   agent?: AgentEntry | null
   /** Why an agent link was rejected, for the harness to report. */
@@ -39,8 +41,8 @@ const DEMO_PARAMS: ProlificParams = { prolificPid: 'DEMO', studyId: 'DEMO', sess
 // Used as Firestore document IDs, so no slashes; Prolific IDs are 24 hex characters.
 const SAFE_ID = /^[A-Za-z0-9_-]{1,64}$/
 
-/** Task order rules from the protocol: all six tasks, Task 1 before Task 2 (a store is set before ordering), Task 3 straight after Task 2, Task 6 last. */
-export function validTaskOrder(order: number[]): order is TaskNumber[] {
+/** Bramble's rules: all six tasks, 1 before 2 (a store is set before ordering), 3 straight after 2, 6 last. */
+export function validBrambleOrder(order: readonly number[]): boolean {
   return (
     order.length === 6 &&
     [...order].sort().join('') === '123456' &&
@@ -50,9 +52,31 @@ export function validTaskOrder(order: number[]): order is TaskNumber[] {
   )
 }
 
+/** Stride's rules: tasks 7–10, with 7 (connect health data) first. */
+export function validStrideOrder(order: readonly number[]): boolean {
+  return order.length === 4 && order[0] === 7 && [...order].sort((a, b) => a - b).join('-') === '7-8-9-10'
+}
+
+/** The session's rules: each app's tasks as one block (either app first), each block valid. */
+export function validTaskOrder(order: number[]): order is TaskNumber[] {
+  if (order.length !== 10 || !order.every((t) => Number.isInteger(t) && t >= 1 && t <= 10)) return false
+  const firstApp = appOfTask(order[0] as TaskNumber)
+  const split = firstApp === 'bramble' ? 6 : 4
+  const [first, second] = [order.slice(0, split), order.slice(split)]
+  return firstApp === 'bramble'
+    ? validBrambleOrder(first) && validStrideOrder(second)
+    : validStrideOrder(first) && validBrambleOrder(second)
+}
+
+/** Demo links can choose which app comes first (&first=stride); otherwise it's random. */
+function demoFirst(q: URLSearchParams): AppOrder | null {
+  const first = q.get('first')
+  return first === 'stride' ? 'stride_first' : first === 'bramble' ? 'bramble_first' : null
+}
+
 /**
  * Agent episode link, built by the Experiment 4 harness:
- * ?agent=1&EPISODE_ID=…&nudged=U1-U3-U5&taskOrder=4-1-2-3-5-6
+ * ?agent=1&EPISODE_ID=…&nudged=U1-U3-U5&taskOrder=4-1-2-3-5-6-7-9-8-10
  *   [&NAME=…&MODEL=…&CONDITION=…&RUN=…&PARTICIPANT=…]
  * `nudged` lists the nudged decision screens (U1–U6), or `none` / `all`. Normally the matched
  * participant's pattern, so the agent meets the same screens; or its mirror image.
@@ -74,7 +98,11 @@ function parseAgent(q: URLSearchParams): Entry {
   const nudgedUnits = parseNudged(q.get('nudged'))
   if (!nudgedUnits) return reject('nudged must be none, all, or units U1-U6 joined by "-" (e.g. U1-U3-U5)')
   const taskOrder = (q.get('taskOrder') ?? '').split('-').map(Number)
-  if (!validTaskOrder(taskOrder)) return reject('taskOrder must list tasks 1-6, with 1 before 2, 3 right after 2, and 6 last')
+  if (!validTaskOrder(taskOrder)) {
+    return reject(
+      'taskOrder must list tasks 1-10 as two app blocks: Bramble 1-6 (1 before 2, 3 right after 2, 6 last) and Stride 7-10 (7 first), either app first',
+    )
+  }
   const text = (key: string) => {
     const v = q.get(key)?.trim()
     return v ? v.slice(0, 100) : null
@@ -103,9 +131,9 @@ export function parseEntry(search: string, allowDeviceSkip: boolean = DEVICE_SKI
   const withSkip = (entry: Entry): Entry => (skipDeviceCheck ? { ...entry, skipDeviceCheck } : entry)
   const demo = q.get('demo')
   if (demo === 'nudged' || demo === 'neutral') {
-    return { mode: 'demo', params: DEMO_PARAMS, demoPattern: patternKey(uniformUnits(demo)) }
+    return { mode: 'demo', params: DEMO_PARAMS, demoPattern: patternKey(uniformUnits(demo)), demoAppOrder: demoFirst(q) }
   }
-  if (demo === 'mixed') return { mode: 'demo', params: DEMO_PARAMS, demoPattern: null }
+  if (demo === 'mixed') return { mode: 'demo', params: DEMO_PARAMS, demoPattern: null, demoAppOrder: demoFirst(q) }
   const mode: Mode = q.get('pilot') === '1' ? 'pilot' : 'study'
   // Participant codes handed out directly (e.g. to students), instead of a Prolific link.
   const code = q.get('code')

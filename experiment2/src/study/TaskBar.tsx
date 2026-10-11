@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { logEvent } from '../log/logEvent'
-import type { TaskNumber } from '../bramble/types'
+import type { TaskNumber } from './apps'
 import { TASKS } from './tasks'
 
 interface Props {
   task: TaskNumber
+  /** The app this task is in, for the card's instructions. */
+  appName: string
   position: number
   total: number
   /** The full task card is open at the start of each task. */
@@ -15,7 +17,7 @@ interface Props {
 }
 
 /** The current task, pinned above the app. Tap to see the full wording again. */
-export function TaskBar({ task, position, total, startOpen, onStart, onFinish }: Props) {
+export function TaskBar({ task, appName, position, total, startOpen, onStart, onFinish }: Props) {
   const [open, setOpen] = useState(startOpen)
   const [started, setStarted] = useState(!startOpen)
   const { short, text } = TASKS[task]
@@ -52,7 +54,7 @@ export function TaskBar({ task, position, total, startOpen, onStart, onFinish }:
             <p id="task-card-text" className="task-card-text">
               {text}
             </p>
-            <p className="muted">Use Bramble as if it were your own account. When you're done, tap Done at the top of the screen.</p>
+            <p className="muted">Use {appName} as if it were your own account. When you're done, tap Done at the top of the screen.</p>
             <button
               type="button"
               className="btn btn-study"

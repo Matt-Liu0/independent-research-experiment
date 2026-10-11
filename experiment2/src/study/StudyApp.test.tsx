@@ -33,7 +33,7 @@ describe('StudyApp', () => {
     const store = new MemoryStore()
     render(<StudyApp entry={parseEntry('?code=S0123')} store={store} detect={phone} />)
     await user.click(await screen.findByRole('button', { name: /i agree/i }))
-    expect(await screen.findByRole('heading', { name: /welcome to bramble/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Welcome' })).toBeInTheDocument()
     expect(store.participant).toMatchObject({ prolificPid: 'S0123', recruitment: 'code' })
   })
 
@@ -68,9 +68,10 @@ describe('StudyApp', () => {
     expect(store.participant?.pattern).toBeNull()
 
     await user.click(screen.getByRole('button', { name: /i agree/i }))
-    expect(await screen.findByRole('heading', { name: /welcome to bramble/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Welcome' })).toBeInTheDocument()
     expect(store.participant?.pattern).toMatch(/^(U[1-6]){3}$/)
-    expect(store.participant?.taskOrder).toHaveLength(6)
+    expect(['bramble_first', 'stride_first']).toContain(store.participant?.appOrder)
+    expect(store.participant?.taskOrder).toHaveLength(10)
     expect(store.participant?.consentVersion).toBeTruthy()
     expect(store.participant?.consentAt).toBeTypeOf('number')
     expect(store.events.some((e) => e.type === 'stage' && e.to === 'welcome')).toBe(true)
@@ -91,7 +92,7 @@ describe('StudyApp', () => {
     const store = new MemoryStore()
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} detect={phone} />)
     await user.click(await screen.findByRole('button', { name: /i agree/i }))
-    await user.type(await screen.findByLabelText(/what should bramble call you/i), 'Riley')
+    await user.type(await screen.findByLabelText(/what should the apps call you/i), 'Riley')
     await user.click(screen.getByRole('button', { name: 'Start' }))
 
     expect(localStorage.getItem('bramble.name')).toBe('Riley')

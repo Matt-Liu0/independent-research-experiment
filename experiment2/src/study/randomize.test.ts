@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { PATTERNS, UNITS, parsePattern, patternKey } from '../core/units'
-import { pickPattern, shuffleTasks } from './randomize'
+import { appOfTask, appOrderOf } from './apps'
+import { validTaskOrder } from './prolific'
+import { CELLS, buildTaskOrder, cellKey, pickAssignment, shuffleStrideTasks, shuffleTasks } from './randomize'
 
 describe('shuffleTasks', () => {
   it('keeps 1 before 2, 3 straight after 2 and 6 last, over 10,000 runs', () => {
@@ -41,31 +43,60 @@ describe('shuffleTasks', () => {
   })
 })
 
-describe('pickPattern', () => {
-  it('has 20 patterns, each nudging 3 of the 6 screens', () => {
+describe('Stride and session task orders', () => {
+  it('puts Task 7 first in Stride, and all 6 orders of 8–10 appear', () => {
+    const seen = new Set<string>()
+    for (let i = 0; i < 3000; i++) {
+      const order = shuffleStrideTasks()
+      expect(order[0]).toBe(7)
+      seen.add(order.join('-'))
+    }
+    expect(seen.size).toBe(6)
+  })
+
+  it('builds 10-task orders with each app as one block, in the app order, always valid', () => {
+    for (let i = 0; i < 2000; i++) {
+      const appOrder = i % 2 === 0 ? 'bramble_first' : 'stride_first'
+      const order = buildTaskOrder(appOrder)
+      expect(validTaskOrder(order), order.join('-')).toBe(true)
+      expect(appOrderOf(order)).toBe(appOrder)
+      const blockSize = appOrder === 'bramble_first' ? 6 : 4
+      expect(order.slice(0, blockSize).every((t) => appOfTask(t) === appOfTask(order[0]))).toBe(true)
+    }
+  })
+})
+
+describe('pickAssignment', () => {
+  it('has 20 patterns, each nudging 3 of the 6 screens, crossed with 2 app orders', () => {
     expect(PATTERNS).toHaveLength(20)
     expect(new Set(PATTERNS.map(patternKey)).size).toBe(20)
     for (const p of PATTERNS) expect(p).toHaveLength(3)
+    expect(new Set(CELLS.map((c) => cellKey(c.pattern, c.appOrder))).size).toBe(40)
   })
 
-  it('picks a least-used pattern', () => {
-    const counts = Object.fromEntries(PATTERNS.map((p) => [patternKey(p), 2]))
-    counts['U2U4U6'] = 1
-    expect(pickPattern(counts)).toBe('U2U4U6')
+  it('picks a least-used cell', () => {
+    const counts = Object.fromEntries(CELLS.map((c) => [cellKey(c.pattern, c.appOrder), 2]))
+    counts['U2U4U6S'] = 1
+    expect(pickAssignment(counts)).toEqual({ pattern: 'U2U4U6', appOrder: 'stride_first' })
   })
 
-  it('balances patterns, and so nudges each screen for exactly half of 200 sequential participants', () => {
+  it('balances cells: over 400 participants each screen is nudged and each app first for exactly half', () => {
     const counts: Record<string, number> = {}
-    for (let i = 0; i < 200; i++) {
-      const k = pickPattern(counts)
+    for (let i = 0; i < 400; i++) {
+      const { pattern, appOrder } = pickAssignment(counts)
+      const k = cellKey(pattern, appOrder)
       counts[k] = (counts[k] ?? 0) + 1
     }
-    expect(Object.values(counts)).toEqual(Array(20).fill(10))
+    expect(Object.values(counts)).toEqual(Array(40).fill(10))
     for (const unit of UNITS) {
       const nudged = Object.entries(counts)
         .filter(([k]) => parsePattern(k).includes(unit))
         .reduce((n, [, c]) => n + c, 0)
-      expect(nudged, unit).toBe(100)
+      expect(nudged, unit).toBe(200)
     }
+    const strideFirst = Object.entries(counts)
+      .filter(([k]) => k.endsWith('S'))
+      .reduce((n, [, c]) => n + c, 0)
+    expect(strideFirst).toBe(200)
   })
 })

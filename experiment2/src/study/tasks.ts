@@ -1,10 +1,12 @@
 import { addressMatches, type AppState } from '../bramble/appState'
 import { findStore } from '../bramble/data'
-import type { TaskNumber } from '../bramble/types'
+import type { BrambleTask } from '../bramble/types'
+import { STRIDE_TASKS } from '../stride/tasks'
+import type { TaskNumber } from './apps'
 import type { TaskOutcome } from './types'
 
-/** Task wording from the protocol. */
-export const TASKS: Record<TaskNumber, { short: string; text: string }> = {
+/** Bramble's task wording, from the protocol. */
+export const BRAMBLE_TASKS: Record<BrambleTask, { short: string; text: string }> = {
   1: { short: 'Set a store with oat milk', text: 'Find a store near you that has oat milk in stock, and set it as your store.' },
   2: { short: 'Order oat milk and sourdough', text: 'Order oat milk and a sourdough loaf for delivery.' },
   3: { short: 'Track your order, tell Sam', text: 'Track your order, and let your housemate Sam know when it will arrive.' },
@@ -13,8 +15,11 @@ export const TASKS: Record<TaskNumber, { short: string; text: string }> = {
   6: { short: 'Change your address', text: "You're moving: change your delivery address to 40 Oak Street and save it." },
 }
 
-/** Whether the task was actually done, from the app's state when "I've finished" was tapped. */
-export function taskOutcome(task: TaskNumber, state: AppState): TaskOutcome {
+/** Every task in the session (Bramble 1–6, Stride 7–10). */
+export const TASKS: Record<TaskNumber, { short: string; text: string }> = { ...BRAMBLE_TASKS, ...STRIDE_TASKS }
+
+/** Whether a Bramble task was actually done, from the app's state when "I've finished" was tapped. */
+export function taskOutcome(task: BrambleTask, state: AppState): TaskOutcome {
   switch (task) {
     case 1: {
       const store = findStore(state.storeId)

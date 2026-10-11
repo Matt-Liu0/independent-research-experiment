@@ -31,6 +31,7 @@ service cloud.firestore {
         && d.studyId is string
         && d.sessionId is string
         && d.pattern == null
+        && d.appOrder == null
         && d.taskOrder == null
         && d.withdrawn == false
         && d.stage == 'device'
@@ -44,17 +45,27 @@ service cloud.firestore {
       return p is string && p.matches('^U[1-6]U[1-6]U[1-6]$');
     }
 
-    // The pattern and task order are set once, in the same transaction that adds 1 to that
-    // pattern's counter in <meta>/assignment.
+    function validAppOrder(o) {
+      return o in ['bramble_first', 'stride_first'];
+    }
+
+    // Assignment cell: pattern plus app order, e.g. "U1U3U5B" (Bramble first) or "U1U3U5S".
+    function cellOf(pattern, appOrder) {
+      return pattern + (appOrder == 'bramble_first' ? 'B' : 'S');
+    }
+
+    // The pattern, app order and task order are set once, in the same transaction that adds 1
+    // to that cell's counter in <meta>/assignment.
     function validAssignment(uid, metaCol) {
       let before = resource.data;
       let after = request.resource.data;
-      let k = after.pattern;
+      let k = cellOf(after.pattern, after.appOrder);
       let meta = docPath(metaCol, 'assignment');
       return before.pattern == null
-        && validPattern(k)
+        && validPattern(after.pattern)
+        && validAppOrder(after.appOrder)
         && after.taskOrder is list
-        && after.taskOrder.size() == 6
+        && after.taskOrder.size() == 10
         && (
           (exists(meta) && k in get(meta).data && getAfter(meta).data[k] == get(meta).data[k] + 1)
           || ((!exists(meta) || !(k in get(meta).data)) && getAfter(meta).data[k] == 1)
@@ -64,7 +75,7 @@ service cloud.firestore {
     function validParticipantUpdate(uid, metaCol) {
       let changed = request.resource.data.diff(resource.data).affectedKeys();
       return !changed.hasAny(lockedFields())
-        && (!changed.hasAny(['pattern', 'taskOrder']) || validAssignment(uid, metaCol));
+        && (!changed.hasAny(['pattern', 'appOrder', 'taskOrder']) || validAssignment(uid, metaCol));
     }
 
     function participantRead(uid) {
@@ -121,13 +132,18 @@ service cloud.firestore {
     }
 
     // ---- Balanced assignment counters ----
-    // One counter per nudged-screen pattern. The app gives each new participant the least-used
-    // pattern; the rules check that exactly one counter goes up by 1 and that it is the
-    // caller's own new pattern. (Rules can't search 20 counters for the smallest, so the
-    // least-used choice itself is the app's job.)
+    // One counter per cell (nudged-screen pattern × app order). The app gives each new
+    // participant the least-used cell; the rules check that exactly one counter goes up by 1
+    // and that it is the caller's own new cell. (Rules can't search 40 counters for the
+    // smallest, so the least-used choice itself is the app's job.)
 
-    function assignedPattern(participantCol) {
-      return getAfter(docPath(participantCol, request.auth.uid)).data.pattern;
+    function assignedCell(participantCol) {
+      let after = getAfter(docPath(participantCol, request.auth.uid)).data;
+      return validPattern(after.pattern) && validAppOrder(after.appOrder) ? cellOf(after.pattern, after.appOrder) : '';
+    }
+
+    function validCell(k) {
+      return k is string && k.matches('^U[1-6]U[1-6]U[1-6][BS]$');
     }
 
     function patternWasUnset(participantCol) {
@@ -136,10 +152,10 @@ service cloud.firestore {
 
     function validCounterCreate(participantCol) {
       let d = request.resource.data;
-      let k = assignedPattern(participantCol);
+      let k = assignedCell(participantCol);
       return signedIn()
         && patternWasUnset(participantCol)
-        && validPattern(k)
+        && validCell(k)
         && d.keys().hasOnly([k])
         && d[k] == 1;
     }
@@ -147,10 +163,10 @@ service cloud.firestore {
     function validCounterUpdate(participantCol) {
       let b = resource.data;
       let a = request.resource.data;
-      let k = assignedPattern(participantCol);
+      let k = assignedCell(participantCol);
       return signedIn()
         && patternWasUnset(participantCol)
-        && validPattern(k)
+        && validCell(k)
         && a.diff(b).affectedKeys().hasOnly([k])
         && (
           (k in b && a[k] == b[k] + 1)

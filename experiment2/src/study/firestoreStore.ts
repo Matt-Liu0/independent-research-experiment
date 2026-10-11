@@ -11,10 +11,9 @@ import {
   waitForPendingWrites,
   type Firestore,
 } from 'firebase/firestore'
-import type { TaskNumber } from '../bramble/types'
 import type { EventSink, StudyEvent } from '../log/logEvent'
-import { pickPattern, shuffleTasks, type PatternCounts } from './randomize'
-import type { StudyStore } from './store'
+import { buildTaskOrder, cellKey, pickAssignment, type CellCounts } from './randomize'
+import type { Assignment, StudyStore } from './store'
 import type { ParticipantDoc, ProlificParams, StartResult, TimestampField } from './types'
 import { newParticipant } from './types'
 
@@ -106,22 +105,23 @@ export class FirestoreStore implements StudyStore {
     setDoc(this.participantRef(), data, { merge: true }).catch((err) => console.error('update failed', err))
   }
 
-  async assign(): Promise<{ pattern: string; taskOrder: TaskNumber[] }> {
+  async assign(): Promise<Assignment> {
     const ref = this.participantRef()
     const metaRef = doc(this.db, this.names.meta, 'assignment')
     return runTransaction(this.db, async (tx) => {
       const participant = (await tx.get(ref)).data() as ParticipantDoc | undefined
-      if (participant?.pattern && participant.taskOrder) {
-        return { pattern: participant.pattern, taskOrder: participant.taskOrder }
+      if (participant?.pattern && participant.appOrder && participant.taskOrder) {
+        return { pattern: participant.pattern, appOrder: participant.appOrder, taskOrder: participant.taskOrder }
       }
       const meta = await tx.get(metaRef)
-      const counts = (meta.exists() ? meta.data() : {}) as PatternCounts
-      const pattern = pickPattern(counts)
-      const taskOrder = shuffleTasks()
-      // Only this pattern's counter changes (the security rules check exactly that).
-      tx.set(metaRef, { [pattern]: (counts[pattern] ?? 0) + 1 }, { merge: true })
-      tx.update(ref, { pattern, taskOrder })
-      return { pattern, taskOrder }
+      const counts = (meta.exists() ? meta.data() : {}) as CellCounts
+      const { pattern, appOrder } = pickAssignment(counts)
+      const taskOrder = buildTaskOrder(appOrder)
+      const key = cellKey(pattern, appOrder)
+      // Only this cell's counter changes (the security rules check exactly that).
+      tx.set(metaRef, { [key]: (counts[key] ?? 0) + 1 }, { merge: true })
+      tx.update(ref, { pattern, appOrder, taskOrder })
+      return { pattern, appOrder, taskOrder }
     })
   }
 

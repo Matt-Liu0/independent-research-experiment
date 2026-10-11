@@ -13,9 +13,9 @@ export function Consent({ participant, store, update, advance }: StageProps) {
     update({ consentVersion: CONSENT.version }, ['consentAt'])
     logEvent('stage', { name: 'consent', agreed: true, version: CONSENT.version })
     try {
-      // The nudged-screen pattern and task order are assigned only after consent (protocol: randomize late).
-      const { pattern, taskOrder } = await store.assign()
-      advance({ pattern, taskOrder })
+      // The nudged-screen pattern, app order and task order are assigned only after consent (protocol: randomize late).
+      const { pattern, appOrder, taskOrder } = await store.assign()
+      advance({ pattern, appOrder, taskOrder })
     } catch (err) {
       console.error(err)
       logEvent('error', { where: 'assign', message: String(err) })

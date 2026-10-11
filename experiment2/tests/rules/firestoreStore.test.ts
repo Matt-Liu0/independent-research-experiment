@@ -50,17 +50,18 @@ describe('FirestoreStore with the real rules', () => {
     const first = await b.store.start(params('alice'))
     expect(first.kind).toBe('new')
 
-    const { pattern, taskOrder } = await b.store.assign()
+    const { pattern, appOrder, taskOrder } = await b.store.assign()
     expect(pattern).toMatch(/^(U[1-6]){3}$/)
-    expect(taskOrder).toHaveLength(6)
+    expect(['bramble_first', 'stride_first']).toContain(appOrder)
+    expect(taskOrder).toHaveLength(10)
 
     b.store.update({ stage: 'welcome' }, ['consentAt'])
-    b.store.sink.write({ type: 'stage', pageLoadAt: 1, seq: 1, clientTime: 1, clientT: 10, taskId: null, screen: null, to: 'welcome' })
+    b.store.sink.write({ type: 'stage', pageLoadAt: 1, seq: 1, clientTime: 1, clientT: 10, taskId: null, app: null, screen: null, to: 'welcome' })
     await b.store.flush()
 
     const uid = b.auth.currentUser!.uid
     const snap = await getDoc(doc(b.db, 'pilot_participants', uid))
-    expect(snap.data()).toMatchObject({ pattern, stage: 'welcome', prolificPid: params('alice').prolificPid })
+    expect(snap.data()).toMatchObject({ pattern, appOrder, stage: 'welcome', prolificPid: params('alice').prolificPid })
     expect(snap.data()?.consentAt).toBeTruthy()
 
     // Assigning again returns the same pattern instead of re-randomizing.
@@ -100,15 +101,16 @@ describe('FirestoreStore with the real rules', () => {
     const after = await countsNow()
     const total = (c: Record<string, number>) => Object.values(c).reduce((a, b) => a + b, 0)
     expect(total(after) - total(before)).toBe(6)
-    // Least-used first: once all 20 patterns exist, no two counts differ by more than 1.
+    // Least-used first: once all 40 cells exist, no two counts differ by more than 1.
     const spread = Math.max(...Object.values(after)) - Math.min(...Object.values(after))
-    expect(Object.keys(after).length < 20 || spread <= 1).toBe(true)
+    expect(Object.keys(after).length < 40 || spread <= 1).toBe(true)
+    for (const key of Object.keys(after)) expect(key).toMatch(/^(U[1-6]){3}[BS]$/)
     expect(patterns).toHaveLength(6)
   })
 
   it('queues events logged before sign-in and writes them once the record exists', async () => {
     const b = browser()
-    b.store.sink.write({ type: 'stage', pageLoadAt: 1, seq: 1, clientTime: 1, clientT: 1, taskId: null, screen: null, name: 'early' })
+    b.store.sink.write({ type: 'stage', pageLoadAt: 1, seq: 1, clientTime: 1, clientT: 1, taskId: null, app: null, screen: null, name: 'early' })
     await b.store.start(params('frank'))
     await b.store.flush()
     const uid = b.auth.currentUser!.uid

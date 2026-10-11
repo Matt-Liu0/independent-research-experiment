@@ -1,3 +1,4 @@
+import type { TaskOutcome } from '../study/types'
 import type { StrideState } from './state'
 import type { StrideTask } from './types'
 
@@ -10,7 +11,7 @@ export const STRIDE_TASKS: Record<StrideTask, { short: string; text: string }> =
 }
 
 /** Whether the task was actually done, from the app's state when "I've finished" was tapped. */
-export function strideTaskOutcome(task: StrideTask, state: StrideState) {
+export function strideTaskOutcome(task: StrideTask, state: StrideState): TaskOutcome {
   switch (task) {
     case 7: {
       const healthAnswered = state.settled.includes('stride_health_access')

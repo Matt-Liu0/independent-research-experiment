@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { buildExport, flowStatus, susScore, toCsv, type RawParticipant } from '../scripts/transform'
-import { FLOWS, getFlow } from '../src/bramble/flows'
+import { ALL_FLOWS } from '../src/allFlows'
+import { getFlow } from '../src/bramble/flows'
 
 const at = (minute: number) => new Date(Date.UTC(2026, 10, 1, 12, minute))
 
@@ -15,16 +16,18 @@ const alice: RawParticipant = {
     consentAt: at(1),
     completedAt: at(31),
     pattern: 'U1U2U6',
-    taskOrder: [1, 2, 3, 4, 5, 6],
+    appOrder: 'bramble_first',
+    taskOrder: [1, 2, 3, 4, 5, 6, 7, 9, 8, 10],
     withdrawn: false,
     stage: 'done',
     device: { os: 'ios', screenW: 390, screenH: 844, passedCheck: true, userAgent: 'iPhone' },
     ease: { t1: 6, t2: 7 },
-    sus: [5, 1, 5, 1, 5, 1, 5, 1, 5, 1],
+    sus: { bramble: [5, 1, 5, 1, 5, 1, 5, 1, 5, 1], stride: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3] },
     suspicion: '=HYPERLINK("x")',
     settingsCheck: { q1: ['maps', 'weather'], q2: 'while_using' },
     taskOutcome: { t1: { done: true, usedZipSearch: true, storesViewed: 6, msToFind: 4000, storeId: 'elm' } },
     appState: { points: 120, flows: { store_location: 'dont_allow', courier_live: 'dont_share', reward_keel: 'decline' } },
+    strideState: { points: 320, reportUnlocked: true, flows: { stride_face_unlock: 'set_up' } },
   },
   events: [
     ev(2, 100, { type: 'prompt_shown', flowId: 'store_location', defaultShown: null }),
@@ -81,19 +84,23 @@ describe('buildExport', () => {
       studyCode: 'P001',
       pattern: 'U1U2U6',
       nudgedUnits: 'U1;U2;U6',
-      taskOrder: '1-2-3-4-5-6',
+      appOrder: 'bramble_first',
+      taskOrder: '1-2-3-4-5-6-7-9-8-10',
       completed: true,
       os: 'ios',
       minutesToComplete: 30,
       ease_t1: 6,
       ease_t3: null,
-      susScore: 100,
+      susScore_bramble: 100,
+      susScore_stride: 50,
       settings_q1: 'maps;weather',
       t1_done: true,
       t1_usedZipSearch: true,
       t2_done: null,
-      finalPoints: 120,
-      bonusUSD: 0.12,
+      bramblePoints: 120,
+      strideCoins: 320,
+      bonusUSD: 0.44,
+      reportUnlocked: true,
       taskCardReopens: 1,
       timesHidden: 1,
       mapShown: 'real',
@@ -105,7 +112,7 @@ describe('buildExport', () => {
   it('keeps people who declined consent in participants.csv but gives them no flow rows', () => {
     expect(result.participants[1]).toMatchObject({ studyCode: 'P002', consentDeclined: true, completed: false })
     expect(result.flows.every((r) => r.studyCode === 'P001')).toBe(true)
-    expect(result.flows).toHaveLength(FLOWS.length)
+    expect(result.flows).toHaveLength(ALL_FLOWS.length)
   })
 
   it('computes one row per flow with status, first choice and final value', () => {
@@ -160,7 +167,7 @@ describe('flowCodebook', () => {
   it('has one row per flow with its GKC-CI parameters and both consent forms', async () => {
     const { flowCodebook } = await import('../scripts/transform')
     const book = flowCodebook()
-    expect(book).toHaveLength(FLOWS.length)
+    expect(book).toHaveLength(ALL_FLOWS.length)
     expect(book.find((r) => r.flowId === 'checkout_partner_offers')).toMatchObject({
       consentForm_nudged: 'opt_out',
       consentForm_neutral: 'opt_in',

@@ -23,6 +23,8 @@ export interface StudyEvent {
   clientTime: number
   clientT: number
   taskId: number | null
+  /** The practice app the event happened in (bramble or stride), or null outside the apps. */
+  app: string | null
   screen: string | null
   [field: string]: unknown
 }
@@ -35,14 +37,14 @@ export interface EventSink {
 const pageLoadAt = Date.now()
 let seq = 0
 
-const context: { taskId: number | null; screen: string | null } = { taskId: null, screen: null }
+const context: { taskId: number | null; app: string | null; screen: string | null } = { taskId: null, app: null, screen: null }
 let sink: EventSink = { write: () => {} }
 
 export function setEventSink(next: EventSink): void {
   sink = next
 }
 
-/** The current task and screen are added to every event. */
+/** The current task, app and screen are added to every event. */
 export function setLogContext(next: Partial<typeof context>): void {
   Object.assign(context, next)
 }
@@ -60,6 +62,7 @@ export function logEvent(type: EventType, fields: Record<string, unknown> = {}):
     clientTime: Date.now(),
     clientT: clientT(),
     taskId: context.taskId,
+    app: context.app,
     screen: context.screen,
   }
   // Firestore rejects undefined values, so drop them.

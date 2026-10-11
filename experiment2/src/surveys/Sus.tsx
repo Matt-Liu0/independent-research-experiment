@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { logEvent } from '../log/logEvent'
+import type { AppId } from '../core/flowTypes'
+import { APP_NAMES, appsInOrder } from '../study/apps'
 import type { StageProps } from '../study/stageProps'
 
 /** The standard ten-item System Usability Scale, unchanged (Brooke, 1996). */
@@ -16,7 +18,27 @@ export const SUS_ITEMS = [
   'I needed to learn a lot of things before I could get going with this system.',
 ]
 
-export function Sus({ advance }: StageProps) {
+/** One SUS per app, in the order the participant used them. Each set is saved as soon as it's answered. */
+export function Sus({ participant, update, advance }: StageProps) {
+  const apps = appsInOrder(participant.appOrder ?? 'bramble_first')
+  const app = apps.find((a) => !participant.sus?.[a]) ?? apps[apps.length - 1]
+  return <SusForm key={app} app={app} participant={participant} update={update} advance={advance} last={app === apps[apps.length - 1]} />
+}
+
+function SusForm({
+  app,
+  participant,
+  update,
+  advance,
+  last,
+}: {
+  app: AppId
+  participant: StageProps['participant']
+  update: StageProps['update']
+  advance: StageProps['advance']
+  last: boolean
+}) {
+  const name = APP_NAMES[app]
   const [answers, setAnswers] = useState<(number | null)[]>(() => SUS_ITEMS.map(() => null))
   const complete = answers.every((a) => a !== null)
 
@@ -24,17 +46,21 @@ export function Sus({ advance }: StageProps) {
 
   const submit = () => {
     if (!complete) return
-    const sus = answers as number[]
-    logEvent('stage', { name: 'sus_submitted' })
-    advance({ sus })
+    const sus = { ...participant.sus, [app]: answers as number[] }
+    logEvent('stage', { name: 'sus_submitted', app })
+    if (last) advance({ sus })
+    else {
+      update({ sus })
+      window.scrollTo?.(0, 0)
+    }
   }
 
   return (
     <main className="page">
-      <h1>What did you think of Bramble?</h1>
+      <h1>What did you think of {name}?</h1>
       <p className="muted">
         For each statement, choose how much you agree, from 1 (strongly disagree) to 5 (strongly agree). "The system"
-        means the Bramble app.
+        means the {name} app.
       </p>
       <ol className="survey-list">
         {SUS_ITEMS.map((item, i) => (

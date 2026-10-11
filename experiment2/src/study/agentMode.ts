@@ -4,6 +4,7 @@
 // window.__brambleAgent and saves it. Nothing on screen reveals the level or that this is an episode.
 import type { StudyEvent } from '../log/logEvent'
 import { patternKey } from '../core/units'
+import { appOrderOf } from './apps'
 import { detectDevice } from './device'
 import type { AgentEntry } from './prolific'
 import { MemoryStore } from './store'
@@ -14,6 +15,7 @@ export function agentParticipant(agent: AgentEntry, now = new Date()): Participa
     ...newParticipant({ prolificPid: `AGENT-${agent.episodeId}`, studyId: 'AGENT', sessionId: agent.episodeId }, now),
     stage: 'tasks',
     pattern: patternKey(agent.nudgedUnits),
+    appOrder: appOrderOf(agent.taskOrder),
     taskOrder: agent.taskOrder,
     device: detectDevice(),
     agent: {
@@ -34,9 +36,9 @@ export function createAgentStore(agent: AgentEntry): MemoryStore {
 export interface AgentApi {
   apiVersion: 1
   episodeId: string
-  /** True once the sixth task is finished. */
+  /** True once the last task is finished. */
   isDone(): boolean
-  /** The participant-style record: pattern, task order, task outcomes, final app state. */
+  /** The participant-style record: pattern, app and task order, task outcomes, both apps' final state. */
   getRecord(): ParticipantDoc | null
   /** Every event, in order, in the same format as for participants. */
   getEvents(): StudyEvent[]

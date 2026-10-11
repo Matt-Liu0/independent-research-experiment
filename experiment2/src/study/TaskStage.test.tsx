@@ -107,6 +107,52 @@ describe('task stage', () => {
   })
 })
 
+describe('two apps', () => {
+  beforeEach(() => localStorage.clear())
+
+  const TEN = [1, 2, 3, 4, 5, 6, 7, 9, 8, 10] as ParticipantDoc['taskOrder']
+
+  it('introduces the second app after the first app\'s last task, then runs its tasks with their own state', async () => {
+    const user = userEvent.setup()
+    const appState = { ...initialAppState(), points: 270 }
+    const store = atTasks({ taskOrder: TEN, appOrder: 'bramble_first', taskIndex: 5, appState })
+    render(<StudyApp entry={parseEntry(PARAMS)} store={store} />)
+    await user.click(await screen.findByRole('button', { name: 'Start task' }))
+    expect(screen.getByText('Task 6 of 10')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Done' }))
+    await user.click(screen.getByRole('radio', { name: '5' }))
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+
+    expect(await screen.findByRole('heading', { name: 'Now try Stride' })).toBeInTheDocument()
+    expect(store.participant).toMatchObject({ taskIndex: 6, taskPhase: 'intro' })
+    await user.click(screen.getByRole('button', { name: 'Open Stride' }))
+
+    expect(await screen.findByText('Connect your health data to Stride, and set up how you sign in.')).toBeInTheDocument()
+    expect(screen.getByText(/Use Stride as if it were your own account/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Start task' }))
+    expect(screen.getByText('Task 7 of 10')).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Stride' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Not now' }))
+    await user.click(screen.getByRole('button', { name: 'Done' }))
+
+    // Each app's state is saved separately; Bramble's is untouched by Stride.
+    expect(store.participant?.strideState?.flows.stride_face_unlock).toBe('not_now')
+    expect(store.participant?.appState?.points).toBe(270)
+    expect(store.participant?.taskOutcome.t7).toEqual({ done: false, healthAnswered: false, signInAnswered: true })
+    // Events carry the app they happened in.
+    expect(store.events.find((e) => e.type === 'settled' && e.flowId === 'stride_face_unlock')).toMatchObject({ app: 'stride', taskId: 7 })
+  })
+
+  it('starts with Stride for Stride-first participants, with no introduction screen', async () => {
+    const user = userEvent.setup()
+    const store = atTasks({ taskOrder: [7, 8, 9, 10, 1, 2, 3, 4, 5, 6], appOrder: 'stride_first' })
+    render(<StudyApp entry={parseEntry(PARAMS)} store={store} />)
+    await user.click(await screen.findByRole('button', { name: 'Start task' }))
+    expect(screen.getByRole('navigation', { name: 'Stride' })).toBeInTheDocument()
+    expect(screen.getByText('Task 1 of 10')).toBeInTheDocument()
+  })
+})
+
 describe('taskOutcome', () => {
   it('checks each task against the app state', () => {
     const s = initialAppState()

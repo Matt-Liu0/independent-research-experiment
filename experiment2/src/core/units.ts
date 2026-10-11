@@ -1,19 +1,29 @@
 // Friction varies within each participant, by decision screen ("unit"): each person gets three
 // of the six units nudged and three neutral. Flows that share a screen share a unit, so no
 // screen mixes nudged and neutral options. Decided with Noah, Oct 2026.
-import type { FlowDef, Friction } from './flowTypes'
+import type { AppId, FlowDef, Friction } from './flowTypes'
 
 export const UNITS = ['U1', 'U2', 'U3', 'U4', 'U5', 'U6'] as const
 export type UnitId = (typeof UNITS)[number]
 
-/** What each unit is, for codebooks and the paper. */
-export const UNIT_SCREENS: Record<UnitId, string> = {
-  U1: 'Location prompt (Find a store): #1, #2',
-  U2: 'Checkout: #3, #4',
-  U3: 'Order tracking: #5, #6',
-  U4: 'Keep background location on? (delivery): #7',
-  U5: 'Deals settings: #8, #9',
-  U6: 'Rewards offers: #10, #11, #12',
+/** What each unit is in each app, for codebooks and the paper. A participant's pattern applies to both apps. */
+export const UNIT_SCREENS: Record<AppId, Record<UnitId, string>> = {
+  bramble: {
+    U1: 'Location prompt (Find a store): #1, #2',
+    U2: 'Checkout: #3, #4, #13',
+    U3: 'Order tracking: #5, #6',
+    U4: 'Keep background location on? (delivery): #7',
+    U5: 'Deals settings: #8, #9, #14',
+    U6: 'Rewards offers: #10, #11, #12',
+  },
+  stride: {
+    U1: 'Health-data prompt and Face Unlock (Today)',
+    U2: 'Workout setup',
+    U3: 'Live workout',
+    U4: 'Keep heart-rate monitoring on all day? (after the workout)',
+    U5: 'Plans settings',
+    U6: 'Rewards offers',
+  },
 }
 
 /** How many units each participant has nudged. */

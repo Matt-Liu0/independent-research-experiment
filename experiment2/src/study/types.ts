@@ -1,5 +1,7 @@
 import type { AppState } from '../bramble/appState'
-import type { TaskNumber } from '../bramble/types'
+import type { AppId } from '../core/flowTypes'
+import type { StrideState } from '../stride/state'
+import type { AppOrder, TaskNumber } from './apps'
 
 export const STAGES = ['device', 'consent', 'welcome', 'tasks', 'sus', 'suspicion', 'settings', 'done'] as const
 export type Stage = (typeof STAGES)[number]
@@ -75,6 +77,9 @@ export interface ParticipantDoc extends ProlificParams {
    * the other screens are neutral. Set at consent.
    */
   pattern: string | null
+  /** Which app comes first. Set at consent, balanced and crossed with the pattern. */
+  appOrder: AppOrder | null
+  /** All 10 tasks: each app's tasks as one block, in the app order. */
   taskOrder: TaskNumber[] | null
   withdrawn: boolean
   device: DeviceInfo | null
@@ -82,15 +87,21 @@ export interface ParticipantDoc extends ProlificParams {
   localStartHour: number
   resumeCount: number
   stage: Stage
-  /** Position in taskOrder (0–5) and whether the ease rating is showing. */
+  /**
+   * Position in taskOrder (0–9), and what is showing: the task, its ease rating, or the
+   * introduction to the second app (before its first task).
+   */
   taskIndex: number
-  taskPhase: 'doing' | 'rating'
+  taskPhase: 'doing' | 'rating' | 'intro'
   ease: Partial<Record<`t${TaskNumber}`, number>>
-  sus: number[] | null
+  /** System Usability Scale answers (10 items, 1–5), one set per app. */
+  sus: Partial<Record<AppId, number[]>> | null
   suspicion: string | null
   settingsCheck: Record<string, string | string[]> | null
   taskOutcome: Partial<Record<`t${TaskNumber}`, TaskOutcome>>
+  /** Bramble's state (the name predates Stride). */
   appState: AppState | null
+  strideState: StrideState | null
   /** Set only for agent episodes. */
   agent?: AgentMeta | null
   /** Server timestamps in Firestore; epoch ms in the memory store. */
@@ -106,6 +117,7 @@ export function newParticipant(params: ProlificParams, now = new Date()): Partic
     consentVersion: null,
     consentDeclined: false,
     pattern: null,
+    appOrder: null,
     taskOrder: null,
     withdrawn: false,
     device: null,
@@ -121,6 +133,7 @@ export function newParticipant(params: ProlificParams, now = new Date()): Partic
     settingsCheck: null,
     taskOutcome: {},
     appState: null,
+    strideState: null,
   }
 }
 

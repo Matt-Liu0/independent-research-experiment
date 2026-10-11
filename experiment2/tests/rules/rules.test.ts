@@ -47,6 +47,7 @@ function newRecord(pid: string) {
     consentVersion: null,
     consentDeclined: false,
     pattern: null,
+    appOrder: null,
     taskOrder: null,
     withdrawn: false,
     device: null,
@@ -68,14 +69,27 @@ async function enroll(uid: string, pid = `pid_${uid}`, prefix = '') {
 
 type Counts = Record<string, number>
 
-/** The assignment transaction's writes, as one batch: this pattern's counter + 1, and the pattern on the record. */
-function assignBatch(d: Firestore, uid: string, pattern: string, counts: Counts | null, prefix = '') {
+const TEN_TASKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+/**
+ * The assignment transaction's writes, as one batch: the cell's counter + 1 (cell = pattern
+ * plus B or S for the app order), and the pattern, app order and task order on the record.
+ */
+function assignBatch(
+  d: Firestore,
+  uid: string,
+  pattern: string,
+  counts: Counts | null,
+  prefix = '',
+  appOrder: string = 'bramble_first',
+) {
   const batch = writeBatch(d)
   const meta = doc(d, `${prefix}meta`, 'assignment')
-  const next = { [pattern]: (counts?.[pattern] ?? 0) + 1 }
+  const cell = pattern + (appOrder === 'bramble_first' ? 'B' : 'S')
+  const next = { [cell]: (counts?.[cell] ?? 0) + 1 }
   if (counts) batch.set(meta, next, { merge: true })
   else batch.set(meta, next)
-  batch.update(doc(d, `${prefix}participants`, uid), { pattern, taskOrder: [1, 2, 3, 4, 5, 6] })
+  batch.update(doc(d, `${prefix}participants`, uid), { pattern, appOrder, taskOrder: TEN_TASKS })
   return batch
 }
 
@@ -189,16 +203,16 @@ describe('assignment', () => {
     await assertSucceeds(assignBatch(d, 'alice', 'U1U3U5', null).commit())
   })
 
-  it("adds 1 to an existing pattern's counter", async () => {
-    await seedCounts({ U1U3U5: 2, U2U4U6: 1 })
+  it("adds 1 to an existing cell's counter", async () => {
+    await seedCounts({ U1U3U5B: 2, U2U4U6B: 1 })
     const d = await enroll('alice')
-    await assertSucceeds(assignBatch(d, 'alice', 'U2U4U6', { U1U3U5: 2, U2U4U6: 1 }).commit())
+    await assertSucceeds(assignBatch(d, 'alice', 'U2U4U6', { U1U3U5B: 2, U2U4U6B: 1 }).commit())
   })
 
-  it('starts a new counter for a pattern not used yet', async () => {
-    await seedCounts({ U1U3U5: 2 })
+  it('starts a new counter for a cell not used yet', async () => {
+    await seedCounts({ U1U3U5B: 2 })
     const d = await enroll('alice')
-    await assertSucceeds(assignBatch(d, 'alice', 'U4U5U6', { U1U3U5: 2 }).commit())
+    await assertSucceeds(assignBatch(d, 'alice', 'U4U5U6', { U1U3U5B: 2 }).commit())
   })
 
   it('refuses patterns that are not 3 of the 6 screens', async () => {
@@ -210,47 +224,68 @@ describe('assignment', () => {
   })
 
   it('refuses setting a pattern without incrementing its counter', async () => {
-    await seedCounts({ U1U3U5: 0 })
+    await seedCounts({ U1U3U5B: 0 })
     const d = await enroll('alice')
-    await assertFails(updateDoc(doc(d, 'participants', 'alice'), { pattern: 'U1U3U5', taskOrder: [1, 2, 3, 4, 5, 6] }))
+    await assertFails(updateDoc(doc(d, 'participants', 'alice'), { pattern: 'U1U3U5', appOrder: 'bramble_first', taskOrder: TEN_TASKS }))
   })
 
   it('refuses bumping a counter without assigning yourself', async () => {
-    await seedCounts({ U1U3U5: 0 })
+    await seedCounts({ U1U3U5B: 0 })
     const d = await enroll('alice')
-    await assertFails(updateDoc(doc(d, 'meta', 'assignment'), { U1U3U5: 1 }))
+    await assertFails(updateDoc(doc(d, 'meta', 'assignment'), { U1U3U5B: 1 }))
   })
 
-  it("refuses changing another pattern's counter in the same write", async () => {
-    await seedCounts({ U1U3U5: 1, U2U4U6: 1 })
+  it("refuses changing another cell's counter in the same write", async () => {
+    await seedCounts({ U1U3U5B: 1, U2U4U6B: 1 })
     const d = await enroll('alice')
     const batch = writeBatch(d)
-    batch.set(doc(d, 'meta', 'assignment'), { U1U3U5: 2, U2U4U6: 0 }, { merge: true })
-    batch.update(doc(d, 'participants', 'alice'), { pattern: 'U1U3U5', taskOrder: [1, 2, 3, 4, 5, 6] })
+    batch.set(doc(d, 'meta', 'assignment'), { U1U3U5B: 2, U2U4U6B: 0 }, { merge: true })
+    batch.update(doc(d, 'participants', 'alice'), { pattern: 'U1U3U5', appOrder: 'bramble_first', taskOrder: TEN_TASKS })
     await assertFails(batch.commit())
   })
 
   it('refuses incrementing by more than 1', async () => {
-    await seedCounts({ U1U3U5: 0 })
+    await seedCounts({ U1U3U5B: 0 })
     const d = await enroll('alice')
     const batch = writeBatch(d)
-    batch.set(doc(d, 'meta', 'assignment'), { U1U3U5: 2 }, { merge: true })
-    batch.update(doc(d, 'participants', 'alice'), { pattern: 'U1U3U5', taskOrder: [1, 2, 3, 4, 5, 6] })
+    batch.set(doc(d, 'meta', 'assignment'), { U1U3U5B: 2 }, { merge: true })
+    batch.update(doc(d, 'participants', 'alice'), { pattern: 'U1U3U5', appOrder: 'bramble_first', taskOrder: TEN_TASKS })
     await assertFails(batch.commit())
   })
 
   it('refuses a second assignment', async () => {
     const d = await enroll('alice')
     await assertSucceeds(assignBatch(d, 'alice', 'U1U3U5', null).commit())
-    await assertFails(assignBatch(d, 'alice', 'U2U4U6', { U1U3U5: 1 }).commit())
+    await assertFails(assignBatch(d, 'alice', 'U2U4U6', { U1U3U5B: 1 }).commit())
   })
 
-  it('refuses a malformed task order', async () => {
+  it('assigns Stride-first cells, and refuses a missing or unknown app order', async () => {
+    const d = await enroll('alice')
+    await assertSucceeds(assignBatch(d, 'alice', 'U1U3U5', null, '', 'stride_first').commit())
+    for (const bad of ['first', 'stride']) {
+      await env.clearFirestore()
+      const d2 = await enroll('bob')
+      await assertFails(assignBatch(d2, 'bob', 'U1U3U5', null, '', bad).commit())
+    }
+  })
+
+  it('refuses a counter for the wrong app order', async () => {
     const d = await enroll('alice')
     const batch = writeBatch(d)
-    batch.set(doc(d, 'meta', 'assignment'), { U1U3U5: 1 })
-    batch.update(doc(d, 'participants', 'alice'), { pattern: 'U1U3U5', taskOrder: [1, 2] })
+    batch.set(doc(d, 'meta', 'assignment'), { U1U3U5S: 1 })
+    batch.update(doc(d, 'participants', 'alice'), { pattern: 'U1U3U5', appOrder: 'bramble_first', taskOrder: TEN_TASKS })
     await assertFails(batch.commit())
+  })
+
+  it('refuses a malformed task order (it must list all 10 tasks)', async () => {
+    for (const taskOrder of [[1, 2], [1, 2, 3, 4, 5, 6]]) {
+      await env.clearFirestore()
+      const d = await enroll('alice')
+      const batch = writeBatch(d)
+      batch.set(doc(d, 'meta', 'assignment'), { U1U3U5B: 1 })
+      batch.update(doc(d, 'participants', 'alice'), { pattern: 'U1U3U5', appOrder: 'bramble_first', taskOrder })
+      await assertFails(batch.commit())
+    }
   })
 })
 

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
-import { bonusDollars } from '../bramble/appState'
+import { START_POINTS } from '../bramble/data'
+import { totalBonus } from '../core/bonus'
+import { START_COINS } from '../stride/data'
 import { COMPLETION_CODE, completionUrl, fromProlific } from '../study/prolific'
 import type { StageProps } from '../study/stageProps'
 
@@ -23,13 +25,18 @@ export function Closing({ participant, store, mode }: StageProps) {
     }
   }, [store])
 
-  const points = participant.appState?.points ?? 0
+  // Each app's balance; an app not reached keeps its starting balance (never happens once both are done).
+  const points = participant.appState?.points ?? START_POINTS
+  const coins = participant.strideState?.points ?? START_COINS
+  const bonus = totalBonus(points, coins)
 
   if (mode === 'agent') {
     return (
       <main className="page">
         <h1>All tasks finished</h1>
-        <p>You kept {points} Bramble points.</p>
+        <p>
+          You kept {points} Bramble points and {coins} Stride coins.
+        </p>
       </main>
     )
   }
@@ -38,7 +45,7 @@ export function Closing({ participant, store, mode }: StageProps) {
     <main className="page">
       <h1>Thanks, that's Part 1</h1>
       <p>
-        You kept {points} Bramble points, so your bonus is ${bonusDollars(points).toFixed(2)}.{' '}
+        You kept {points} Bramble points and {coins} Stride coins, so your bonus is ${bonus.toFixed(2)}.{' '}
         {fromProlific(participant.recruitment)
           ? 'Your points bonus will be paid within 3 days.'
           : 'Your points bonus will be paid as described in your invitation.'}

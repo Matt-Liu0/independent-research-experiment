@@ -145,7 +145,7 @@ export function StudyApp({ entry, store, detect = detectDevice }: Props) {
     <>
       {entry.mode === 'demo' && (
         <div className="demo-tag" aria-hidden="true">
-          Demo · nudged: {participant.pattern || 'none'} · nothing saved
+          Demo · nudged: {participant.pattern || 'none'}{participant.appOrder ? ` · ${participant.appOrder === 'stride_first' ? 'Stride' : 'Bramble'} first` : ''} · nothing saved
         </div>
       )}
       {entry.mode === 'pilot' && (

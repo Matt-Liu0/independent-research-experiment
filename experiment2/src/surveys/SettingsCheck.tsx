@@ -33,7 +33,7 @@ export function SettingsCheck({ participant, advance }: StageProps) {
     <main className="page">
       <h1>Last step</h1>
       <p>
-        A few questions about apps you already use, so we can compare them with Bramble. You'll look up a few settings
+        A few questions about apps you already use, so we can compare them with Bramble and Stride. You'll look up a few settings
         on this phone, which takes about 5 minutes. We only record your answers on this page. We never see your apps,
         your data or your location.
       </p>

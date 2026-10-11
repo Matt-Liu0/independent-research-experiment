@@ -1,6 +1,6 @@
-import type { TaskNumber } from '../bramble/types'
 import type { EventSink, StudyEvent } from '../log/logEvent'
-import { pickPattern, shuffleTasks, type PatternCounts } from './randomize'
+import type { AppOrder, TaskNumber } from './apps'
+import { buildTaskOrder, cellKey, pickAssignment, type CellCounts } from './randomize'
 import type { ParticipantDoc, ProlificParams, StartResult, TimestampField } from './types'
 import { newParticipant } from './types'
 
@@ -10,21 +10,28 @@ export interface StudyStore {
   start(params: ProlificParams): Promise<StartResult>
   /** Merge fields into the participant record. Fire-and-forget: writes queue while offline. */
   update(fields: Partial<ParticipantDoc>, stamp?: TimestampField[]): void
-  /** Balanced assignment of the nudged-screen pattern and task order (once per participant). */
-  assign(): Promise<{ pattern: string; taskOrder: TaskNumber[] }>
+  /** Balanced assignment of the nudged-screen pattern, app order and task order (once per participant). */
+  assign(): Promise<Assignment>
   sink: EventSink
   /** Resolves once every queued write has reached the server. */
   flush(): Promise<void>
+}
+
+export interface Assignment {
+  pattern: string
+  appOrder: AppOrder
+  taskOrder: TaskNumber[]
 }
 
 /** Keeps everything in memory. Used by tests and by ?demo= links, which save nothing. */
 export class MemoryStore implements StudyStore {
   participant: ParticipantDoc | null = null
   events: StudyEvent[] = []
-  counts: PatternCounts = {}
+  counts: CellCounts = {}
   takenPids = new Set<string>()
-  /** Demo links fix the pattern instead of balancing. */
+  /** Demo links can fix the pattern and app order instead of balancing. */
   readonly forcedPattern: string | null
+  readonly forcedAppOrder: AppOrder | null
   readonly sink: EventSink = { write: (e) => this.events.push(e) }
 
   private preset: ParticipantDoc | null
@@ -33,8 +40,11 @@ export class MemoryStore implements StudyStore {
    * existing: a record from an earlier visit (start() resumes it).
    * preset: a fresh record to start with (agent episodes arrive already assigned).
    */
-  constructor(options: { pattern?: string; existing?: ParticipantDoc; preset?: ParticipantDoc } = {}) {
+  constructor(
+    options: { pattern?: string; appOrder?: AppOrder; existing?: ParticipantDoc; preset?: ParticipantDoc } = {},
+  ) {
     this.forcedPattern = options.pattern ?? null
+    this.forcedAppOrder = options.appOrder ?? null
     this.participant = options.existing ?? null
     this.preset = options.preset ?? null
   }
@@ -62,15 +72,18 @@ export class MemoryStore implements StudyStore {
     this.participant = { ...this.participant, ...fields, ...stamps }
   }
 
-  async assign() {
+  async assign(): Promise<Assignment> {
     const p = this.participant
     if (!p) throw new Error('assign before start')
-    if (p.pattern !== null && p.taskOrder) return { pattern: p.pattern, taskOrder: p.taskOrder }
-    const pattern = this.forcedPattern ?? pickPattern(this.counts)
-    this.counts[pattern] = (this.counts[pattern] ?? 0) + 1
-    const taskOrder = shuffleTasks()
-    this.update({ pattern, taskOrder })
-    return { pattern, taskOrder }
+    if (p.pattern !== null && p.appOrder && p.taskOrder) return { pattern: p.pattern, appOrder: p.appOrder, taskOrder: p.taskOrder }
+    const picked = pickAssignment(this.counts)
+    const pattern = this.forcedPattern ?? picked.pattern
+    const appOrder = this.forcedAppOrder ?? picked.appOrder
+    const key = cellKey(pattern, appOrder)
+    this.counts[key] = (this.counts[key] ?? 0) + 1
+    const taskOrder = buildTaskOrder(appOrder)
+    this.update({ pattern, appOrder, taskOrder })
+    return { pattern, appOrder, taskOrder }
   }
 
   async flush(): Promise<void> {}

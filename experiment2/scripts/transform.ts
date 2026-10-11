@@ -1,8 +1,9 @@
 // Turns raw participant records and event logs into analysis-ready rows.
 // Pure functions only, so they can be tested without Firebase.
+import { totalBonus } from '../src/core/bonus'
 import { consentForm, verdictOf } from '../src/core/ci'
-import { FLOWS } from '../src/bramble/flows'
-import type { FlowDef, FlowStatus } from '../src/bramble/types'
+import { ALL_FLOWS } from '../src/allFlows'
+import type { FlowDef, FlowStatus } from '../src/core/flowTypes'
 import { UNIT_SCREENS, frictionOf, parsePattern } from '../src/core/units'
 
 export type Row = Record<string, string | number | boolean | null>
@@ -60,7 +61,7 @@ function settledEvent(events: Record<string, unknown>[], flowId: string) {
   return events.find((e) => e.type === 'settled' && e.flowId === flowId)
 }
 
-/** The flow's GKC-CI parameters as flat columns (same for everyone; see src/bramble/ci.ts). */
+/** The flow's GKC-CI parameters as flat columns (same for everyone; see src/core/ci.ts). */
 export function ciColumns(flow: FlowDef): Row {
   const tp = flow.ci.transmissionPrinciple
   return {
@@ -82,10 +83,12 @@ export function ciColumns(flow: FlowDef): Row {
 
 /** One row per flow: the codebook for joining with Part 2 questionnaire items. */
 export function flowCodebook(): Row[] {
-  return FLOWS.map((flow) => ({
+  return ALL_FLOWS.map((flow) => ({
     flowId: flow.id,
+    app: flow.app,
+    counterpart: flow.counterpart,
     unit: flow.unit,
-    unitScreen: UNIT_SCREENS[flow.unit],
+    unitScreen: UNIT_SCREENS[flow.app][flow.unit],
     expectedTask: flow.task,
     screen: flow.screen,
     options: flow.options.join(';'),
@@ -114,8 +117,12 @@ export function flowStatus(flow: FlowDef, events: Record<string, unknown>[]): Fl
 }
 
 function flowRows(code: string, data: Record<string, unknown>, events: Record<string, unknown>[]): Row[] {
-  const finalFlows = (get(data, 'appState.flows') ?? {}) as Record<string, string | null>
-  return FLOWS.map((flow) => {
+  // Each app's final values live in its own state (appState is Bramble's).
+  const finalFlows = {
+    ...((get(data, 'appState.flows') ?? {}) as Record<string, string | null>),
+    ...((get(data, 'strideState.flows') ?? {}) as Record<string, string | null>),
+  }
+  return ALL_FLOWS.map((flow) => {
     const settled = settledEvent(events, flow.id)
     const settledIndex = settled ? events.indexOf(settled) : events.length
     const promptDecisions = events.filter(
@@ -128,6 +135,8 @@ function flowRows(code: string, data: Record<string, unknown>, events: Record<st
     return {
       studyCode: code,
       flowId: flow.id,
+      app: flow.app,
+      counterpart: flow.counterpart,
       unit: flow.unit,
       friction,
       consentForm: friction ? consentForm(flow, friction) : null,
@@ -162,6 +171,7 @@ function participantRow(code: string, collection: string, data: Record<string, u
     consentVersion: scalar(data.consentVersion),
     consentDeclined: scalar(data.consentDeclined),
     pattern: scalar(data.pattern),
+    appOrder: scalar(data.appOrder),
     nudgedUnits: typeof data.pattern === 'string' ? parsePattern(data.pattern).join(';') : null,
     taskOrder: Array.isArray(data.taskOrder) ? data.taskOrder.join('-') : null,
     stage: scalar(data.stage),
@@ -185,24 +195,35 @@ function participantRow(code: string, collection: string, data: Record<string, u
   const end = toMs(data.completedAt)
   if (start !== null && end !== null) row.minutesToComplete = Math.round((end - start) / 600) / 100
 
-  for (let t = 1; t <= 6; t++) row[`ease_t${t}`] = scalar(get(data, `ease.t${t}`))
-  const sus = Array.isArray(data.sus) ? (data.sus as number[]) : []
-  for (let i = 0; i < 10; i++) row[`sus_${i + 1}`] = sus[i] ?? null
-  row.susScore = susScore(data.sus)
+  for (let t = 1; t <= 10; t++) row[`ease_t${t}`] = scalar(get(data, `ease.t${t}`))
+  // One SUS per app. Records from before Stride stored a single list (Bramble's).
+  const susByApp = (Array.isArray(data.sus) ? { bramble: data.sus } : (data.sus ?? {})) as Record<string, unknown>
+  for (const app of ['bramble', 'stride']) {
+    const sus = Array.isArray(susByApp[app]) ? (susByApp[app] as number[]) : []
+    for (let i = 0; i < 10; i++) row[`sus_${app}_${i + 1}`] = sus[i] ?? null
+    row[`susScore_${app}`] = susScore(susByApp[app])
+  }
   row.suspicion = scalar(data.suspicion)
   for (let q = 1; q <= 7; q++) row[`settings_q${q}`] = scalar(get(data, `settingsCheck.q${q}`))
 
   const outcomes = (data.taskOutcome ?? {}) as Record<string, Record<string, unknown>>
-  for (let t = 1; t <= 6; t++) {
+  for (let t = 1; t <= 10; t++) {
     for (const [key, value] of Object.entries(outcomes[`t${t}`] ?? { done: null })) row[`t${t}_${key}`] = scalar(value)
   }
 
+  // The bonus is both balances together (100 points or coins = $0.10).
   const points = get(data, 'appState.points')
-  row.finalPoints = scalar(points)
-  row.bonusUSD = typeof points === 'number' ? Math.round(points / 10) / 100 : null
+  const coins = get(data, 'strideState.points')
+  row.bramblePoints = scalar(points)
+  row.strideCoins = scalar(coins)
+  row.bonusUSD =
+    typeof points === 'number' && typeof coins === 'number' ? totalBonus(points, coins) : null
   row.deliveryRedeemed = scalar(get(data, 'appState.deliveryRedeemed'))
+  row.reportUnlocked = scalar(get(data, 'strideState.reportUnlocked'))
   row.accountPageVisits = scalar(get(data, 'appState.accountPageVisits'))
   row.accountPageMs = scalar(get(data, 'appState.accountPageMs'))
+  row.profilePageVisits = scalar(get(data, 'strideState.accountPageVisits'))
+  row.profilePageMs = scalar(get(data, 'strideState.accountPageMs'))
   row.taskCardReopens = events.filter((e) => e.type === 'task' && e.event === 'reopen').length
   const action = (name: string) => events.filter((e) => e.type === 'action' && e.name === name)
   row.mapShown = (action('map_shown')[0]?.kind as string) ?? null

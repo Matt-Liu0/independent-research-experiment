@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { initialAppState } from '../bramble/appState'
+import { initialStrideState } from '../stride/state'
 import type { StageProps } from '../study/stageProps'
 import { MemoryStore } from '../study/store'
 import { newParticipant, type DeviceOs } from '../study/types'
@@ -34,7 +35,24 @@ describe('SUS', () => {
     expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
     await user.click(within(groups[9]).getByRole('radio', { name: '2' }))
     await user.click(screen.getByRole('button', { name: 'Continue' }))
-    expect(p.advance).toHaveBeenCalledWith({ sus: [4, 4, 4, 4, 4, 4, 4, 4, 4, 2] })
+    expect(p.update).toHaveBeenCalledWith({ sus: { bramble: [4, 4, 4, 4, 4, 4, 4, 4, 4, 2] } })
+    expect(p.advance).not.toHaveBeenCalled()
+  })
+
+  it('asks about each app in the order they were used, then moves on', async () => {
+    const user = userEvent.setup()
+    const p = props()
+    p.participant = { ...p.participant, appOrder: 'stride_first' }
+    const view = render(<Sus {...p} />)
+    expect(screen.getByRole('heading', { name: 'What did you think of Stride?' })).toBeInTheDocument()
+
+    // Once Stride is answered, the Bramble questions follow (the record now holds Stride's).
+    p.participant = { ...p.participant, sus: { stride: Array(10).fill(3) } }
+    view.rerender(<Sus {...p} />)
+    expect(screen.getByRole('heading', { name: 'What did you think of Bramble?' })).toBeInTheDocument()
+    for (const group of screen.getAllByRole('radiogroup')) await user.click(within(group).getByRole('radio', { name: '5' }))
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+    expect(p.advance).toHaveBeenCalledWith({ sus: { stride: Array(10).fill(3), bramble: Array(10).fill(5) } })
   })
 })
 
@@ -94,9 +112,14 @@ describe('Closing', () => {
     const store = new MemoryStore()
     store.flush = () => new Promise<void>((resolve) => (release = resolve))
     const p = { ...props(), store }
-    p.participant = { ...p.participant, appState: { ...initialAppState(), points: 270 } }
+    p.participant = {
+      ...p.participant,
+      appState: { ...initialAppState(), points: 270 },
+      strideState: { ...initialStrideState(), points: 220 },
+    }
     render(<Closing {...p} />)
-    expect(screen.getByText(/your bonus is \$0\.27/)).toBeInTheDocument()
+    // Both balances: 270 points ($0.27) plus 220 coins ($0.22).
+    expect(screen.getByText(/270 Bramble points and 220 Stride coins, so your bonus is \$0\.49/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Saving…' })).toHaveAttribute('aria-disabled', 'true')
     release()
     const link = await screen.findByRole('link', { name: 'Back to Prolific' })

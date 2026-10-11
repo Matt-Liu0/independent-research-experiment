@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { loadParticipants, writeExport } from '../../scripts/export'
-import { FLOWS } from '../../src/bramble/flows'
+import { ALL_FLOWS } from '../../src/allFlows'
 
 let env: RulesTestEnvironment
 let outDir: string
@@ -28,6 +28,7 @@ beforeAll(async () => {
       withdrawn: false,
       stage: 'done',
       appState: { points: 220, flows: { reward_university: 'accept' } },
+      strideState: { points: 120, flows: { stride_reward_university: 'decline' } },
     })
     await setDoc(doc(db, COLLECTION, `exp_a_${run}`, 'events', 'e1'), {
       type: 'prompt_shown', flowId: 'reward_university', defaultShown: null, clientT: 10, t: t(1),
@@ -61,10 +62,15 @@ describe('export from Firestore', () => {
 
     expect(participants.trim().split('\n')).toHaveLength(2)
     expect(participants).toContain('PL001')
-    expect(participants).toContain('0.22')
+    // Bonus: 220 Bramble points ($0.22) plus 120 Stride coins ($0.12).
+    expect(participants).toContain('0.34')
     expect(participants).not.toContain('EXPORT_')
     const [header, ...rows] = flows.trim().split('\n').map((line) => line.split(','))
-    const uni = Object.fromEntries(header.map((h, i) => [h, rows.find((r) => r.includes('reward_university'))![i]]))
+    const rowOf = (flowId: string) => {
+      const row = rows.find((r) => r[header.indexOf('flowId')] === flowId)!
+      return Object.fromEntries(header.map((h, i) => [h, row[i]]))
+    }
+    const uni = rowOf('reward_university')
     expect(uni).toMatchObject({
       studyCode: 'PL001',
       unit: 'U6',
@@ -75,7 +81,9 @@ describe('export from Firestore', () => {
       firstChoice: 'accept',
       finalValue: 'accept',
     })
-    expect(readFileSync(join(outDir, 'flow-codebook.csv'), 'utf8').trim().split('\n')).toHaveLength(FLOWS.length + 1)
+    const strideUni = rowOf('stride_reward_university')
+    expect(strideUni).toMatchObject({ app: 'stride', counterpart: 'reward_university', unit: 'U6', friction: 'nudged', finalValue: 'decline' })
+    expect(readFileSync(join(outDir, 'flow-codebook.csv'), 'utf8').trim().split('\n')).toHaveLength(ALL_FLOWS.length + 1)
     expect(events).toContain('2026-11-01T12:02:00.000Z')
     expect(idMap).toContain(`EXPORT_A_${run}`)
     expect(idMap).not.toContain(`EXPORT_W_${run}`)
