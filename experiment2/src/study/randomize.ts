@@ -62,16 +62,29 @@ export const CELLS: { pattern: string; appOrder: AppOrder }[] = PATTERNS.flatMap
 export type CellCounts = Record<string, number>
 
 /**
- * The least-used of the 40 cells; a random one among ties. Using every cell equally often
- * nudges each screen for exactly half the sample, puts each app first for half, and crosses
- * the two, so app order can't be confounded with which screens are nudged.
+ * The next participant's cell. The least-used cell first. Among ties, the least-used pattern
+ * (over both app orders), then the less-used app order, then the least-nudged screens; then
+ * at random. So at any sample size, not only multiples of 40: cells differ by at most 1, each
+ * pattern and so each screen is nudged about equally often, each app comes first for about
+ * half, and app order is crossed with the pattern.
  */
 export function pickAssignment(
   counts: CellCounts,
   random: () => number = cryptoRandom,
 ): { pattern: string; appOrder: AppOrder } {
   const count = (c: { pattern: string; appOrder: AppOrder }) => counts[cellKey(c.pattern, c.appOrder)] ?? 0
-  const fewest = Math.min(...CELLS.map(count))
-  const tied = CELLS.filter((c) => count(c) === fewest)
+  const patternTotal = (pattern: string) => APP_ORDERS.reduce((n, o) => n + (counts[cellKey(pattern, o)] ?? 0), 0)
+  const orderTotal = (appOrder: AppOrder) => CELLS.filter((c) => c.appOrder === appOrder).reduce((n, c) => n + count(c), 0)
+  const unitNudged = (unit: string) => CELLS.filter((c) => c.pattern.includes(unit)).reduce((n, c) => n + count(c), 0)
+  const unitLoad = (pattern: string) => (pattern.match(/U[1-6]/g) ?? []).reduce((n, u) => n + unitNudged(u), 0)
+
+  const keepLowest = (cells: typeof CELLS, score: (c: (typeof CELLS)[number]) => number) => {
+    const best = Math.min(...cells.map(score))
+    return cells.filter((c) => score(c) === best)
+  }
+  let tied = keepLowest(CELLS, count)
+  tied = keepLowest(tied, (c) => patternTotal(c.pattern))
+  tied = keepLowest(tied, (c) => orderTotal(c.appOrder))
+  tied = keepLowest(tied, (c) => unitLoad(c.pattern))
   return tied[Math.floor(random() * tied.length)]
 }

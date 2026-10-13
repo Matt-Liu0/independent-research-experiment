@@ -10,6 +10,7 @@ Phone web app for Part 1 of the study: two practice apps in one session, **Bramb
 | `npm run dev` | Start the app at http://localhost:5173 |
 | `npm run emulators` | Start the local Auth and Firestore emulators (UI at http://localhost:4000) |
 | `npm test` | Unit, component and whole-app tests |
+| `npm run test:load` | Load test: 100 participants starting at once against the emulators (`LOAD_PEOPLE`, `LOAD_WRITES` to change) |
 | `npm run test:rules` | Security-rules, store and export tests against their own emulators (ports in `firebase.test.json`, so they never touch `npm run emulators` data) |
 | `npm run typecheck` | TypeScript check of app, tests and scripts |
 | `npm run lint` | Lint |
@@ -65,7 +66,9 @@ To change the area, edit `src/bramble/mapConfig.ts` (location, store pins, `MAP_
 
 ## Before launch
 
-1. Create the Firebase project (Anonymous Auth on, Firestore in a US region), then copy `.env.example` to `.env.local` and fill it in with `VITE_USE_EMULATORS=false`.
+Step by step with Prolific (settings, pilot, bonuses, Part 2): `PROLIFIC.md`.
+
+1. Create the Firebase project (Anonymous Auth on, Firestore in a US region) on the **Blaze plan** with a budget alert (the free plan's 20,000 writes a day is less than 100 participants need), then copy `.env.example` to `.env.local` and fill it in with `VITE_USE_EMULATORS=false`.
 2. Put the IRB consent text in `src/study/consentText.ts`, set `isDraft: false`, and fill in the contact line.
 3. Set the Prolific completion and return codes in `.env.local`.
 4. `npm test && npm run test:rules && npm run build`, then `npx firebase deploy --only hosting,firestore:rules --project <project-id>`.
@@ -79,4 +82,4 @@ GCLOUD_PROJECT=<project-id> npm run export            # → exports/<date>/
 GCLOUD_PROJECT=<project-id> npm run export -- --pilot # pilot data
 ```
 
-Writes `participants.csv` (one row per person), `events.csv` (one row per event), `flows.csv` (one row per person × flow in both apps, with status, first choice, final value, default shown, decision time and toggle count) and `id-map.csv` (study code → Prolific ID; keep it off shared drives). Withdrawn participants are left out. `exports/` is git-ignored.
+Writes `participants.csv` (one row per person), `events.csv` (one row per event), `flows.csv` (one row per person × flow in both apps, with status, first choice, final value, default shown, decision time and toggle count) `id-map.csv` (study code → Prolific ID; keep it off shared drives) and `prolific-bonuses.txt` (lines to paste into Prolific's bulk bonus form). Withdrawn participants are left out. `exports/` is git-ignored.

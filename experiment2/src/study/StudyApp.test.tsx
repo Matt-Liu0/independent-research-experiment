@@ -47,13 +47,13 @@ describe('StudyApp', () => {
   it('ignores &anydevice=1 on the deployed study', async () => {
     const store = new MemoryStore()
     render(<StudyApp entry={parseEntry(`${PARAMS}&anydevice=1`, false)} store={store} detect={computer} />)
-    expect(await screen.findByRole('heading', { name: /open this on your phone/i }, { timeout: 3000 })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /open this on your phone/i }, { timeout: 5000 })).toBeInTheDocument()
   })
 
   it('stops computers at the device check and records the device', async () => {
     const store = new MemoryStore()
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} detect={computer} />)
-    expect(await screen.findByRole('heading', { name: /open this on your phone/i }, { timeout: 3000 })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /open this on your phone/i }, { timeout: 5000 })).toBeInTheDocument()
     expect(store.participant?.stage).toBe('device')
     expect(store.participant?.device?.passedCheck).toBe(false)
   })

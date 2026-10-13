@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildExport, flowStatus, susScore, toCsv, type RawParticipant } from '../scripts/transform'
+import { buildExport, flowStatus, prolificBonusLines, susScore, toCsv, type RawParticipant } from '../scripts/transform'
 import { ALL_FLOWS } from '../src/allFlows'
 import { getFlow } from '../src/bramble/flows'
 
@@ -68,6 +68,11 @@ const carol: RawParticipant = {
 
 describe('buildExport', () => {
   const result = buildExport('participants', [bob, alice, carol])
+
+  it('lists Prolific bonuses only for people who finished, with both balances added', () => {
+    // Alice (Prolific, finished): 120 points + 320 coins = $0.44. Carol declined consent; Bob withdrew.
+    expect(prolificBonusLines(result)).toBe('PID_ALICE,0.44')
+  })
 
   it('leaves out withdrawn participants and codes the rest in start order', () => {
     expect(result.idMap).toEqual([

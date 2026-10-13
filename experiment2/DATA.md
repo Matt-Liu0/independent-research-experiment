@@ -183,7 +183,7 @@ Append-only: once written, an event can't be changed or deleted by the participa
 | Type | Extra fields and values |
 |---|---|
 | `screen` | `from`, `to`: screen IDs; `via`: `tap` (tab, button or link) or `back` (the ‹ button or the phone's Back); `loadingMs`: how long the loading placeholder shows before the screen (`250` or `400`) |
-| `task` | `event`: `start` (with `task`, `position` 1–10) · `reopen` (tapped the task bar to reread; `task`) · `finish` (tapped Done; `task`, `position`, `outcome`: same object as `taskOutcome.tN`) · `ease` (`task`, `value` 1–7) |
+| `task` | `event`: `start` (with `task`, `position` 1–10) · `unfinished_check` (tapped Done before the task's goal was met; `task`) · `unfinished_answer` (`task`, `finished`: `true` = "I'm done with this task", `false` = "Keep going") · `app_intro` (opened the second app from its introduction page; `app`) · `reopen` (tapped the task bar to reread; `task`) · `finish` (tapped Done; `task`, `position`, `outcome`: same object as `taskOutcome.tN`) · `ease` (`task`, `value` 1–7) |
 | `action` | `name`, one of: `phone_back` (`handled`: `true` if it moved back a screen, `false` if there was nowhere to go, a prompt was open, or the participant was outside the app, e.g. in a survey) · `map_shown` (`kind`: `real` (street map) or `drawn` (fallback on phones that can't show it); logged when the nearby-stores map appears) · `map_moved` (`gesture`: `drag` or `zoom`; one per gesture, only ones the participant made) · `map_recentered` (tapped the recenter button) · `store_card_opened` (`storeId`; `via`: `pin` on the map or `list`) · `store_search` (`item`: `oat_milk` / `sourdough` / `null` for a store-name search; `results`: number of stores shown; the typed text is not logged) · `store_set` (`storeId`, `hasOatMilk`) · `zip_search` (no ZIP stored) · `zip_show_more` · `cart_add` / `cart_remove` (`productId`) · `order_placed` (`items`: product IDs; `freeDelivery`: `true`/`false`) · `order_status` (`step`: `packed`, `on_the_way` or `delivered`) · `deal_toggled` (`dealId`, `saved`: `true` = hearted, `false` = un-hearted) · `delivery_redeemed` · `address_saved` (`matches`: `true`/`false`; the typed text is not logged) |
 | `points` | `amount` (`+200`, `+100`, `+150`, their negatives, or `-300`); `pointsBefore`; and either `flowId` with `reason` `offer_accepted` (first answer) or `offer_changed` (an answered offer changed, on the Rewards card or the settings page), or `reason: redeem_delivery` (Bramble) / `unlock_report` (Stride). In Stride the amounts are coins. Points always match the current answers, so accepting and then unlinking earns nothing |
 | `stage` | Moving through the study. Either `from` / `to` (stage names), or `name` with details: `entry` (`mode`: `study` / `pilot` / `demo`) · `device_check` (`passed`) · `consent` (`agreed`, `version`) · `sus_submitted` · `suspicion_submitted` · `settings_check_submitted` |
@@ -384,6 +384,10 @@ Includes everyone who arrived, also people who declined consent or failed the de
 ### `flow-codebook.csv`: one row per flow (27 rows)
 
 `flowId`, `app`, `counterpart`, `unit`, `unitScreen`, `expectedTask`, `screen`, `options`, `privacyOption`, `dependsOn`, `consentForm_nudged`, `consentForm_neutral`, `verdictMap` (e.g. `while_using=allow;once=ask;dont_allow=block`), the `ci_*` columns and `ci_statement`. Use it to match the site flows with the Part 2 questionnaire items.
+
+### `prolific-bonuses.txt`: bonuses to paste into Prolific
+
+One `<Prolific ID>,<amount>` line per Prolific participant who finished Part 1 with a bonus above $0 (both balances added). See `PROLIFIC.md`. Contains Prolific IDs: keep it as private as `id-map.csv`.
 
 ### `id-map.csv`: study code → Prolific ID
 

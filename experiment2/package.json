@@ -1,7 +1,7 @@
 {
   "name": "experiment2",
   "private": true,
-  "version": "0.12.0",
+  "version": "0.13.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -16,7 +16,8 @@
     "export": "tsx scripts/export.ts",
     "dev:phone": "vite --host",
     "emulators:phone": "firebase emulators:start --only auth,firestore --project demo-bramble --config firebase.phone.json",
-    "build:map": "tsx scripts/build-map.ts"
+    "build:map": "tsx scripts/build-map.ts",
+    "test:load": "firebase emulators:exec --only firestore,auth --project demo-bramble --config firebase.test.json \"vitest run --config vitest.load.config.ts\""
   },
   "dependencies": {
     "@protomaps/basemaps": "^5.7.2",

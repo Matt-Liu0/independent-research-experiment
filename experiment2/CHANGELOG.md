@@ -3,6 +3,19 @@
 Every build participants see has a version (`appVersion` on each record). Bump `version` in `package.json` and add an entry here for any change made once data collection starts.
 
 
+
+## 0.13.0 (2026-10-13)
+
+From the review pipeline (`docs/superpowers/specs/2026-10-13-site-review-pipeline.md`).
+
+- **Guidance while waiting:** the order and the workout each say to keep the page open (same in both levels, no hint of the questions).
+- **Unfinished-task check:** tapping Done before a task's goal is met asks "This task doesn't look finished yet" (Keep going / I'm done with this task). It's the same in both levels, never triggered by a privacy answer, and not shown to agents. Logged as `task` events `unfinished_check` and `unfinished_answer`.
+- **Stride's own look:**
+  - **Navigation:** four tabs around a raised Workouts button with a dumbbell icon, and a coin balance in the header.
+  - **Style:** sans-serif headings and shadowed cards.
+  - **Unchanged:** the decision controls are the same as Bramble's.
+- **Assignment under load:** retries when simultaneous participants collide on the same cell (previously the second got "permission denied" right after consent). Ties are now broken so that the pattern and app order stay balanced at any sample size, not only multiples of 40. New `npm run test:load`.
+- **Prolific:** `prolific-bonuses.txt` in every export; `PROLIFIC.md` guide.
 ## 0.12.0 (2026-10-11)
 
 A second app, **Stride** (fitness and health), in the same session as Bramble. Spec: `docs/superpowers/specs/2026-10-08-second-app-stride-design.md`.

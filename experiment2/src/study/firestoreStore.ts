@@ -41,6 +41,15 @@ function isPermissionDenied(err: unknown): boolean {
   return typeof err === 'object' && err !== null && (err as { code?: string }).code === 'permission-denied'
 }
 
+/** Assignment attempts before giving up (the participant then sees "try again"). */
+const ASSIGN_ATTEMPTS = 8
+
+/** Refusals that come from another participant's assignment landing first. */
+function isContention(err: unknown): boolean {
+  const code = (err as { code?: string } | null)?.code
+  return code === 'permission-denied' || code === 'aborted' || code === 'failed-precondition'
+}
+
 export class FirestoreStore implements StudyStore {
   private readonly db: Firestore
   private readonly auth: Auth
@@ -105,7 +114,23 @@ export class FirestoreStore implements StudyStore {
     setDoc(this.participantRef(), data, { merge: true }).catch((err) => console.error('update failed', err))
   }
 
+  /**
+   * Many people starting at once (a Prolific launch) can read the same counts and pick the
+   * same cell. The rules then refuse the second write, because its counter is no longer +1, so
+   * the assignment is retried with fresh counts after a short random wait.
+   */
   async assign(): Promise<Assignment> {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await this.assignOnce()
+      } catch (err) {
+        if (attempt >= ASSIGN_ATTEMPTS || !isContention(err)) throw err
+        await new Promise((resolve) => setTimeout(resolve, (100 + Math.random() * 300) * attempt))
+      }
+    }
+  }
+
+  private async assignOnce(): Promise<Assignment> {
     const ref = this.participantRef()
     const metaRef = doc(this.db, this.names.meta, 'assignment')
     return runTransaction(this.db, async (tx) => {

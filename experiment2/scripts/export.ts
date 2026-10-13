@@ -11,7 +11,7 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { initializeApp } from 'firebase-admin/app'
 import { getFirestore, type Firestore } from 'firebase-admin/firestore'
-import { buildExport, flowCodebook, toCsv, type RawParticipant } from './transform'
+import { buildExport, flowCodebook, prolificBonusLines, toCsv, type RawParticipant } from './transform'
 
 export async function loadParticipants(db: Firestore, collection: string): Promise<RawParticipant[]> {
   const snapshot = await db.collection(collection).get()
@@ -29,10 +29,12 @@ export function writeExport(outDir: string, collection: string, raw: RawParticip
   writeFileSync(join(outDir, 'participants.csv'), toCsv(result.participants))
   writeFileSync(join(outDir, 'events.csv'), toCsv(result.events))
   writeFileSync(join(outDir, 'flows.csv'), toCsv(result.flows))
-  // GKC-CI description of the 12 flows, for matching with Part 2 questionnaire items.
+  // GKC-CI description of every flow in both apps, for matching with Part 2 questionnaire items.
   writeFileSync(join(outDir, 'flow-codebook.csv'), toCsv(flowCodebook()))
   // Links study codes back to Prolific IDs (for paying bonuses). Keep it off shared drives.
   writeFileSync(join(outDir, 'id-map.csv'), toCsv(result.idMap))
+  // Bonuses to paste into Prolific (contains Prolific IDs, so it's as private as id-map.csv).
+  writeFileSync(join(outDir, 'prolific-bonuses.txt'), prolificBonusLines(result) + '\n')
   return result
 }
 

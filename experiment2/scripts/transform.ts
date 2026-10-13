@@ -271,6 +271,19 @@ export function buildExport(collection: string, raw: RawParticipant[]): ExportRe
   return result
 }
 
+/**
+ * Prolific bulk-bonus lines: one `<Prolific ID>,<amount>` per Prolific participant who
+ * finished Part 1 and earned a bonus. Paste into Prolific's bulk bonus form (see PROLIFIC.md).
+ * Code-recruited participants are paid outside Prolific, so they're left out.
+ */
+export function prolificBonusLines(result: ExportResult): string {
+  const pidOf = new Map(result.idMap.map((r) => [r.studyCode, r.prolificPid]))
+  return result.participants
+    .filter((p) => p.recruitment === 'prolific' && p.completed === true && typeof p.bonusUSD === 'number' && p.bonusUSD > 0)
+    .map((p) => `${pidOf.get(p.studyCode)},${(p.bonusUSD as number).toFixed(2)}`)
+    .join('\n')
+}
+
 /** CSV with every column that appears in any row. Guards against spreadsheet formula injection. */
 export function toCsv(rows: Row[]): string {
   const columns: string[] = []

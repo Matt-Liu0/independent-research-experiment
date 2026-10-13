@@ -80,6 +80,25 @@ describe('pickAssignment', () => {
     expect(pickAssignment(counts)).toEqual({ pattern: 'U2U4U6', appOrder: 'stride_first' })
   })
 
+  it('stays balanced at every sample size, not only multiples of 40', () => {
+    const counts: Record<string, number> = {}
+    const spread = (values: number[]) => Math.max(...values) - Math.min(...values)
+    for (let n = 1; n <= 240; n++) {
+      const { pattern, appOrder } = pickAssignment(counts)
+      const k = cellKey(pattern, appOrder)
+      counts[k] = (counts[k] ?? 0) + 1
+      const cells = CELLS.map((c) => counts[cellKey(c.pattern, c.appOrder)] ?? 0)
+      const patterns = PATTERNS.map(patternKey).map((p) => (counts[p + 'B'] ?? 0) + (counts[p + 'S'] ?? 0))
+      const strideFirst = Object.entries(counts).filter(([key]) => key.endsWith('S')).reduce((a, [, c]) => a + c, 0)
+      expect(spread(cells), `cells at n=${n}`).toBeLessThanOrEqual(1)
+      expect(spread(patterns), `patterns at n=${n}`).toBeLessThanOrEqual(1)
+      expect(Math.abs(2 * strideFirst - n), `app order at n=${n}`).toBeLessThanOrEqual(1)
+      const nudged = UNITS.map((u) => Object.entries(counts).filter(([key]) => parsePattern(key).includes(u)).reduce((a, [, c]) => a + c, 0))
+      // Each screen is nudged for about half the sample at every point (patterns differ by at most 1).
+      expect(spread(nudged), `screens at n=${n}`).toBeLessThanOrEqual(3)
+    }
+  })
+
   it('balances cells: over 400 participants each screen is nudged and each app first for exactly half', () => {
     const counts: Record<string, number> = {}
     for (let i = 0; i < 400; i++) {
