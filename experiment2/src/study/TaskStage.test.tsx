@@ -10,6 +10,12 @@ import { newParticipant, type ParticipantDoc } from './types'
 
 const PARAMS = '?PROLIFIC_PID=pid1&STUDY_ID=s&SESSION_ID=x'
 
+/** Taps Done on a task that isn't finished, and confirms "I'm done" when asked. */
+async function finishUnfinished(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: 'Done' }))
+  await user.click(screen.getByRole('button', { name: "I'm done with this task" }))
+}
+
 function atTasks(overrides: Partial<ParticipantDoc> = {}): MemoryStore {
   const existing: ParticipantDoc = {
     ...newParticipant({ prolificPid: 'pid1', studyId: 's', sessionId: 'x' }),
@@ -48,7 +54,7 @@ describe('task stage', () => {
     const store = atTasks()
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} />)
     await user.click(await screen.findByRole('button', { name: 'Start task' }))
-    await user.click(screen.getByRole('button', { name: 'Done' }))
+    await finishUnfinished(user)
 
     expect(screen.getByRole('heading', { name: 'How easy was that task?' })).toBeInTheDocument()
     expect(store.participant?.taskOutcome.t4).toEqual({ done: false, dealsSaved: 0 })
@@ -90,7 +96,7 @@ describe('task stage', () => {
     await user.clear(input)
     await user.type(input, '221B Baker Street')
     await user.click(screen.getByRole('button', { name: 'Save' }))
-    await user.click(screen.getByRole('button', { name: 'Done' }))
+    await finishUnfinished(user)
     expect(store.participant?.appState?.address).toBe('other')
     expect(store.participant?.taskOutcome.t6).toEqual({ done: false, addressMatches: false })
     expect(JSON.stringify(store.participant)).not.toContain('Baker')
@@ -107,6 +113,43 @@ describe('task stage', () => {
   })
 })
 
+describe('unfinished-task check', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('asks before finishing an unfinished task; Keep going returns to the app, and both are logged', async () => {
+    const user = userEvent.setup()
+    const store = atTasks()
+    render(<StudyApp entry={parseEntry(PARAMS)} store={store} />)
+    await user.click(await screen.findByRole('button', { name: 'Start task' }))
+    await user.click(screen.getByRole('button', { name: 'Done' }))
+    const dialog = screen.getByRole('dialog', { name: "This task doesn't look finished yet." })
+    expect(dialog).toHaveTextContent("Browse this week's deals and save two you'd buy.")
+    await user.click(screen.getByRole('button', { name: 'Keep going' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(store.participant?.taskPhase).toBe('doing')
+    // Leaving was only asked about, so the Deals settings haven't settled.
+    expect(store.events.some((e) => e.type === 'settled')).toBe(false)
+    expect(store.events.filter((e) => e.type === 'task').map((e) => [e.event, e.finished])).toEqual(
+      expect.arrayContaining([['unfinished_check', undefined], ['unfinished_answer', false]]),
+    )
+  })
+
+  it('finishes straight away when the task is done, whatever was chosen for privacy', async () => {
+    const user = userEvent.setup()
+    const store = atTasks()
+    render(<StudyApp entry={parseEntry(PARAMS)} store={store} />)
+    await user.click(await screen.findByRole('button', { name: 'Start task' }))
+    await user.click(screen.getByRole('button', { name: 'Deals' }))
+    // Turn every deal setting off, then save two deals: declining doesn't make the task unfinished.
+    for (const s of screen.getAllByRole('switch')) if (s.getAttribute('aria-checked') === 'true') await user.click(s)
+    await user.click(screen.getByRole('button', { name: 'Save Honeycrisp apples' }))
+    await user.click(screen.getByRole('button', { name: 'Save Greek yogurt, 32 oz' }))
+    await user.click(screen.getByRole('button', { name: 'Done' }))
+    expect(screen.queryByRole('dialog', { name: /doesn't look finished/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'How easy was that task?' })).toBeInTheDocument()
+  })
+})
+
 describe('two apps', () => {
   beforeEach(() => localStorage.clear())
 
@@ -119,7 +162,7 @@ describe('two apps', () => {
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} />)
     await user.click(await screen.findByRole('button', { name: 'Start task' }))
     expect(screen.getByText('Task 6 of 10')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Done' }))
+    await finishUnfinished(user)
     await user.click(screen.getByRole('radio', { name: '5' }))
     await user.click(screen.getByRole('button', { name: 'Continue' }))
 
@@ -133,7 +176,7 @@ describe('two apps', () => {
     expect(screen.getByText('Task 7 of 10')).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Stride' })).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Not now' }))
-    await user.click(screen.getByRole('button', { name: 'Done' }))
+    await finishUnfinished(user)
 
     // Each app's state is saved separately; Bramble's is untouched by Stride.
     expect(store.participant?.strideState?.flows.stride_face_unlock).toBe('not_now')

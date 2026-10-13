@@ -66,6 +66,8 @@ export function Workout() {
         <p className="order-status" role="status">
           {PHASE_TEXT[state.workout]}
         </p>
+        {/* Same in both levels, and says nothing about the questions that appear during the workout. */}
+        <p className="muted small order-guide">Keep this page open while you work out. Maya will take you through each part.</p>
         <div className="courier row">
           <span className="avatar">M</span>
           <span style={{ flex: 1 }} className="strong">

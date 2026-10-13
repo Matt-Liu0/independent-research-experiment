@@ -68,6 +68,8 @@ export function Orders() {
         <p className="order-status" role="status">
           {STATUS_TEXT[state.order]}
         </p>
+        {/* Same in both levels, and says nothing about the questions that appear on the way. */}
+        <p className="muted small order-guide">Keep this page open to follow your order as it's packed and delivered.</p>
         {onTheWay && <CourierMap progress={courierProgress(state)} live={live} />}
         {onTheWay && (
           <div className="courier row">

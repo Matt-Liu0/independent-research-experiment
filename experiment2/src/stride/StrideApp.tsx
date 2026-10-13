@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import '../bramble/bramble.css'
 import './stride.css'
-import { GiftIcon, ListIcon, PulseIcon, SunIcon, UserIcon } from '../core/icons'
+import { DumbbellIcon, GiftIcon, ListIcon, SunIcon, UserIcon } from '../core/icons'
 import { ScreenSkeleton } from '../core/Loading'
 import { delayFor } from '../core/timing'
 import { visibleMs } from '../log/clock'
@@ -25,10 +25,13 @@ const SCREENS: Record<StrideScreen, () => ReactNode> = {
   profile: Profile,
 }
 
-const TABS: { screen: StrideScreen; label: string; icon: ReactNode; covers: StrideScreen[] }[] = [
+// Stride's own navigation (unlike Bramble's five equal tabs): four tabs around a raised
+// Workouts button in the middle, as fitness apps often do. Only the surroundings differ
+// between the apps; the decision controls are the same components in both.
+const TABS: { screen: StrideScreen; label: string; icon: ReactNode; covers: StrideScreen[]; center?: boolean }[] = [
   { screen: 'today', label: 'Today', icon: <SunIcon />, covers: ['today'] },
-  { screen: 'workout_setup', label: 'Workouts', icon: <PulseIcon />, covers: ['workout_setup', 'workout'] },
   { screen: 'plans', label: 'Plans', icon: <ListIcon />, covers: ['plans'] },
+  { screen: 'workout_setup', label: 'Workouts', icon: <DumbbellIcon />, covers: ['workout_setup', 'workout'], center: true },
   { screen: 'rewards', label: 'Rewards', icon: <GiftIcon />, covers: ['rewards'] },
   { screen: 'profile', label: 'Profile', icon: <UserIcon />, covers: ['profile'] },
 ]
@@ -61,26 +64,27 @@ export function StrideApp() {
     <div className="stride">
       <header className="app-header">
         <span className="logo">stride</span>
-        <button type="button" className="icon-button" aria-label="Profile" onClick={() => navigate('profile')}>
-          <UserIcon />
+        <button type="button" className="coin-pill" aria-label={`${state.points} coins`} onClick={() => navigate('rewards')}>
+          <span className="coin-dot" aria-hidden="true" />
+          {state.points}
         </button>
       </header>
       <main className="app-content">
         {/* Prompts live inside screens, so none can appear (or start timing) while loading. */}
         {loading ? <ScreenSkeleton /> : <Screen key={state.screen} />}
       </main>
-      <nav className="tab-bar" aria-label="Stride">
+      <nav className="tab-bar stride-tabs" aria-label="Stride">
         {TABS.map((tab) => {
           const active = tab.covers.includes(state.screen)
           return (
             <button
               key={tab.screen}
               type="button"
-              className={`tab ${active ? 'active' : ''}`}
+              className={`tab ${active ? 'active' : ''} ${tab.center ? 'tab-center' : ''}`}
               aria-current={active ? 'page' : undefined}
               onClick={() => navigate(tab.screen === 'workout_setup' && state.workout !== 'none' ? 'workout' : tab.screen)}
             >
-              {tab.icon}
+              {tab.center ? <span className="tab-center-circle">{tab.icon}</span> : tab.icon}
               {tab.screen === 'workout_setup' && workoutRunning && !active && <span className="tab-badge" aria-hidden="true" />}
               <span>{tab.label}</span>
             </button>

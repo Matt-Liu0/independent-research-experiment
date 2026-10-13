@@ -10,6 +10,7 @@ import { ALL_TASKS, APP_NAMES, appOfTask, type TaskNumber } from './apps'
 import { SESSION_APPS, savedStateOf, type SessionApp } from './sessionApps'
 import type { StageProps } from './stageProps'
 import { TaskBar } from './TaskBar'
+import { TASKS } from './tasks'
 import type { ParticipantDoc, TaskOutcome } from './types'
 
 const SAVE_DELAY_MS = 300
@@ -137,6 +138,26 @@ function AppSession({ app, participant, task, taskIndex, taskPhase, total, nextT
   )
 }
 
+/** Asked when Done is tapped before the task looks finished. Same in both friction levels. */
+function UnfinishedCheck({ task, onAnswer }: { task: TaskNumber; onAnswer: (finished: boolean) => void }) {
+  return (
+    <div className="task-card-backdrop">
+      <div className="task-card" role="dialog" aria-modal="true" aria-labelledby="unfinished-title">
+        <p id="unfinished-title" className="task-card-text">
+          This task doesn't look finished yet.
+        </p>
+        <p className="muted">{TASKS[task].text}</p>
+        <button type="button" className="btn btn-study" onClick={() => onAnswer(false)}>
+          Keep going
+        </button>
+        <button type="button" className="btn btn-link" onClick={() => onAnswer(true)}>
+          I'm done with this task
+        </button>
+      </div>
+    </div>
+  )
+}
+
 /** Before the second app's first task: what comes next. */
 function AppIntro({ app, onStart }: { app: SessionApp; onStart: () => void }) {
   const name = APP_NAMES[app.id]
@@ -182,6 +203,8 @@ function TaskRunner({
 }) {
   const { leaveScreen, getState } = useEngine()
   const logged = useRef(false)
+  // Done tapped before the task's goal was reached: ask once whether they're finished.
+  const [checking, setChecking] = useState(false)
   // card: task card open, app not mounted yet. splash: the app "opening". app: in use.
   const [phase, setPhase] = useState<'card' | 'splash' | 'app'>(() =>
     showCard ? 'card' : delayFor('splash') > 0 ? 'splash' : 'app',
@@ -208,10 +231,28 @@ function TaskRunner({
     onFinish(app.outcome(task, state), state)
   }
 
+  /**
+   * Done in the task bar. If the task's goal isn't met yet (e.g. no store set), participants are
+   * asked once whether they're finished, so tasks aren't skipped by accident. The goal never
+   * depends on a privacy answer: declining always counts as done. Agents aren't asked.
+   */
+  const tapDone = () => {
+    if (!showCard || app.outcome(task, getState()).done) return finish()
+    logEvent('task', { event: 'unfinished_check', task })
+    setChecking(true)
+  }
+
+  const answerCheck = (finished: boolean) => {
+    logEvent('task', { event: 'unfinished_answer', task, finished })
+    setChecking(false)
+    if (finished) finish()
+  }
+
   const App = app.App
   return (
     <div className="task-frame">
-      <TaskBar task={task} appName={APP_NAMES[app.id]} position={position} total={total} startOpen={showCard} onStart={start} onFinish={finish} />
+      <TaskBar task={task} appName={APP_NAMES[app.id]} position={position} total={total} startOpen={showCard} onStart={start} onFinish={tapDone} />
+      {checking && <UnfinishedCheck task={task} onAnswer={answerCheck} />}
       {/* The app mounts only once the task card is closed, so no prompt opens (or starts timing) behind it. */}
       {phase === 'app' ? (
         <App />

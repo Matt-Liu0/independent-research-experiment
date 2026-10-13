@@ -909,3 +909,7 @@ button.store-row {
   color: var(--ink);
   box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
 }
+
+.order-guide {
+  margin: 4px 0 0;
+}

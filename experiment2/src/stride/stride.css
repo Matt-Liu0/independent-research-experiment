@@ -9,6 +9,9 @@
   --cream: #eef2f7;
   --sand: #e3e8ef;
   --line: #d8dfe9;
+  /* Stride uses a bold sans-serif for headings, where Bramble uses a serif. */
+  --font-display: var(--font-body);
+  --radius-card: 16px;
 
   display: flex;
   flex: 1;
@@ -55,4 +58,66 @@
 .stride .progress-step.current .progress-bar {
   background: linear-gradient(90deg, var(--green) 0%, #6f9fd8 50%, var(--green) 100%);
   background-size: 200% 100%;
+}
+
+.stride h1,
+.stride h2,
+.stride .screen-title {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* Cards float on a shadow instead of Bramble's outline. */
+.stride .card {
+  border-color: transparent;
+  box-shadow: 0 1px 3px rgb(20 40 70 / 0.08), 0 4px 14px rgb(20 40 70 / 0.06);
+}
+
+.stride .card-tint {
+  box-shadow: none;
+}
+
+.coin-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 999px;
+  background: var(--berry-tint);
+  color: var(--berry);
+  font: inherit;
+  font-weight: 700;
+}
+
+.coin-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--berry);
+}
+
+.stride-tabs .tab {
+  font-size: 12px;
+}
+
+.stride-tabs .tab-center {
+  position: relative;
+  color: var(--green);
+}
+
+.tab-center-circle {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-top: -22px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  box-shadow: 0 4px 12px rgb(37 99 168 / 0.35);
+}
+
+.stride-tabs .tab-center.active .tab-center-circle {
+  background: var(--green-dark);
 }

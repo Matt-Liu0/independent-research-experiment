@@ -133,3 +133,9 @@ export const MoonIcon = () => (
     <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />
   </svg>
 )
+
+export const DumbbellIcon = () => (
+  <svg {...base}>
+    <path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11" />
+  </svg>
+)
