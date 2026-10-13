@@ -3,7 +3,6 @@ import type { FlowDef } from '../core/flowTypes'
 export const STRIDE_FLOW_IDS = [
   'stride_health_access',
   'stride_health_detail',
-  'stride_face_unlock',
   'stride_coach_live',
   'stride_partner_offers',
   'stride_bg_workout',

@@ -53,7 +53,7 @@ describe('screen loading', () => {
 })
 
 describe('action spinners', () => {
-  it.each(['Link', 'No thanks'])('shows the same "Saving…" after %s, and logs the choice at the tap', async (button) => {
+  it.each(['Accept', 'Decline'])('shows the same "Saving…" after %s, and logs the choice at the tap', async (button) => {
     const app = renderApp('nudged', { screen: 'rewards' })
     await click(within(screen.getByText('Keel Auto Insurance').closest('.offer-card') as HTMLElement).getByRole('button', { name: button }))
 
@@ -88,7 +88,7 @@ describe('action spinners', () => {
 })
 
 describe('finding stores', () => {
-  it.each(['Allow once', "Don't allow"])('waits the same time after %s', async (answer) => {
+  it.each(['Allow Once', "Don't Allow"])('waits the same time after %s', async (answer) => {
     renderApp('nudged', { screen: 'find_store' })
     await click(screen.getByRole('button', { name: answer }))
     expect(screen.getByText('Finding stores near you…')).toBeInTheDocument()
@@ -148,7 +148,7 @@ describe('order timeline', () => {
     await advance(TIMING.orderTick)
     expect(app.state().order).toBe('on_the_way')
 
-    await click(screen.getByRole('button', { name: 'Not now' }))
+    await click(screen.getByRole('button', { name: "Don't Allow" }))
     await click(screen.getByRole('button', { name: 'Send arrival time only' }))
     expect(screen.getByText('Arriving soon…')).toBeInTheDocument()
     expect(app.state().order).toBe('on_the_way')
@@ -164,7 +164,7 @@ describe('order timeline', () => {
   it('never delivers while a prompt is unanswered', async () => {
     const app = renderApp('nudged', { ...placed, screen: 'orders', orderTrackingStarted: true, orderElapsedMs: TIMING.orderOnTheWay })
     await advance(TIMING.orderTick)
-    await click(screen.getByRole('button', { name: 'Allow in background' }))
+    await click(screen.getByRole('button', { name: 'Allow' }))
     await advanceBy(120_000)
     expect(app.state().order).toBe('on_the_way')
   })

@@ -27,7 +27,7 @@ const alice: RawParticipant = {
     settingsCheck: { q1: ['maps', 'weather'], q2: 'while_using' },
     taskOutcome: { t1: { done: true, usedZipSearch: true, storesViewed: 6, msToFind: 4000, storeId: 'elm' } },
     appState: { points: 120, flows: { store_location: 'dont_allow', courier_live: 'dont_share', reward_keel: 'decline' } },
-    strideState: { points: 320, reportUnlocked: true, flows: { stride_face_unlock: 'set_up' } },
+    strideState: { points: 320, reportUnlocked: true, flows: { stride_health_access: 'once' } },
   },
   events: [
     ev(2, 100, { type: 'prompt_shown', flowId: 'store_location', defaultShown: null }),

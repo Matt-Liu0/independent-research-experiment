@@ -121,13 +121,6 @@ export const ListIcon = () => (
   </svg>
 )
 
-export const FaceIcon = () => (
-  <svg {...base}>
-    <path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2" />
-    <path d="M9 10v1M15 10v1M12 10v3h-1M9.5 15.5a3.5 3.5 0 0 0 5 0" />
-  </svg>
-)
-
 export const MoonIcon = () => (
   <svg {...base}>
     <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />

@@ -17,9 +17,9 @@ describe('Find a store', () => {
     const app = renderApp('nudged')
     await user.click(screen.getByRole('button', { name: 'Find a store' }))
 
-    const sheet = screen.getByRole('dialog', { name: 'Allow Bramble to use your location?' })
-    expect(within(sheet).getByRole('switch', { name: 'Precise location' })).toHaveAttribute('aria-checked', 'true')
-    await user.click(within(sheet).getByRole('button', { name: 'Allow while using Bramble' }))
+    const sheet = screen.getByRole('dialog', { name: 'Allow “Bramble” to use your location?' })
+    expect(within(sheet).getByRole('switch', { name: 'Precise' })).toHaveAttribute('aria-checked', 'true')
+    await user.click(within(sheet).getByRole('button', { name: 'Allow While Using App' }))
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.getByRole('group', { name: 'Map of stores near you' })).toBeInTheDocument()
@@ -76,9 +76,9 @@ describe('Find a store', () => {
     const user = userEvent.setup()
     const app = renderApp('neutral', { screen: 'find_store' })
     const sheet = screen.getByRole('dialog')
-    expect(within(sheet).getByRole('switch', { name: 'Precise location' })).toHaveAttribute('aria-checked', 'false')
-    expect(within(sheet).getByRole('button', { name: 'Allow once' })).toBeEnabled()
-    await user.click(within(sheet).getByRole('button', { name: 'Allow once' }))
+    expect(within(sheet).getByRole('switch', { name: 'Precise' })).toHaveAttribute('aria-checked', 'false')
+    expect(within(sheet).getByRole('button', { name: 'Allow Once' })).toBeEnabled()
+    await user.click(within(sheet).getByRole('button', { name: 'Allow Once' }))
     expect(app.state().flows.store_precise).toBe('general')
     expect(app.eventsOf('settled').find((e) => e.flowId === 'store_precise')).toMatchObject({ value: 'general', defaultShown: 'general', changedFromDefault: false })
   })
@@ -86,7 +86,7 @@ describe('Find a store', () => {
   it('declining location leads to the ZIP search with no map, never stores the ZIP, and leaves precise location not applicable', async () => {
     const user = userEvent.setup()
     const app = renderApp('nudged', { screen: 'find_store' })
-    await user.click(screen.getByRole('button', { name: "Don't allow" }))
+    await user.click(screen.getByRole('button', { name: "Don't Allow" }))
 
     expect(screen.getByText('Location is off. Enter a ZIP code to see stores.')).toBeInTheDocument()
     expect(screen.queryByRole('group', { name: 'Map of stores near you' })).not.toBeInTheDocument()
@@ -175,14 +175,14 @@ describe('Orders', () => {
   it('delivers after both prompts, then asks to keep background location if it was allowed', async () => {
     const user = userEvent.setup()
     const app = renderApp('nudged', onTheWay)
-    expect(screen.getByRole('button', { name: 'Allow in background' })).toHaveClass('btn-green')
-    expect(screen.getByRole('button', { name: 'Not now' })).toHaveClass('btn-equal')
-    await user.click(screen.getByRole('button', { name: 'Allow in background' }))
+    expect(screen.getByRole('button', { name: 'Allow' })).toHaveClass('btn-green')
+    expect(screen.getByRole('button', { name: "Don't Allow" })).toHaveClass('btn-equal')
+    await user.click(screen.getByRole('button', { name: 'Allow' }))
     await user.click(screen.getByRole('button', { name: 'Send arrival time only' }))
 
     expect(await screen.findByRole('heading', { name: /^Delivered at / }, { timeout: 3000 })).toBeInTheDocument()
     const sheet = screen.getByRole('dialog', { name: 'Keep background location on?' })
-    await user.click(within(sheet).getByRole('button', { name: 'Turn it off' }))
+    await user.click(within(sheet).getByRole('button', { name: 'Keep Only While Using' }))
     expect(app.state().flows.bg_between_orders).toBe('turn_off')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
@@ -190,7 +190,7 @@ describe('Orders', () => {
   it('skips the keep-on question when background location was declined', async () => {
     const user = userEvent.setup()
     renderApp('neutral', onTheWay)
-    await user.click(screen.getByRole('button', { name: 'Not now' }))
+    await user.click(screen.getByRole('button', { name: "Don't Allow" }))
     await user.click(screen.getByRole('button', { name: 'Share my live location with Sam' }))
     expect(await screen.findByRole('heading', { name: /^Delivered at / }, { timeout: 3000 })).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
@@ -231,9 +231,9 @@ describe('Rewards', () => {
       expect(app.state().points).toBe(120)
       expect(screen.getByRole('button', { name: 'Redeemed' })).toBeDisabled()
 
-      await user.click(screen.getByRole('button', { name: 'Donate' }))
+      await user.click(screen.getAllByRole('button', { name: 'Accept' })[1])
       expect(app.state().points).toBe(220)
-      expect(screen.getByText('Donating · +100 pts')).toBeInTheDocument()
+      expect(screen.getByText('Accepted · +100 pts')).toBeInTheDocument()
       expect(screen.getByText('220 pts')).toBeInTheDocument()
       app.unmount()
     }
@@ -245,17 +245,17 @@ describe('Rewards', () => {
       const app = renderApp(friction, { screen: 'rewards' })
       const keel = () => screen.getByText('Keel Auto Insurance').closest('.offer-card') as HTMLElement
 
-      await user.click(within(keel()).getByRole('button', { name: 'Link' }))
+      await user.click(within(keel()).getByRole('button', { name: 'Accept' }))
       expect(app.state().points).toBe(620)
-      expect(within(keel()).getByText('Linked · +200 pts')).toBeInTheDocument()
+      expect(within(keel()).getByText('Accepted · +200 pts')).toBeInTheDocument()
 
       await user.click(within(keel()).getByRole('button', { name: 'Change' }))
-      await user.click(within(keel()).getByRole('button', { name: 'No thanks' }))
+      await user.click(within(keel()).getByRole('button', { name: 'Decline' }))
       expect(app.state().points).toBe(420)
-      expect(within(keel()).getByText('You said no thanks')).toBeInTheDocument()
+      expect(within(keel()).getByText('Declined')).toBeInTheDocument()
 
       await user.click(within(keel()).getByRole('button', { name: 'Change' }))
-      await user.click(within(keel()).getByRole('button', { name: 'Link' }))
+      await user.click(within(keel()).getByRole('button', { name: 'Accept' }))
       expect(app.state().points).toBe(620)
 
       // The first choice stays the measure; the changes are logged as later decisions.
@@ -274,10 +274,10 @@ describe('Rewards', () => {
     const user = userEvent.setup()
     const app = renderApp('neutral', { screen: 'rewards' })
     const uni = () => screen.getByText('University traffic study').closest('.offer-card') as HTMLElement
-    await user.click(within(uni()).getByRole('button', { name: 'No thanks' }))
+    await user.click(within(uni()).getByRole('button', { name: 'Decline' }))
     expect(app.state().points).toBe(420)
     await user.click(within(uni()).getByRole('button', { name: 'Change' }))
-    await user.click(within(uni()).getByRole('button', { name: 'Donate' }))
+    await user.click(within(uni()).getByRole('button', { name: 'Accept' }))
     expect(app.state().points).toBe(520)
   })
 
@@ -297,15 +297,15 @@ describe('Account', () => {
     const user = userEvent.setup()
     const fresh = renderApp('nudged', { screen: 'shop' })
     await user.click(tab('Rewards'))
-    await user.click(screen.getByRole('button', { name: 'Link' }))
+    await user.click(screen.getAllByRole('button', { name: 'Accept' })[0])
     await user.click(tab('Account'))
 
     const keel = screen.getByRole('group', { name: 'Keel Auto Insurance' })
-    expect(within(keel).getByRole('button', { name: 'Linked' })).toHaveAttribute('aria-pressed', 'true')
-    expect(within(screen.getByRole('group', { name: 'Location access' })).getByText('Not set yet')).toBeInTheDocument()
-    expect(within(screen.getByRole('group', { name: 'Precise location' })).getByText('Needs location access on')).toBeInTheDocument()
+    expect(within(keel).getByRole('button', { name: 'Accepted' })).toHaveAttribute('aria-pressed', 'true')
+    expect(within(screen.getByRole('group', { name: 'Location' })).getByText('Not set yet')).toBeInTheDocument()
+    expect(within(screen.getByRole('group', { name: 'Precise Location' })).getByText('Needs location on')).toBeInTheDocument()
 
-    await user.click(within(keel).getByRole('button', { name: 'Not linked' }))
+    await user.click(within(keel).getByRole('button', { name: 'Declined' }))
     expect(fresh.eventsOf('decision').at(-1)).toMatchObject({ flowId: 'reward_keel', value: 'decline', source: 'account_page' })
     // Unlinking takes the points back, so the bonus always matches what is shared.
     expect(fresh.state().points).toBe(420)

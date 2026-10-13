@@ -41,9 +41,18 @@ describe('Stride flows', () => {
     }
   })
 
-  it('codes Stride information as health, apart from the biometric Face Unlock', () => {
+  it('codes every Stride flow as health information, each paired with a Bramble flow', () => {
     for (const f of STRIDE_FLOW_LIST) {
-      expect(f.ci.informationCategory, f.id).toBe(f.id === 'stride_face_unlock' ? 'biometric' : 'health')
+      expect(f.ci.informationCategory, f.id).toBe('health')
+      expect(f.counterpart, f.id).not.toBeNull()
+    }
+  })
+
+  it('uses the same option words as each Bramble counterpart', () => {
+    for (const stride of STRIDE_FLOW_LIST) {
+      if (stride.kind !== 'prompt' || stride.screen === 'workout' && stride.id === 'stride_sam_share') continue
+      const bramble = getBrambleFlow(stride.counterpart as Parameters<typeof getBrambleFlow>[0])
+      expect(stride.options.map((o) => stride.labels[o]), stride.id).toEqual(bramble.options.map((o) => bramble.labels[o]))
     }
   })
 })
@@ -54,9 +63,9 @@ describe('Today (Task 7)', () => {
     const app = renderStride('nudged')
     await user.click(screen.getByRole('button', { name: 'Connect' }))
     const sheet = screen.getByRole('dialog')
-    expect(within(sheet).getByRole('switch', { name: 'Detailed health data' })).toHaveAttribute('aria-checked', 'true')
-    expect(within(sheet).getByRole('button', { name: 'Allow while using Stride' })).toHaveAttribute('data-emphasis', 'primary')
-    await user.click(within(sheet).getByRole('button', { name: 'Allow once' }))
+    expect(within(sheet).getByRole('switch', { name: 'Detailed' })).toHaveAttribute('aria-checked', 'true')
+    expect(within(sheet).getByRole('button', { name: 'Allow While Using App' })).toHaveAttribute('data-emphasis', 'primary')
+    await user.click(within(sheet).getByRole('button', { name: 'Allow Once' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.getByText('steps')).toBeInTheDocument()
     expect(app.eventsOf('settled').map((e) => [e.flowId, e.value])).toEqual([
@@ -70,27 +79,14 @@ describe('Today (Task 7)', () => {
     const app = renderStride('neutral')
     await user.click(screen.getByRole('button', { name: 'Connect' }))
     const sheet = screen.getByRole('dialog')
-    expect(within(sheet).getByRole('switch', { name: 'Detailed health data' })).toHaveAttribute('aria-checked', 'false')
+    expect(within(sheet).getByRole('switch', { name: 'Detailed' })).toHaveAttribute('aria-checked', 'false')
     for (const b of within(sheet).getAllByRole('button')) expect(b).toHaveAttribute('data-emphasis', 'plain')
-    await user.click(within(sheet).getByRole('button', { name: "Don't allow" }))
+    await user.click(within(sheet).getByRole('button', { name: "Don't Allow" }))
     expect(screen.getByText(/Health data is off/)).toBeInTheDocument()
     expect(app.state().flows.stride_health_detail).toBeNull()
     expect(app.eventsOf('settled').map((e) => e.flowId)).toEqual(['stride_health_access'])
   })
 
-  it('asks about Face Unlock on Today, highlighted only when nudged', async () => {
-    for (const level of LEVELS) {
-      const user = userEvent.setup()
-      const app = renderStride(level)
-      expect(screen.getByRole('button', { name: 'Set up Face Unlock' })).toHaveAttribute(
-        'data-emphasis',
-        level === 'nudged' ? 'primary' : 'plain',
-      )
-      await user.click(screen.getByRole('button', { name: 'Not now' }))
-      expect(app.state().flows.stride_face_unlock).toBe('not_now')
-      app.unmount()
-    }
-  })
 })
 
 describe('Workout (Task 8)', () => {
@@ -122,11 +118,11 @@ describe('Workout (Task 8)', () => {
   it('finishes after both workout prompts, then asks about all-day monitoring if background was allowed', async () => {
     const user = userEvent.setup()
     const app = renderStride('nudged', { screen: 'workout', workout: 'warm_up' })
-    await user.click(await screen.findByRole('button', { name: 'Allow in background' }))
+    await user.click(await screen.findByRole('button', { name: 'Allow' }))
     await user.click(screen.getByRole('button', { name: 'Send a summary only' }))
     expect(await screen.findByRole('heading', { name: 'Workout complete' })).toBeInTheDocument()
     const sheet = screen.getByRole('dialog', { name: 'Keep heart-rate monitoring on all day?' })
-    await user.click(within(sheet).getByRole('button', { name: 'Turn it off' }))
+    await user.click(within(sheet).getByRole('button', { name: 'Keep Only While Using' }))
     expect(app.state().flows.stride_hr_all_day).toBe('turn_off')
     expect(strideTaskOutcome(8, app.state())).toEqual({ done: true, workoutDone: true, samNotified: true })
   })
@@ -134,7 +130,7 @@ describe('Workout (Task 8)', () => {
   it('skips the all-day question when background heart rate was declined', async () => {
     const user = userEvent.setup()
     renderStride('neutral', { screen: 'workout', workout: 'warm_up' })
-    await user.click(await screen.findByRole('button', { name: 'Not now' }))
+    await user.click(await screen.findByRole('button', { name: "Don't Allow" }))
     await user.click(screen.getByRole('button', { name: 'Share my live workout with Sam' }))
     expect(await screen.findByRole('heading', { name: 'Workout complete' })).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
@@ -170,7 +166,7 @@ describe('Rewards (Task 10)', () => {
     expect(screen.getByText(`${START_COINS} coins`)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Unlock' }))
     const insurer = within(screen.getByText('Keel Health Insurance').closest('.offer-card') as HTMLElement)
-    await user.click(insurer.getByRole('button', { name: 'Link' }))
+    await user.click(insurer.getByRole('button', { name: 'Accept' }))
     expect(app.state().points).toBe(START_COINS - REPORT_COST + 200)
     expect(strideTaskOutcome(10, app.state())).toEqual({ done: true, reportUnlocked: true })
   })
@@ -180,12 +176,13 @@ describe('Profile', () => {
   it('lists every Stride flow, and logs changes as account_page decisions', async () => {
     const user = userEvent.setup()
     const app = renderStride('neutral', { screen: 'today' })
-    await user.click(screen.getByRole('button', { name: 'Not now' }))
+    await user.click(screen.getByRole('button', { name: 'Connect' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: "Don't Allow" }))
     await user.click(tab('Profile'))
     for (const f of STRIDE_FLOW_LIST) expect(screen.getByRole('group', { name: f.account.label })).toBeInTheDocument()
-    const face = within(screen.getByRole('group', { name: 'Face Unlock' }))
-    await user.click(face.getByRole('button', { name: 'On' }))
-    expect(app.eventsOf('decision').at(-1)).toMatchObject({ flowId: 'stride_face_unlock', value: 'set_up', source: 'account_page' })
+    const health = within(screen.getByRole('group', { name: 'Health Data' }))
+    await user.click(health.getByRole('button', { name: 'While Using the App' }))
+    expect(app.eventsOf('decision').at(-1)).toMatchObject({ flowId: 'stride_health_access', value: 'while_using', source: 'account_page' })
     expect(app.state().accountPageVisits).toBe(1)
   })
 })
@@ -197,8 +194,7 @@ async function declineEverything(friction: Friction) {
   const outcomes: Partial<Record<StrideTask, boolean>> = {}
 
   await user.click(screen.getByRole('button', { name: 'Connect' }))
-  await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: "Don't allow" }))
-  await user.click(screen.getByRole('button', { name: 'Not now' }))
+  await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: "Don't Allow" }))
   outcomes[7] = strideTaskOutcome(7, app.state()).done
 
   await user.click(tab('Workouts'))
@@ -208,7 +204,7 @@ async function declineEverything(friction: Friction) {
   const box = screen.getByRole('checkbox')
   if ((box as HTMLInputElement).checked) await user.click(box)
   await user.click(screen.getByRole('button', { name: 'Start workout' }))
-  await user.click(await screen.findByRole('button', { name: 'Not now' }))
+  await user.click(await screen.findByRole('button', { name: "Don't Allow" }))
   await user.click(screen.getByRole('button', { name: 'Send a summary only' }))
   await screen.findByRole('heading', { name: 'Workout complete' })
   outcomes[8] = strideTaskOutcome(8, app.state()).done
@@ -222,7 +218,7 @@ async function declineEverything(friction: Friction) {
   await user.click(tab('Rewards'))
   await user.click(screen.getByRole('button', { name: 'Unlock' }))
   for (const card of document.querySelectorAll<HTMLElement>('.offer-card')) {
-    await user.click(within(card).getByRole('button', { name: 'No thanks' }))
+    await user.click(within(card).getByRole('button', { name: 'Decline' }))
   }
   outcomes[10] = strideTaskOutcome(10, app.state()).done
   return { app, outcomes }

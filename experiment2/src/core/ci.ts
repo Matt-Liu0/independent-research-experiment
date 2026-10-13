@@ -54,7 +54,6 @@ export type Attribute =
   | 'sleep_history'
   | 'activity_history'
   | 'workout'
-  | 'face_scan'
 
 /** exact: precise values; approximate: coarsened (e.g. general area, daily summaries); unspecified: set by another flow. */
 export type Granularity = 'exact' | 'approximate' | 'unspecified'
@@ -78,7 +77,6 @@ export type Aim =
   | 'faster_checkout'
   | 'birthday_offers'
   | 'health_tracking'
-  | 'faster_sign_in'
   | 'live_coaching'
   | 'accurate_workout_stats'
   | 'all_day_monitoring'

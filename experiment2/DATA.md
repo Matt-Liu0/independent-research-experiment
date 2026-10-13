@@ -2,7 +2,7 @@
 
 What every stored field means and the values it can take. It covers the Firestore records and the CSVs from `npm run export`.
 
-Each participant uses **two practice apps** in one session, in a balanced random order: **Bramble** (grocery delivery, tasks 1–6, location data) and **Stride** (fitness and health, tasks 7–10, health and biometric data). Stride's flows mirror Bramble's decision screen by decision screen, so each pair differs in information type (section 3b).
+Each participant uses **two practice apps** in one session, in a balanced random order: **Bramble** (grocery delivery, tasks 1–6, location data) and **Stride** (fitness and health, tasks 7–10, health data). Stride's flows mirror Bramble's decision screen by decision screen, so each pair differs in information type (section 3b).
 
 **Conventions**
 - `null` means "not happened yet" or "doesn't apply". It never means "declined"; declining is always an explicit value.
@@ -85,8 +85,7 @@ Computed when the participant taps **Done** on a task. They show whether the tas
 | `t4.dealsSaved` | Deals saved at that moment | `0`–`4` |
 | `t5.done`, `t5.deliveryRedeemed` | Redeemed free delivery with points | `true` / `false` |
 | `t6.done`, `t6.addressMatches` | Saved address is "40 Oak Street" (case, spacing, "St" and punctuation ignored) | `true` / `false` |
-| `t7.done` | Answered both the health-data prompt and Face Unlock | `true` / `false` |
-| `t7.healthAnswered`, `t7.signInAnswered` | Each of the two | `true` / `false` |
+| `t7.done`, `t7.healthAnswered` | Answered the health-data prompt (any answer) | `true` / `false` |
 | `t8.done` | Finished the workout and answered the "Let Sam know" prompt | `true` / `false` |
 | `t8.workoutDone`, `t8.samNotified` | Each of the two | `true` / `false` |
 | `t9.done`, `t9.plansSaved` | Saved at least two plans; how many | `true` / `false`; `0`–`4` |
@@ -129,7 +128,7 @@ The same engine fields as `appState` (`flows`, `shown`, `settled`, `points`, `ac
 
 | Field | Meaning | Values |
 |---|---|---|
-| `strideState.flows.<flowId>` | **Current** value of each of the 13 Stride flows, including Profile-page changes | section 3b; `null` = not answered or not applicable |
+| `strideState.flows.<flowId>` | **Current** value of each of the 12 Stride flows, including Profile-page changes | section 3b; `null` = not answered or not applicable |
 | `strideState.points` | Coin balance | starts at `420`; −300 for the sleep report; +200 / +100 / +150 for accepted offers |
 | `strideState.accountPageVisits`, `accountPageMs` | Visits to and visible ms on the **Profile** page (Stride's settings page) | numbers |
 | `strideState.workout` | Guided workout phase | `none` → `warm_up` → `main_set` → `cool_down` → `done` |
@@ -216,18 +215,18 @@ The two levels follow Utz et al. (2019), *(Un)informed Consent*: **nudged** high
 
 | # | `flowId` | Task | Values | Nudged preset or emphasis | Neutral |
 |---|---|---|---|---|---|
-| 1 | `store_location` | 1 | `while_using` (Allow while using) · `once` (Allow once) · `dont_allow` ★ | "Allow while using" filled | 3 equal buttons |
+| 1 | `store_location` | 1 | `once` (Allow Once) · `while_using` (Allow While Using App) · `dont_allow` (Don't Allow) ★ | "Allow While Using App" filled | 3 equal buttons |
 | 2 | `store_precise` | 1 | `exact` · `general` ★ | switch starts `exact` (on) | switch starts `general` (off) |
 | 3 | `courier_live` | 2 | `share` · `dont_share` ★ | switch starts `share` (on) | switch starts `dont_share` (off) |
 | 4 | `checkout_partner_offers` | 2 | `checked` · `unchecked` ★ | box starts `checked` | box starts `unchecked` |
-| 5 | `bg_during_order` | 3 | `allow` · `not_now` ★ | "Allow in background" filled | equal buttons |
+| 5 | `bg_during_order` | 3 | `allow` (Allow) · `not_now` (Don't Allow) ★ | "Allow" filled | equal buttons |
 | 6 | `sam_share` | 3 | `live_location` · `arrival_only` ★ | "Share my live location" filled | equal buttons |
-| 7 | `bg_between_orders` | 3 | `keep_on` · `turn_off` ★ | "Keep it on" filled | equal buttons |
+| 7 | `bg_between_orders` | 3 | `keep_on` (Change to Always Allow) · `turn_off` (Keep Only While Using) ★ | "Change to Always Allow" filled | equal buttons |
 | 8 | `deals_personalized` | 4 | `on` · `off` ★ | switch starts `on` | switch starts `off` |
 | 9 | `deals_partner_offers` | 4 | `on` · `off` ★ | switch starts `on` | switch starts `off` |
-| 10 | `reward_keel` | 5 | `accept` (+200 pts) · `decline` ★ | "Link" filled | equal buttons |
-| 11 | `reward_university` | 5 | `accept` (+100 pts) · `decline` ★ | "Donate" filled | equal buttons |
-| 12 | `reward_data_partners` | 5 | `accept` (+150 pts) · `decline` ★ | "Share" filled | equal buttons |
+| 10 | `reward_keel` | 5 | `accept` (Accept, +200 pts) · `decline` (Decline) ★ | "Accept" filled | equal buttons |
+| 11 | `reward_university` | 5 | `accept` (Accept, +100 pts) · `decline` (Decline) ★ | "Accept" filled | equal buttons |
+| 12 | `reward_data_partners` | 5 | `accept` (Accept, +150 pts) · `decline` (Decline) ★ | "Accept" filled | equal buttons |
 | 13 | `save_card` | 2 | `checked` · `unchecked` ★ | box starts `checked` | box starts `unchecked` |
 | 14 | `birthday_deals` | 4 | `on` · `off` ★ | switch starts `on` | switch starts `off` |
 
@@ -268,27 +267,26 @@ Each flow also has a one-sentence `statement` for codebooks. If the Part 2 quest
 
 ---
 
-## 3b. Stride's 13 flows
+## 3b. Stride's 12 flows
 
-Each Stride flow mirrors a Bramble flow (its `counterpart`): same unit, kind, settling rule, recipient type, consent condition, points and option positions, with health or biometric information instead of location. Labels are identical in both levels; the levels work exactly as in Bramble. ★ = privacy option.
+Each Stride flow mirrors a Bramble flow (its `counterpart`): same unit, kind, settling rule, recipient type, consent condition, points, option positions and (for prompts) option wording, with health or biometric information instead of location. Labels are identical in both levels; the levels work exactly as in Bramble. ★ = privacy option.
 
 | Unit | `flowId` | Task | Values | Counterpart | Nudged | Neutral |
 |---|---|---|---|---|---|---|
-| U1 | `stride_health_access`: "Allow Stride to read your heart rate, sleep and activity?" | 7 | `while_using` · `once` · `dont_allow` ★ | `store_location` | "Allow while using" filled | 3 equal buttons |
-| U1 | `stride_health_detail`: "Detailed health data" (every reading vs daily summaries); applies only if access is not `dont_allow` | 7 | `detailed` · `summary` ★ | `store_precise` | switch on | switch off |
-| U1 | `stride_face_unlock`: "Set up Face Unlock? Stride saves a scan of your face to sign you in faster." | 7 | `set_up` · `not_now` ★ | none (biometric extra) | "Set up Face Unlock" filled | equal buttons |
+| U1 | `stride_health_access`: "Allow “Stride” to read your heart rate, sleep and activity?" | 7 | `once` · `while_using` · `dont_allow` ★ (same buttons as #1) | `store_location` | "Allow While Using App" filled | 3 equal buttons |
+| U1 | `stride_health_detail`: "Detailed" ("When detailed data is off, Stride can access only your daily summaries"); applies only if access is not `dont_allow` | 7 | `detailed` · `summary` ★ | `store_precise` | switch on | switch off |
 | U2 | `stride_coach_live`: live heart rate with coach Maya during workouts | 8 | `share` · `dont_share` ★ | `courier_live` | switch on | switch off |
 | U2 | `stride_partner_offers`: partner offers based on workouts | 8 | `checked` · `unchecked` ★ | `checkout_partner_offers` | box checked | box unchecked |
-| U3 | `stride_bg_workout`: "Keep your workout stats accurate?" (background heart rate) | 8 | `allow` · `not_now` ★ | `bg_during_order` | "Allow in background" filled | equal buttons |
+| U3 | `stride_bg_workout`: "Keep your workout stats accurate?" (background heart rate) | 8 | `allow` (Allow) · `not_now` (Don't Allow) ★ | `bg_during_order` | "Allow" filled | equal buttons |
 | U3 | `stride_sam_share`: "Let Sam know" (live workout vs summary) | 8 | `live_workout` · `summary_only` ★ | `sam_share` | "Share my live workout" filled | equal buttons |
-| U4 | `stride_hr_all_day`: "Keep heart-rate monitoring on all day?"; applies only if #5′ is `allow` | 8 | `keep_on` · `turn_off` ★ | `bg_between_orders` | "Keep it on" filled | equal buttons |
+| U4 | `stride_hr_all_day`: "Keep heart-rate monitoring on all day?"; applies only if #5′ is `allow` | 8 | `keep_on` (Change to Always Allow) · `turn_off` (Keep Only While Using) ★ | `bg_between_orders` | "Change to Always Allow" filled | equal buttons |
 | U5 | `stride_plans_personalized`: "Plans picked for you" (heart-rate and sleep history) | 9 | `on` · `off` ★ | `deals_personalized` | switch on | switch off |
 | U5 | `stride_plans_partner_offers`: partner offers from health history | 9 | `on` · `off` ★ | `deals_partner_offers` | switch on | switch off |
-| U6 | `stride_reward_insurer`: Keel Health Insurance, wellness discount | 10 | `accept` (+200 coins) · `decline` ★ | `reward_keel` | "Link" filled | equal buttons |
-| U6 | `stride_reward_university`: university sleep study, de-identified | 10 | `accept` (+100 coins) · `decline` ★ | `reward_university` | "Donate" filled | equal buttons |
-| U6 | `stride_reward_data_partners`: Stride data partners, market research | 10 | `accept` (+150 coins) · `decline` ★ | `reward_data_partners` | "Share" filled | equal buttons |
+| U6 | `stride_reward_insurer`: Keel Health Insurance, wellness discount | 10 | `accept` (Accept, +200 coins) · `decline` ★ | `reward_keel` | "Accept" filled | equal buttons |
+| U6 | `stride_reward_university`: university sleep study, de-identified | 10 | `accept` (Accept, +100 coins) · `decline` ★ | `reward_university` | "Accept" filled | equal buttons |
+| U6 | `stride_reward_data_partners`: Stride data partners, market research | 10 | `accept` (Accept, +150 coins) · `decline` ★ | `reward_data_partners` | "Accept" filled | equal buttons |
 
-**CI coding:** every Stride flow is `informationCategory: health` except Face Unlock (`biometric`: `face_scan`). Attributes: `health_metrics` (#1′, #2′), `heart_rate` (#3′, #5′, #7′), `activity_history` (#4′, #12′), `workout` (#6′), `health_history` (#8′, #9′, #10′), `sleep_history` (#11′, de-identified). The full coding is in `flow-codebook.csv` and `src/stride/flows.ts`.
+**CI coding:** every Stride flow is `informationCategory: health`. (A Face Unlock flow, `biometric`, was dropped in 0.14.0 as unrealistic and unmatched.) Attributes: `health_metrics` (#1′, #2′), `heart_rate` (#3′, #5′, #7′), `activity_history` (#4′, #12′), `workout` (#6′), `health_history` (#8′, #9′, #10′), `sleep_history` (#11′, de-identified). The full coding is in `flow-codebook.csv` and `src/stride/flows.ts`.
 
 **One difference from Bramble:** declining health access costs nothing extra (Bramble's location refusal leads to a ZIP search). Asking people to type health numbers by hand would invite real data, so Stride shows "Health data is off" instead.
 
@@ -335,7 +333,7 @@ Pilot runs use `pilot_pids` and `pilot_meta`.
 
 Every row uses a **study code** (`P001`, `P002`, … or `PL001`, … for pilots) instead of the Prolific ID. Codes go in order of arrival. Withdrawn participants are left out.
 
-### `flows.csv`: one row per participant × flow (27 rows each: 14 Bramble, 13 Stride). The main Experiment 2 table
+### `flows.csv`: one row per participant × flow (26 rows each: 14 Bramble, 12 Stride). The main Experiment 2 table
 
 Only participants who were assigned a level have rows.
 
@@ -381,7 +379,7 @@ Includes everyone who arrived, also people who declined consent or failed the de
 
 `studyCode`, then every event field from section 2, in phone order (`pageLoadAt`, then `seq`). Lists are joined with `;`, and nested objects (such as a task `outcome`) are written as JSON.
 
-### `flow-codebook.csv`: one row per flow (27 rows)
+### `flow-codebook.csv`: one row per flow (26 rows)
 
 `flowId`, `app`, `counterpart`, `unit`, `unitScreen`, `expectedTask`, `screen`, `options`, `privacyOption`, `dependsOn`, `consentForm_nudged`, `consentForm_neutral`, `verdictMap` (e.g. `while_using=allow;once=ask;dont_allow=block`), the `ci_*` columns and `ci_statement`. Use it to match the site flows with the Part 2 questionnaire items.
 

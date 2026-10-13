@@ -1,6 +1,6 @@
 # Aligning Bramble's privacy wording with prior work
 
-Oct 7, 2026 · For review by Matt and Noah. **Nothing on the site has been changed yet.**
+Oct 7, 2026 · **Approved by Matt on Oct 13, 2026 and applied in v0.14.0.** D1 and D2 were applied earlier (v0.10.0). Stride uses the same wording for each matched flow (its health-access prompt uses Apple's location-prompt buttons, so the pair differs only in information).
 
 After the advisor meeting, we agreed to align the option buttons and the privacy wording in the Bramble UI with wording used in prior studies and in the real systems they study. This document lists every privacy string on the site, the proposed wording, and its source. Every quoted string below was checked against the source itself; where no source fits, the string is marked and left unchanged.
 

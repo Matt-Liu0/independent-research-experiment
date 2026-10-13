@@ -4,6 +4,17 @@ Every build participants see has a version (`appVersion` on each record). Bump `
 
 
 
+
+## 0.14.0 (2026-10-13)
+
+- **Wording aligned with prior work** (the Oct 7 proposal, approved by Matt):
+  - **Location prompt:** Apple's wording and order, "Allow Once · Allow While Using App · Don't Allow", and the title "Allow “Bramble” to use your location?".
+  - **Precise control:** "Precise" (Precise / Approximate).
+  - **Background prompts:** "Allow · Don't Allow" during the order; Apple's upgrade buttons "Change to Always Allow · Keep Only While Using" between orders.
+  - **Offers:** "Accept · Decline" (Utz et al.), shown as Accepted / Declined afterwards.
+  - **Account labels:** iOS Settings wording.
+  - **Stride:** uses the same buttons for each matched flow. Flow IDs and stored values are unchanged.
+- **Face Unlock removed from Stride** (unrealistic, and it had no Bramble counterpart). Stride has 12 flows, all paired. Task 7 is now "Connect your health data to Stride, and check your stats for today", and `t7` records only `healthAnswered`.
 ## 0.13.0 (2026-10-13)
 
 From the review pipeline (`docs/superpowers/specs/2026-10-13-site-review-pipeline.md`).

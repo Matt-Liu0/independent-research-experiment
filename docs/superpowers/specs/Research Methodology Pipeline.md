@@ -130,15 +130,15 @@ Studies of consent interfaces show that defaults and button asymmetry shift choi
 **Environment.** The site contains two simulated mobile web apps, used in one session in a balanced random order (decided Oct 8, 2026): a fictional grocery delivery service ("Bramble") and a fictional fitness and health app ("Stride"). It is presented to participants as trying two new apps ("use each app as if it were your own account"). It is deliberately not called a usability test: a testing frame invites exploring rather than using, so final settings would reflect curiosity.
 
 * **Bramble:** six ordinary tasks (find a store, order an item, track a delivery, save deals, redeem a reward, change the address) with 14 privacy decision points, mostly location, plus a saved card (financial) and birthday deals (demographic). Task 6 leads to the Account settings page, where every setting can be revisited.
-* **Stride:** four tasks (connect health data and set up sign-in, a guided workout, save training plans, unlock a sleep report) with 13 decision points. Twelve mirror Bramble's one for one: the same decision screen, recipient type, consent condition and points, but health information instead of location (e.g. location history → an auto insurer becomes heart-rate history → a health insurer). The thirteenth is biometric (Face Unlock). The matched pairs vary information type while holding everything else fixed.
+* **Stride:** four tasks (connect health data, a guided workout, save training plans, unlock a sleep report) with 12 decision points, each mirroring one of Bramble's: the same decision screen, recipient type, consent condition, points and button wording, but health information instead of location (e.g. location history → an auto insurer becomes heart-rate history → a health insurer). The matched pairs vary information type while holding everything else fixed.
 * The same nudge pattern applies in both apps, so each matched pair is always at the same friction level for a given person.
 * No real location, address or health data is collected; the apps use practice details.
 
 Every decision point is built from one battery flow, so A(f) and S(f) refer to the same f:
 
 > **Task:** Find the nearest store that has oat milk in stock.  
->  **Prompt:** *Bramble would like to use your precise location to find stores near you.*  
->  \[Allow while using app\] \[Allow once\] \[Don't allow\]  
+>  **Prompt:** *Allow “Bramble” to use your location? Bramble uses your location to find stores near you and show what's in stock.*  
+>  \[Allow Once\] \[Allow While Using App\] \[Don't Allow\] (Apple's location prompt wording), with a "Precise" switch  
 >  *(If declined, at either level: type a ZIP code and scroll a longer list.)*  
 >  **Flow:** (you → Bramble, you, precise location, store search, while browsing)  
 >  **Battery counterpart:** "Bramble wants your exact location to find nearby stores, while you're browsing."

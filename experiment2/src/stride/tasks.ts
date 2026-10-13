@@ -4,7 +4,7 @@ import type { StrideTask } from './types'
 
 /** Stride's task wording (tasks 7–10; Bramble's are 1–6). */
 export const STRIDE_TASKS: Record<StrideTask, { short: string; text: string }> = {
-  7: { short: 'Connect health data, set up sign-in', text: 'Connect your health data to Stride, and set up how you sign in.' },
+  7: { short: 'Connect your health data', text: 'Connect your health data to Stride, and check your stats for today.' },
   8: { short: 'Do the workout, tell Sam', text: 'Do the 10-minute guided workout with coach Maya, and let your housemate Sam know how it goes.' },
   9: { short: "Save two plans you'd try", text: "Browse this week's training plans and save two you'd try." },
   10: { short: 'Unlock the sleep report with coins', text: 'Use your coins to unlock the premium sleep report.' },
@@ -15,8 +15,7 @@ export function strideTaskOutcome(task: StrideTask, state: StrideState): TaskOut
   switch (task) {
     case 7: {
       const healthAnswered = state.settled.includes('stride_health_access')
-      const signInAnswered = state.settled.includes('stride_face_unlock')
-      return { done: healthAnswered && signInAnswered, healthAnswered, signInAnswered }
+      return { done: healthAnswered, healthAnswered }
     }
     case 8: {
       const samNotified = state.settled.includes('stride_sam_share')

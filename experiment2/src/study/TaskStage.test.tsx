@@ -170,20 +170,22 @@ describe('two apps', () => {
     expect(store.participant).toMatchObject({ taskIndex: 6, taskPhase: 'intro' })
     await user.click(screen.getByRole('button', { name: 'Open Stride' }))
 
-    expect(await screen.findByText('Connect your health data to Stride, and set up how you sign in.')).toBeInTheDocument()
+    expect(await screen.findByText('Connect your health data to Stride, and check your stats for today.')).toBeInTheDocument()
     expect(screen.getByText(/Use Stride as if it were your own account/)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Start task' }))
     expect(screen.getByText('Task 7 of 10')).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Stride' })).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Not now' }))
-    await finishUnfinished(user)
+    await user.click(screen.getByRole('button', { name: 'Connect' }))
+    await user.click(screen.getByRole('button', { name: "Don't Allow" }))
+    // Declining counts as done, so there's no unfinished-task check.
+    await user.click(screen.getByRole('button', { name: 'Done' }))
 
     // Each app's state is saved separately; Bramble's is untouched by Stride.
-    expect(store.participant?.strideState?.flows.stride_face_unlock).toBe('not_now')
+    expect(store.participant?.strideState?.flows.stride_health_access).toBe('dont_allow')
     expect(store.participant?.appState?.points).toBe(270)
-    expect(store.participant?.taskOutcome.t7).toEqual({ done: false, healthAnswered: false, signInAnswered: true })
+    expect(store.participant?.taskOutcome.t7).toEqual({ done: true, healthAnswered: true })
     // Events carry the app they happened in.
-    expect(store.events.find((e) => e.type === 'settled' && e.flowId === 'stride_face_unlock')).toMatchObject({ app: 'stride', taskId: 7 })
+    expect(store.events.find((e) => e.type === 'settled' && e.flowId === 'stride_health_access')).toMatchObject({ app: 'stride', taskId: 7 })
   })
 
   it('starts with Stride for Stride-first participants, with no introduction screen', async () => {

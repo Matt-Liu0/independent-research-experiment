@@ -35,26 +35,26 @@ describe('FlowChoice', () => {
 
   it('nudged prompt: highlights only the sharing option; the others look like neutral buttons (Utz et al.)', () => {
     renderFlow('nudged', 'store_location')
-    expect(screen.getByRole('button', { name: 'Allow while using Bramble' })).toHaveClass('btn-green')
-    expect(screen.getByRole('button', { name: 'Allow once' })).toHaveClass('btn-equal')
-    expect(screen.getByRole('button', { name: "Don't allow" })).toHaveClass('btn-equal')
+    expect(screen.getByRole('button', { name: 'Allow While Using App' })).toHaveClass('btn-green')
+    expect(screen.getByRole('button', { name: 'Allow Once' })).toHaveClass('btn-equal')
+    expect(screen.getByRole('button', { name: "Don't Allow" })).toHaveClass('btn-equal')
   })
 
   it('marks how prominent each option is, for the agent harness', () => {
     renderFlow('nudged', 'store_location')
     const emphasis = (name: string) => screen.getByRole('button', { name }).getAttribute('data-emphasis')
-    expect([emphasis('Allow while using Bramble'), emphasis('Allow once'), emphasis("Don't allow")]).toEqual(['primary', 'plain', 'plain'])
+    expect([emphasis('Allow While Using App'), emphasis('Allow Once'), emphasis("Don't Allow")]).toEqual(['primary', 'plain', 'plain'])
   })
 
   it('marks neutral options as plain', () => {
     renderFlow('neutral', 'reward_keel')
-    expect(screen.getByRole('button', { name: 'Link' })).toHaveAttribute('data-emphasis', 'plain')
-    expect(screen.getByRole('button', { name: 'No thanks' })).toHaveAttribute('data-emphasis', 'plain')
+    expect(screen.getAllByRole('button', { name: 'Accept' })[0]).toHaveAttribute('data-emphasis', 'plain')
+    expect(screen.getAllByRole('button', { name: 'Decline' })[0]).toHaveAttribute('data-emphasis', 'plain')
   })
 
   it('neutral prompt: equal buttons with the same labels', () => {
     renderFlow('neutral', 'store_location')
-    for (const name of ['Allow while using Bramble', 'Allow once', "Don't allow"]) {
+    for (const name of ['Allow While Using App', 'Allow Once', "Don't Allow"]) {
       expect(screen.getByRole('button', { name })).toHaveClass('btn-equal')
     }
   })
@@ -68,7 +68,7 @@ describe('FlowChoice', () => {
         <Probe />
       </BrambleProvider>,
     )
-    await user.click(screen.getByRole('button', { name: 'Not now' }))
+    await user.click(screen.getByRole('button', { name: "Don't Allow" }))
     expect(events('prompt_shown')).toHaveLength(1)
     expect(events('decision')[0]).toMatchObject({ flowId: 'bg_during_order', value: 'not_now', source: 'prompt' })
     expect(events('decision')[0].msSincePrompt).toBeTypeOf('number')
@@ -116,7 +116,7 @@ describe('FlowChoice', () => {
   it('pays Rewards points once, on accepting', async () => {
     const user = userEvent.setup()
     renderFlow('neutral', 'reward_keel')
-    await user.click(screen.getByRole('button', { name: 'Link' }))
+    await user.click(screen.getAllByRole('button', { name: 'Accept' })[0])
     expect(latest.points).toBe(620)
     expect(events('points')[0]).toMatchObject({ flowId: 'reward_keel', amount: 200, pointsBefore: 420 })
     expect(events('decision')[0].pointsBefore).toBe(420)
@@ -125,7 +125,7 @@ describe('FlowChoice', () => {
   it('pays nothing for declining', async () => {
     const user = userEvent.setup()
     renderFlow('nudged', 'reward_data_partners')
-    await user.click(screen.getByRole('button', { name: 'No thanks' }))
+    await user.click(screen.getAllByRole('button', { name: 'Decline' })[0])
     expect(latest.points).toBe(420)
   })
 })

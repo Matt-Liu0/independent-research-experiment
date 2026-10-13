@@ -38,7 +38,7 @@ export function OfferList({ offers, unit }: { offers: readonly FlowDef[]; unit: 
             ) : settled && value !== null && editing !== offer.id ? (
               <div className="row offer-result">
                 <span className="small strong" style={{ flex: 1 }}>
-                  {value === offer.options[0] ? `${offer.account.labels[value]} · +${offer.points} ${unit}` : 'You said no thanks'}
+                  {value === offer.options[0] ? `${offer.account.labels[value]} · +${offer.points} ${unit}` : offer.account.labels[value]}
                 </span>
                 {/* Same in both levels: answers can always be changed, and points follow the answer. */}
                 <button type="button" className="btn btn-link btn-small" onClick={() => setEditing(offer.id)}>

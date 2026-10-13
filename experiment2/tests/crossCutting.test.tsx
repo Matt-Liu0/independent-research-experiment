@@ -85,7 +85,7 @@ async function declineEverything(friction: Friction) {
 
   // Task 1: refuse location, find a store by ZIP.
   await user.click(screen.getByRole('button', { name: 'Find a store' }))
-  await user.click(screen.getByRole('button', { name: "Don't allow" }))
+  await user.click(screen.getByRole('button', { name: "Don't Allow" }))
   await user.type(screen.getByLabelText('ZIP code'), '10001')
   await user.click(screen.getByRole('button', { name: 'Search' }))
   await user.click(screen.getByRole('button', { name: /^Bramble Market · Elm Street/ }))
@@ -107,7 +107,7 @@ async function declineEverything(friction: Friction) {
 
   // Task 3: no background location; arrival time only.
   await user.click(tab('Orders'))
-  await user.click(screen.getByRole('button', { name: 'Not now' }))
+  await user.click(screen.getByRole('button', { name: "Don't Allow" }))
   await user.click(screen.getByRole('button', { name: 'Send arrival time only' }))
   await screen.findByRole('heading', { name: /^Delivered at / }, { timeout: 3000 })
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
@@ -125,7 +125,7 @@ async function declineEverything(friction: Friction) {
   // Task 5: free delivery, and no to every offer.
   await user.click(tab('Rewards'))
   await user.click(screen.getByRole('button', { name: 'Redeem' }))
-  for (const button of screen.getAllByRole('button', { name: 'No thanks' })) await user.click(button)
+  for (const button of screen.getAllByRole('button', { name: 'Decline' })) await user.click(button)
   finish(5)
 
   // Task 6: change the address.
@@ -188,12 +188,12 @@ describe('accepting everything (nudged)', () => {
   it('shows and settles the dependent flows too', async () => {
     const user = userEvent.setup()
     const app = renderApp('nudged', { storeId: 'elm', order: 'on_the_way', orderItems: ['oat_milk', 'sourdough'], screen: 'find_store' })
-    await user.click(screen.getByRole('button', { name: 'Allow while using Bramble' }))
+    await user.click(screen.getByRole('button', { name: 'Allow While Using App' }))
     await user.click(tab('Orders'))
-    await user.click(screen.getByRole('button', { name: 'Allow in background' }))
+    await user.click(screen.getByRole('button', { name: 'Allow' }))
     await user.click(screen.getByRole('button', { name: 'Share my live location with Sam' }))
     await screen.findByRole('heading', { name: /^Delivered at / }, { timeout: 3000 })
-    await user.click(screen.getByRole('button', { name: 'Keep it on' }))
+    await user.click(screen.getByRole('button', { name: 'Change to Always Allow' }))
 
     expect(app.eventsOf('settled').map((e) => [e.flowId, e.value])).toEqual([
       ['store_location', 'while_using'],
@@ -229,9 +229,9 @@ describe('friction by decision screen (within each participant)', () => {
     const app = renderApp(['U2', 'U5'], { screen: 'find_store', storeId: 'elm', cart: ['oat_milk'] })
 
     const sheet = screen.getByRole('dialog')
-    expect(within(sheet).getByRole('switch', { name: 'Precise location' })).toHaveAttribute('aria-checked', 'false')
-    expect(within(sheet).getByRole('button', { name: 'Allow while using Bramble' })).toHaveAttribute('data-emphasis', 'plain')
-    await user.click(within(sheet).getByRole('button', { name: 'Allow once' }))
+    expect(within(sheet).getByRole('switch', { name: 'Precise' })).toHaveAttribute('aria-checked', 'false')
+    expect(within(sheet).getByRole('button', { name: 'Allow While Using App' })).toHaveAttribute('data-emphasis', 'plain')
+    await user.click(within(sheet).getByRole('button', { name: 'Allow Once' }))
 
     await user.click(screen.getByRole('button', { name: /^Cart/ }))
     expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'true')
@@ -241,7 +241,7 @@ describe('friction by decision screen (within each participant)', () => {
     expect(screen.getAllByRole('switch').map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'true', 'true'])
 
     await user.click(tab('Rewards'))
-    expect(screen.getByRole('button', { name: 'Link' })).toHaveAttribute('data-emphasis', 'plain')
+    expect(screen.getAllByRole('button', { name: 'Accept' })[0]).toHaveAttribute('data-emphasis', 'plain')
 
     const shown = Object.fromEntries(app.eventsOf('prompt_shown').map((e) => [e.flowId, e.defaultShown]))
     expect(shown).toMatchObject({

@@ -103,7 +103,7 @@ describe('agent episode', () => {
     expect(store.events.find((e) => e.type === 'prompt_shown')).toMatchObject({ flowId: 'deals_personalized', defaultShown: 'on', taskId: 4 })
     // U6 (Rewards) is nudged too; U2 (Checkout) is not, so its settings start off.
     await user.click(screen.getByRole('button', { name: 'Rewards' }))
-    expect(await screen.findByRole('button', { name: 'Link' })).toHaveAttribute('data-emphasis', 'primary')
+    expect((await screen.findAllByRole('button', { name: 'Accept' }))[0]).toHaveAttribute('data-emphasis', 'primary')
   })
 
   it('moves to the next task on Done with no ease rating, straight into Stride, and finishes after ten', async () => {
@@ -135,7 +135,7 @@ describe('agent episode', () => {
     startEpisode()
     await user.click(await screen.findByRole('button', { name: 'Rewards' }))
     const keel = within(screen.getByText('Keel Auto Insurance').closest('.offer-card') as HTMLElement)
-    await user.click(keel.getByRole('button', { name: 'No thanks' }))
+    await user.click(keel.getByRole('button', { name: 'Decline' }))
 
     const api = (window as Window & { __brambleAgent?: AgentApi }).__brambleAgent!
     expect(api.apiVersion).toBe(1)

@@ -11,7 +11,7 @@ Participants use two fictional apps in one session, in a balanced random order:
 | App | What it is | Tasks | Decisions about data |
 |---|---|---|---|
 | **Bramble** | Grocery delivery | 6 (find a store, order, track a delivery, save deals, redeem points, change address) | 14, mostly location, plus a saved card and birthday deals |
-| **Stride** | Fitness and health | 4 (connect health data, guided workout, save plans, unlock a report) | 13, health and biometric |
+| **Stride** | Fitness and health | 4 (connect health data, guided workout, save plans, unlock a report) | 12, health |
 
 - **Matched flows:** Stride's flows mirror Bramble's screen by screen, with the same kind of recipient, purpose and reward but a different type of information. Each matched pair differs only in the information it shares.
 - **Coding:** every flow is coded with the GKC–Contextual Integrity framework, so site behavior can be joined with the questionnaire answers from Part 2.

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { FlowChoice } from '../../core/FlowChoice'
-import { FaceIcon, MoonIcon, PulseIcon } from '../../core/icons'
+import { MoonIcon, PulseIcon } from '../../core/icons'
 import { LoadingBlock } from '../../core/Loading'
 import { Sheet } from '../../core/Sheet'
 import { useBusy } from '../../core/useBusy'
@@ -17,9 +17,7 @@ export function Today() {
   const name = getName()
   const access = state.flows.stride_health_access
   const accessAnswered = state.settled.includes('stride_health_access')
-  const faceAnswered = state.settled.includes('stride_face_unlock')
   const flow = STRIDE_FLOWS.getFlow('stride_health_access')
-  const face = STRIDE_FLOWS.getFlow('stride_face_unlock')
 
   const onAccessChosen = (value: string) => {
     if (value !== 'dont_allow') settleFlow('stride_health_detail')
@@ -75,24 +73,6 @@ export function Today() {
     <section className="screen">
       <h1 className="screen-title">{name ? `Good morning, ${name}` : 'Today'}</h1>
       {health}
-
-      <div className="card">
-        <div className="row" style={{ alignItems: 'flex-start' }}>
-          <span className="icon-circle">
-            <FaceIcon />
-          </span>
-          <div style={{ flex: 1 }}>
-            <div className="eyebrow-small">Sign-in</div>
-            <div className="strong">{face.title}</div>
-            <div className="muted">{face.description}</div>
-          </div>
-        </div>
-        {faceAnswered ? (
-          <p className="small strong">{state.flows.stride_face_unlock === 'set_up' ? 'Face Unlock is on.' : 'You can set up Face Unlock later in Profile.'}</p>
-        ) : (
-          <FlowChoice flowId="stride_face_unlock" layout="row" />
-        )}
-      </div>
 
       <div className="card row">
         <span className="icon-circle">

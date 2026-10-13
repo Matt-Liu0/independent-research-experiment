@@ -23,7 +23,9 @@ Oct 13, 2026 · From Matt's review of both apps
 
 - **(1) What "nudged" means:** people should actually *do* the tasks, in scenarios that are realistic but not too polished to be believable. This covers task engagement plus a realism review. It is not about the strength of the friction manipulation.
 - **(8) Option A (Matt, Oct 13):** Stride's paid offers stay matched to Bramble's (same recipients, aims and points), so location vs. health stays a clean comparison. Stride gains *extra* gamified nudges as Stride-only flows, drawn from the nudge and dark-pattern literature.
-- **Still open:** (9) app order, currently randomized and balanced; (10) Face ID: keep, drop, or replace with a realistic or matched biometric flow.
+- **(9) App order stays randomized and balanced (Matt, Oct 13).**
+- **(10) Face ID dropped (Matt, Oct 13).** Removed in v0.14.0; Stride has 12 flows, all paired.
+- **Wording proposal approved (Matt, Oct 13)** and applied in v0.14.0, Stride included.
 
 ## Measurements behind (4)
 
