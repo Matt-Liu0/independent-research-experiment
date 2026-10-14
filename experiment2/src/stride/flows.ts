@@ -2,9 +2,9 @@ import { createFlowRegistry } from '../core/flowRegistry'
 import type { LevelDef } from '../core/flowTypes'
 import type { StrideFlowDef } from './types'
 
-// Stride mirrors Bramble decision screen by decision screen (units U1–U6): each flow has a
-// Bramble counterpart with the same kind of recipient, aim and option wording but health
-// information instead of location. Levels follow Utz et al. (2019), exactly as in Bramble.
+// Stride mirrors Bramble decision screen by decision screen (units U1–U6): each of the first
+// twelve flows has a Bramble counterpart with the same kind of recipient, aim and option
+// wording but health information instead of location. Three Stride-only gamified flows follow. Levels follow Utz et al. (2019), exactly as in Bramble.
 
 /** Non-nudging one-tap prompt: equal buttons, nothing preset. */
 const equalButtons: LevelDef = { control: 'buttons', default: null, emphasis: null }
@@ -404,6 +404,111 @@ export const STRIDE_FLOW_LIST: readonly StrideFlowDef[] = [
       statement: "Stride shares the participant's activity history with data partners, with consent and in exchange for 150 coins, for market research.",
     },
     nudged: { control: 'buttons', default: null, emphasis: 'accept' },
+    neutral: equalButtons,
+  },
+
+  // Stride-only gamified flows (option A, Oct 13): non-monetary nudges that real fitness apps
+  // use. No Bramble counterpart and no coins, so the matched pairs above stay clean. The
+  // framing (the streak, the friend count, the tier) is part of the flow and identical in both
+  // levels; the numbers are fixed and the same for everyone. Each follows its screen's unit.
+  {
+    id: 'stride_streak_autosync',
+    app: 'stride',
+    task: 7,
+    screen: 'today',
+    unit: 'U1',
+    kind: 'prompt',
+    settleOn: 'choice',
+    options: ['keep_streak', 'not_now'],
+    labels: { keep_streak: 'Keep My Streak', not_now: 'Not Now' },
+    title: '3-day streak. Don’t lose it',
+    description: 'Let Stride count your steps in the background, so days you forget to open the app still count.',
+    privacyOption: 'not_now',
+    dependsOn: { flowId: 'stride_health_access', notEquals: 'dont_allow' },
+    counterpart: null,
+    nudgeType: 'streak',
+    account: { label: 'Background step counting', labels: { keep_streak: 'On', not_now: 'Off' } },
+    ci: {
+      sender: 'participant',
+      recipient: 'stride',
+      recipientType: 'first_party',
+      subject: 'participant',
+      informationCategory: 'health',
+      attribute: 'step_count',
+      granularity: 'exact',
+      temporality: 'continuous',
+      identifiability: 'identified',
+      transmissionPrinciple: { aim: 'keep_streak', condition: 'with_permission', temporal: 'ongoing', consideration: null },
+      statement: "The participant's phone keeps sending Stride their step count in the background, with permission, even when the app is closed, to keep their streak going.",
+    },
+    nudged: { control: 'buttons', default: null, emphasis: 'keep_streak' },
+    neutral: equalButtons,
+  },
+  {
+    id: 'stride_community_map',
+    app: 'stride',
+    task: 8,
+    screen: 'workout',
+    unit: 'U4',
+    kind: 'prompt',
+    settleOn: 'choice',
+    options: ['share', 'keep_private'],
+    labels: { share: 'Share to Community', keep_private: 'Keep Private' },
+    title: 'Share this workout’s route and heart rate?',
+    description: '8 of your 12 friends share their workouts on the Stride community map, where anyone on Stride can see them.',
+    privacyOption: 'keep_private',
+    dependsOn: null,
+    counterpart: null,
+    nudgeType: 'social_proof',
+    account: { label: 'Workouts on the community map', labels: { share: 'Public', keep_private: 'Private' } },
+    ci: {
+      sender: 'stride',
+      recipient: 'stride_community',
+      recipientType: 'public',
+      subject: 'participant',
+      informationCategory: 'health',
+      attribute: 'workout_route',
+      granularity: 'exact',
+      temporality: 'historical',
+      identifiability: 'identified',
+      transmissionPrinciple: { aim: 'community_sharing', condition: 'with_consent', temporal: 'ongoing', consideration: null },
+      statement: "Stride publishes the participant's workout route and heart rate on a community map that anyone on Stride can see, with consent, to share with the community.",
+    },
+    nudged: { control: 'buttons', default: null, emphasis: 'share' },
+    neutral: equalButtons,
+  },
+  {
+    id: 'stride_gold_tier',
+    app: 'stride',
+    task: 10,
+    screen: 'rewards',
+    unit: 'U6',
+    kind: 'prompt',
+    settleOn: 'choice',
+    options: ['reach_gold', 'not_now'],
+    labels: { reach_gold: 'Reach Gold', not_now: 'Not Now' },
+    title: 'You’re 40 points from Gold',
+    description: 'Connect your sleep tracker to reach Gold and unlock premium plans.',
+    privacyOption: 'not_now',
+    dependsOn: null,
+    counterpart: null,
+    nudgeType: 'status',
+    // Status points, not coins: reaching Gold pays no bonus, so money stays matched to Bramble.
+    account: { label: 'Sleep tracker', labels: { reach_gold: 'Connected', not_now: 'Not connected' } },
+    ci: {
+      sender: 'participant',
+      recipient: 'stride',
+      recipientType: 'first_party',
+      subject: 'participant',
+      informationCategory: 'health',
+      attribute: 'sleep_history',
+      granularity: 'exact',
+      temporality: 'historical',
+      identifiability: 'identified',
+      transmissionPrinciple: { aim: 'status_tier', condition: 'with_consent', temporal: 'ongoing', consideration: null },
+      statement: "The participant's sleep tracker sends Stride their full nightly sleep history, with consent, to reach a higher status tier in the app.",
+    },
+    nudged: { control: 'buttons', default: null, emphasis: 'reach_gold' },
     neutral: equalButtons,
   },
 ]

@@ -11,9 +11,10 @@ Participants use two fictional apps in one session, in a balanced random order:
 | App | What it is | Tasks | Decisions about data |
 |---|---|---|---|
 | **Bramble** | Grocery delivery | 6 (find a store, order, track a delivery, save deals, redeem points, change address) | 14, mostly location, plus a saved card and birthday deals |
-| **Stride** | Fitness and health | 4 (connect health data, guided workout, save plans, unlock a report) | 12, health |
+| **Stride** | Fitness and health | 4 (connect health data, guided workout, save plans, unlock a report) | 15, health: 12 matched to Bramble, plus 3 gamified (streak, friends, status tier) |
 
 - **Matched flows:** Stride's flows mirror Bramble's screen by screen, with the same kind of recipient, purpose and reward but a different type of information. Each matched pair differs only in the information it shares.
+- **Gamified flows:** three Stride-only flows use the non-monetary nudges fitness apps use (a streak, a friend count, a status tier). They pay nothing, so the matched pairs stay clean.
 - **Coding:** every flow is coded with the GKC–Contextual Integrity framework, so site behavior can be joined with the questionnaire answers from Part 2.
 - **Friction:** the level of nudging varies within each participant. Three of six decision screens are "nudged" (sharing preset or highlighted) and three are neutral, following Utz et al. (2019).
 - **Balance:** assignment is balanced across 40 combinations of nudged screens and app order.

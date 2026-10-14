@@ -13,6 +13,10 @@ export const STRIDE_FLOW_IDS = [
   'stride_reward_insurer',
   'stride_reward_university',
   'stride_reward_data_partners',
+  // Stride-only gamified flows (no Bramble counterpart).
+  'stride_streak_autosync',
+  'stride_community_map',
+  'stride_gold_tier',
 ] as const
 
 export type StrideFlowId = (typeof STRIDE_FLOW_IDS)[number]

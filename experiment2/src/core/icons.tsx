@@ -132,3 +132,23 @@ export const DumbbellIcon = () => (
     <path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11" />
   </svg>
 )
+
+export const FlameIcon = () => (
+  <svg {...base}>
+    <path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.3 2.3-5.4 3.6-7.6.4 1.6 1.2 2.7 2.3 3.3.3-2.9 1.6-5.4 3.6-7 .2 3.2 4 5.6 4 10.6 0 4.1-2.8 6.9-7 6.9Z" />
+  </svg>
+)
+
+export const MapIcon = () => (
+  <svg {...base}>
+    <path d="m3.5 6.5 5.5-2.5 6 2.5 5.5-2.5v13.5l-5.5 2.5-6-2.5-5.5 2.5Z" />
+    <path d="M9 4v13.5M15 6.5V20" />
+  </svg>
+)
+
+export const MedalIcon = () => (
+  <svg {...base}>
+    <circle cx="12" cy="15" r="5" />
+    <path d="m8.5 11.4-3-7.4h4l2.5 6M15.5 11.4l3-7.4h-4L13.3 7" />
+  </svg>
+)

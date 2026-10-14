@@ -1,5 +1,5 @@
 import { FlowChoice } from '../../core/FlowChoice'
-import { CheckIcon, ClockIcon, PeopleIcon, PulseIcon } from '../../core/icons'
+import { CheckIcon, ClockIcon, MapIcon, PeopleIcon, PulseIcon } from '../../core/icons'
 import { Sheet } from '../../core/Sheet'
 import { WORKOUT } from '../data'
 import { STRIDE_FLOWS } from '../flows'
@@ -154,6 +154,10 @@ function WorkoutDone() {
   const { state } = useStride()
   const askAllDay = STRIDE_FLOWS.isApplicable('stride_hr_all_day', state.flows) && !state.settled.includes('stride_hr_all_day')
   const allDay = STRIDE_FLOWS.getFlow('stride_hr_all_day')
+  // The community-map prompt comes after the all-day question (or straight away when that one doesn't apply).
+  const community = STRIDE_FLOWS.getFlow('stride_community_map')
+  const askCommunity = !askAllDay && !state.settled.includes('stride_community_map')
+  const shared = state.flows.stride_community_map
   return (
     <section className="screen">
       <div className="order-number muted">{WORKOUT.name}</div>
@@ -167,9 +171,19 @@ function WorkoutDone() {
         </p>
       </div>
       <SamStatus />
+      {shared !== null && (
+        <p className="notice small row">
+          <MapIcon /> {shared === 'share' ? 'Shared to the community map.' : 'This workout is private.'}
+        </p>
+      )}
       {askAllDay && (
         <Sheet icon={<ClockIcon />} title={allDay.title} description={allDay.description}>
           <FlowChoice flowId="stride_hr_all_day" />
+        </Sheet>
+      )}
+      {askCommunity && (
+        <Sheet icon={<MapIcon />} title={community.title} description={community.description}>
+          <FlowChoice flowId="stride_community_map" />
         </Sheet>
       )}
     </section>

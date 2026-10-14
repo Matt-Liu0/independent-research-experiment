@@ -55,7 +55,7 @@ To change the area, edit `src/bramble/mapConfig.ts` (location, store pins, `MAP_
 | `src/core/` | Shared by both apps: the show / choose / settle engine (`engine.tsx`), flow types, units and patterns (`units.ts`), GKC-CI coding (`ci.ts`), `FlowChoice`, prompt sheet, loading, timing, offers and settings list |
 | `src/bramble/flows.ts` | Bramble's 14 flows and the only place its friction levels differ |
 | `src/bramble/screens/` | Shop, Find a store, Checkout, Orders, Deals, Rewards, Account |
-| `src/stride/flows.ts` | Stride's 12 flows, each mirroring a Bramble flow (`counterpart`) |
+| `src/stride/flows.ts` | Stride's 15 flows: 12 mirroring a Bramble flow (`counterpart`), plus 3 Stride-only gamified flows (`nudgeType`) |
 | `src/stride/screens/` | Today, Workout setup, Workout, Plans, Rewards, Profile |
 | `src/study/apps.ts`, `sessionApps.tsx` | Which tasks belong to which app, the app order, and how the task stage runs each app |
 | `src/study/` | Prolific entry, device check, consent, assignment (pattern × app order), tasks, Firestore store |

@@ -17,12 +17,12 @@ export const UNIT_SCREENS: Record<AppId, Record<UnitId, string>> = {
     U6: 'Rewards offers: #10, #11, #12',
   },
   stride: {
-    U1: 'Health-data prompt and Face Unlock (Today)',
+    U1: 'Health-data prompt and streak (Today)',
     U2: 'Workout setup',
     U3: 'Live workout',
-    U4: 'Keep heart-rate monitoring on all day? (after the workout)',
+    U4: 'Workout complete: all-day heart rate, community map',
     U5: 'Plans settings',
-    U6: 'Rewards offers',
+    U6: 'Rewards offers and Gold tier',
   },
 }
 

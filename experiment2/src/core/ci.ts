@@ -23,6 +23,7 @@ export type Actor =
   | 'coach_maya'
   | 'keel_health_insurance'
   | 'university_sleep_lab'
+  | 'stride_community'
 
 export type RecipientType =
   | 'first_party' // the app itself
@@ -31,6 +32,7 @@ export type RecipientType =
   | 'personal' // someone the participant knows
   | 'third_party_commercial'
   | 'third_party_research'
+  | 'public' // anyone using the app
 
 /**
  * Broad category of information, by the social domain whose norms govern it (Matt's list):
@@ -54,6 +56,8 @@ export type Attribute =
   | 'sleep_history'
   | 'activity_history'
   | 'workout'
+  | 'workout_route'
+  | 'step_count'
 
 /** exact: precise values; approximate: coarsened (e.g. general area, daily summaries); unspecified: set by another flow. */
 export type Granularity = 'exact' | 'approximate' | 'unspecified'
@@ -81,6 +85,9 @@ export type Aim =
   | 'accurate_workout_stats'
   | 'all_day_monitoring'
   | 'personalized_plans'
+  | 'keep_streak'
+  | 'community_sharing'
+  | 'status_tier'
 
 /** Institutional Grammar "condition": what the flow is conditioned on. */
 export type Condition = 'with_permission' | 'with_consent' | 'with_consent_for_payment'

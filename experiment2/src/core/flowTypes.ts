@@ -24,6 +24,16 @@ export type SettleOn = 'choice' | 'commit' | 'leave'
 
 export type Control = 'switch' | 'checkbox' | 'buttons'
 
+/**
+ * The non-monetary nudge a Stride-only gamified flow is built around (see
+ * docs/superpowers/specs/2026-10-13-stride-gamified-nudges.md). Part of the flow, so it is
+ * the same in both friction levels.
+ *  - streak: loss framing around a running streak (Silverman & Barasch 2023)
+ *  - social_proof: how many friends already share (Das et al. 2014)
+ *  - status: progress toward a status tier (the Vitality model)
+ */
+export type NudgeType = 'streak' | 'social_proof' | 'status'
+
 export interface LevelDef {
   control: Control
   /** Preset value; null means nothing is selected. */
@@ -53,6 +63,8 @@ export interface FlowDef<F extends string = string, Scr extends string = string,
   dependsOn: { flowId: F; equals?: string; notEquals?: string } | null
   /** The matching flow in the other app (same recipient and aim, different information), if any. */
   counterpart: string | null
+  /** Gamified framing of a Stride-only flow; absent for every matched flow. */
+  nudgeType?: NudgeType
   /** Points paid for choosing the first option (Rewards offers only). */
   points?: number
   account: { label: string; labels: Record<string, string> }

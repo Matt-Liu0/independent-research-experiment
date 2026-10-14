@@ -121,3 +121,34 @@
 .stride-tabs .tab-center.active .tab-center-circle {
   background: var(--green-dark);
 }
+
+/* Gamified flows: the streak on Today and the status tier on Rewards. */
+.streak-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-weight: 700;
+  color: var(--berry);
+}
+
+.streak-chip svg,
+.tier-card .icon-circle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.tier-bar {
+  height: 8px;
+  margin: 12px 0;
+  border-radius: 999px;
+  background: var(--green-tint);
+  overflow: hidden;
+}
+
+.tier-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #c9a227;
+}

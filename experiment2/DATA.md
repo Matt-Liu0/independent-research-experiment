@@ -128,7 +128,7 @@ The same engine fields as `appState` (`flows`, `shown`, `settled`, `points`, `ac
 
 | Field | Meaning | Values |
 |---|---|---|
-| `strideState.flows.<flowId>` | **Current** value of each of the 12 Stride flows, including Profile-page changes | section 3b; `null` = not answered or not applicable |
+| `strideState.flows.<flowId>` | **Current** value of each of the 15 Stride flows, including Profile-page changes | section 3b; `null` = not answered or not applicable |
 | `strideState.points` | Coin balance | starts at `420`; −300 for the sleep report; +200 / +100 / +150 for accepted offers |
 | `strideState.accountPageVisits`, `accountPageMs` | Visits to and visible ms on the **Profile** page (Stride's settings page) | numbers |
 | `strideState.workout` | Guided workout phase | `none` → `warm_up` → `main_set` → `cool_down` → `done` |
@@ -138,7 +138,7 @@ The same engine fields as `appState` (`flows`, `shown`, `settled`, `points`, `ac
 | `strideState.reportUnlocked` | Unlocked the premium sleep report | `true` / `false` |
 | `strideState.screen` | Screen open when last saved | `today` · `workout_setup` · `workout` · `plans` · `rewards` · `profile` |
 
-**Workout timeline** (the counterpart of Bramble's order): warm-up for 8 s, then the main set, where the two workout prompts (#5′, #6′) appear. Cool-down starts once both are answered and at least 12 s of the main set have passed; 4 s later the workout is done, and "Keep heart-rate monitoring on all day?" (#7′) appears if background heart rate was allowed.
+**Workout timeline** (the counterpart of Bramble's order): warm-up for 8 s, then the main set, where the two workout prompts (#5′, #6′) appear. Cool-down starts once both are answered and at least 12 s of the main set have passed; 4 s later the workout is done, and "Keep heart-rate monitoring on all day?" (#7′) appears if background heart rate was allowed, followed by the community-map prompt (G2).
 
 ---
 
@@ -267,9 +267,11 @@ Each flow also has a one-sentence `statement` for codebooks. If the Part 2 quest
 
 ---
 
-## 3b. Stride's 12 flows
+## 3b. Stride's 15 flows
 
-Each Stride flow mirrors a Bramble flow (its `counterpart`): same unit, kind, settling rule, recipient type, consent condition, points, option positions and (for prompts) option wording, with health or biometric information instead of location. Labels are identical in both levels; the levels work exactly as in Bramble. ★ = privacy option.
+The first 12 mirror Bramble; three more (G1–G3) are Stride-only gamified flows.
+
+Each matched Stride flow mirrors a Bramble flow (its `counterpart`): same unit, kind, settling rule, recipient type, consent condition, points, option positions and (for prompts) option wording, with health or biometric information instead of location. Labels are identical in both levels; the levels work exactly as in Bramble. ★ = privacy option.
 
 | Unit | `flowId` | Task | Values | Counterpart | Nudged | Neutral |
 |---|---|---|---|---|---|---|
@@ -286,7 +288,17 @@ Each Stride flow mirrors a Bramble flow (its `counterpart`): same unit, kind, se
 | U6 | `stride_reward_university`: university sleep study, de-identified | 10 | `accept` (Accept, +100 coins) · `decline` ★ | `reward_university` | "Accept" filled | equal buttons |
 | U6 | `stride_reward_data_partners`: Stride data partners, market research | 10 | `accept` (Accept, +150 coins) · `decline` ★ | `reward_data_partners` | "Accept" filled | equal buttons |
 
-**CI coding:** every Stride flow is `informationCategory: health`. (A Face Unlock flow, `biometric`, was dropped in 0.14.0 as unrealistic and unmatched.) Attributes: `health_metrics` (#1′, #2′), `heart_rate` (#3′, #5′, #7′), `activity_history` (#4′, #12′), `workout` (#6′), `health_history` (#8′, #9′, #10′), `sleep_history` (#11′, de-identified). The full coding is in `flow-codebook.csv` and `src/stride/flows.ts`.
+**Gamified flows (G1–G3, added in 0.15.0).** Stride-only, so `counterpart` is empty; each has a `nudgeType`. They pay no coins, so the bonus stays matched to Bramble. The framing (streak, friend count, tier) is part of the flow and the same in both levels; only emphasis differs, as for every prompt. All numbers are fixed and the same for everyone. Rationale and sources: `docs/superpowers/specs/2026-10-13-stride-gamified-nudges.md`.
+
+| Unit | `flowId` | `nudgeType` | Task | Where and what | Values | Nudged | Neutral |
+|---|---|---|---|---|---|---|---|
+| U1 | `stride_streak_autosync` (G1): "3-day streak. Don’t lose it" / "Let Stride count your steps in the background, so days you forget to open the app still count." Applies only if health access is not `dont_allow` | `streak` | 7 | Sheet on Today, right after health data syncs | `keep_streak` (Keep My Streak) · `not_now` (Not Now) ★ | "Keep My Streak" filled | equal buttons |
+| U4 | `stride_community_map` (G2): "Share this workout’s route and heart rate?" / "8 of your 12 friends share their workouts on the Stride community map, where anyone on Stride can see them." | `social_proof` | 8 | Sheet on Workout complete, after #7′ (or straight away if #7′ doesn't apply) | `share` (Share to Community) · `keep_private` (Keep Private) ★ | "Share to Community" filled | equal buttons |
+| U6 | `stride_gold_tier` (G3): "You’re 40 points from Gold" / "Connect your sleep tracker to reach Gold and unlock premium plans." Status points are not coins | `status` | 10 | Silver → Gold card on Rewards, above the offers | `reach_gold` (Reach Gold) · `not_now` (Not Now) ★ | "Reach Gold" filled | equal buttons |
+
+None of them is needed to finish its task: declining or not answering never triggers the unfinished-task check, and `t7`, `t8`, `t10` are unchanged.
+
+**CI coding:** every Stride flow is `informationCategory: health`. (A Face Unlock flow, `biometric`, was dropped in 0.14.0 as unrealistic and unmatched.) Attributes: `health_metrics` (#1′, #2′), `heart_rate` (#3′, #5′, #7′), `activity_history` (#4′, #12′), `workout` (#6′), `health_history` (#8′, #9′, #10′), `sleep_history` (#11′ de-identified; G3), `step_count` (G1), `workout_route` (G2, recipient type `public`). The full coding is in `flow-codebook.csv` and `src/stride/flows.ts`.
 
 **One difference from Bramble:** declining health access costs nothing extra (Bramble's location refusal leads to a ZIP search). Asking people to type health numbers by hand would invite real data, so Stride shows "Health data is off" instead.
 
@@ -333,13 +345,14 @@ Pilot runs use `pilot_pids` and `pilot_meta`.
 
 Every row uses a **study code** (`P001`, `P002`, … or `PL001`, … for pilots) instead of the Prolific ID. Codes go in order of arrival. Withdrawn participants are left out.
 
-### `flows.csv`: one row per participant × flow (26 rows each: 14 Bramble, 12 Stride). The main Experiment 2 table
+### `flows.csv`: one row per participant × flow (29 rows each: 14 Bramble, 15 Stride). The main Experiment 2 table
 
 Only participants who were assigned a level have rows.
 
 | Column | Meaning | Values |
 |---|---|---|
 | `studyCode`, `flowId`, `app`, `counterpart`, `unit` | Who, which flow, its app, its matched flow in the other app, and its decision screen | `P001`…; flow ID; `bramble` / `stride`; flow ID or empty; `U1`–`U6` |
+| `nudgeType` | The gamified framing of a Stride-only flow | `streak` · `social_proof` · `status`; empty for every matched flow |
 | `friction` | This flow's level **for this person** (from their pattern and the flow's unit) | `nudged` / `neutral` |
 | `expectedTask` | The task the flow belongs to | `1`–`10` |
 | `consentForm` | How consent was asked for this person (their level) | `opt_out` · `opt_in` · `nudged_choice` · `active_choice` |
@@ -379,9 +392,9 @@ Includes everyone who arrived, also people who declined consent or failed the de
 
 `studyCode`, then every event field from section 2, in phone order (`pageLoadAt`, then `seq`). Lists are joined with `;`, and nested objects (such as a task `outcome`) are written as JSON.
 
-### `flow-codebook.csv`: one row per flow (26 rows)
+### `flow-codebook.csv`: one row per flow (29 rows)
 
-`flowId`, `app`, `counterpart`, `unit`, `unitScreen`, `expectedTask`, `screen`, `options`, `privacyOption`, `dependsOn`, `consentForm_nudged`, `consentForm_neutral`, `verdictMap` (e.g. `while_using=allow;once=ask;dont_allow=block`), the `ci_*` columns and `ci_statement`. Use it to match the site flows with the Part 2 questionnaire items.
+`flowId`, `app`, `counterpart`, `nudgeType`, `unit`, `unitScreen`, `expectedTask`, `screen`, `options`, `privacyOption`, `dependsOn`, `consentForm_nudged`, `consentForm_neutral`, `verdictMap` (e.g. `while_using=allow;once=ask;dont_allow=block`), the `ci_*` columns and `ci_statement`. Use it to match the site flows with the Part 2 questionnaire items.
 
 ### `prolific-bonuses.txt`: bonuses to paste into Prolific
 

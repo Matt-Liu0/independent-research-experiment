@@ -5,6 +5,15 @@ Every build participants see has a version (`appVersion` on each record). Bump `
 
 
 
+## 0.15.0 (2026-10-13)
+
+- **Three Stride-only gamified flows** (stage 4 of the review; Matt chose G1–G3, without the countdown challenge, and a fixed friend count):
+  - **G1 `stride_streak_autosync` (streak, U1, task 7):** after health data syncs, "3-day streak. Don’t lose it" asks to count steps in the background. Keep My Streak · Not Now. Only if health access was allowed.
+  - **G2 `stride_community_map` (social proof, U4, task 8):** after the workout, "8 of your 12 friends share their workouts on the Stride community map". Share to Community · Keep Private.
+  - **G3 `stride_gold_tier` (status, U6, task 10):** a Silver → Gold card on Rewards, "You’re 40 points from Gold", connects a sleep tracker. Reach Gold · Not Now. Pays no coins.
+  - Each follows its screen's friction level (emphasis only; framing identical in both levels), and none is needed to finish a task.
+- **Data:** Stride has 15 flows (29 in all). New `nudgeType` column in `flows.csv` and `flow-codebook.csv`. New CI terms: `step_count`, `workout_route`, recipient type `public`, aims `keep_streak`, `community_sharing`, `status_tier`.
+
 ## 0.14.0 (2026-10-13)
 
 - **Wording aligned with prior work** (the Oct 7 proposal, approved by Matt):

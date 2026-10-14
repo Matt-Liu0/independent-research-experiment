@@ -41,16 +41,32 @@ describe('Stride flows', () => {
     }
   })
 
-  it('codes every Stride flow as health information, each paired with a Bramble flow', () => {
+  it('codes every Stride flow as health information; all but the gamified flows are paired with a Bramble flow', () => {
     for (const f of STRIDE_FLOW_LIST) {
       expect(f.ci.informationCategory, f.id).toBe('health')
-      expect(f.counterpart, f.id).not.toBeNull()
+      expect(f.counterpart === null, f.id).toBe(f.nudgeType !== undefined)
+    }
+  })
+
+  it('adds three gamified flows, one per nudge type, that pay nothing', () => {
+    const gamified = STRIDE_FLOW_LIST.filter((f) => f.nudgeType !== undefined)
+    expect(gamified.map((f) => [f.id, f.nudgeType, f.unit])).toEqual([
+      ['stride_streak_autosync', 'streak', 'U1'],
+      ['stride_community_map', 'social_proof', 'U4'],
+      ['stride_gold_tier', 'status', 'U6'],
+    ])
+    for (const f of gamified) {
+      expect(f.points, f.id).toBeUndefined()
+      expect(f.ci.transmissionPrinciple.consideration, f.id).toBeNull()
+      // Privacy option last, as in every prompt.
+      expect(f.options.at(-1), f.id).toBe(f.privacyOption)
+      for (const level of LEVELS) expect(consentForm(f, level), f.id).toBe(level === 'nudged' ? 'nudged_choice' : 'active_choice')
     }
   })
 
   it('uses the same option words as each Bramble counterpart', () => {
     for (const stride of STRIDE_FLOW_LIST) {
-      if (stride.kind !== 'prompt' || stride.screen === 'workout' && stride.id === 'stride_sam_share') continue
+      if (stride.kind !== 'prompt' || stride.counterpart === null || stride.id === 'stride_sam_share') continue
       const bramble = getBrambleFlow(stride.counterpart as Parameters<typeof getBrambleFlow>[0])
       expect(stride.options.map((o) => stride.labels[o]), stride.id).toEqual(bramble.options.map((o) => bramble.labels[o]))
     }
@@ -58,7 +74,7 @@ describe('Stride flows', () => {
 })
 
 describe('Today (Task 7)', () => {
-  it('nudged: the health sheet presets detailed data and highlights Allow; choosing settles both', async () => {
+  it('nudged: the health sheet presets detailed data and highlights Allow; choosing settles both, then the streak asks', async () => {
     const user = userEvent.setup()
     const app = renderStride('nudged')
     await user.click(screen.getByRole('button', { name: 'Connect' }))
@@ -66,12 +82,30 @@ describe('Today (Task 7)', () => {
     expect(within(sheet).getByRole('switch', { name: 'Detailed' })).toHaveAttribute('aria-checked', 'true')
     expect(within(sheet).getByRole('button', { name: 'Allow While Using App' })).toHaveAttribute('data-emphasis', 'primary')
     await user.click(within(sheet).getByRole('button', { name: 'Allow Once' }))
+    const streak = await screen.findByRole('dialog', { name: '3-day streak. Don’t lose it' })
+    expect(within(streak).getByRole('button', { name: 'Keep My Streak' })).toHaveAttribute('data-emphasis', 'primary')
+    await user.click(within(streak).getByRole('button', { name: 'Keep My Streak' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.getByText('steps')).toBeInTheDocument()
+    expect(screen.getByText(/counting steps in the background/)).toBeInTheDocument()
     expect(app.eventsOf('settled').map((e) => [e.flowId, e.value])).toEqual([
       ['stride_health_access', 'once'],
       ['stride_health_detail', 'detailed'],
+      ['stride_streak_autosync', 'keep_streak'],
     ])
+    expect(strideTaskOutcome(7, app.state()).done).toBe(true)
+  })
+
+  it('neutral: the streak buttons are equal, and Not Now still finishes the task', async () => {
+    const user = userEvent.setup()
+    const app = renderStride('neutral')
+    await user.click(screen.getByRole('button', { name: 'Connect' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Allow While Using App' }))
+    const streak = await screen.findByRole('dialog', { name: '3-day streak. Don’t lose it' })
+    for (const b of within(streak).getAllByRole('button')) expect(b).toHaveAttribute('data-emphasis', 'plain')
+    await user.click(within(streak).getByRole('button', { name: 'Not Now' }))
+    expect(app.state().flows.stride_streak_autosync).toBe('not_now')
+    expect(strideTaskOutcome(7, app.state()).done).toBe(true)
   })
 
   it('neutral: detailed data starts off, buttons are equal, and declining leaves detail not applicable', async () => {
@@ -124,16 +158,26 @@ describe('Workout (Task 8)', () => {
     const sheet = screen.getByRole('dialog', { name: 'Keep heart-rate monitoring on all day?' })
     await user.click(within(sheet).getByRole('button', { name: 'Keep Only While Using' }))
     expect(app.state().flows.stride_hr_all_day).toBe('turn_off')
+    // Then the community map, with the friend count.
+    const map = await screen.findByRole('dialog', { name: 'Share this workout’s route and heart rate?' })
+    expect(within(map).getByText(/8 of your 12 friends/)).toBeInTheDocument()
+    expect(within(map).getByRole('button', { name: 'Share to Community' })).toHaveAttribute('data-emphasis', 'primary')
+    await user.click(within(map).getByRole('button', { name: 'Share to Community' }))
+    expect(screen.getByText('Shared to the community map.')).toBeInTheDocument()
     expect(strideTaskOutcome(8, app.state())).toEqual({ done: true, workoutDone: true, samNotified: true })
   })
 
-  it('skips the all-day question when background heart rate was declined', async () => {
+  it('skips the all-day question when background heart rate was declined, and goes straight to the community map', async () => {
     const user = userEvent.setup()
-    renderStride('neutral', { screen: 'workout', workout: 'warm_up' })
+    const app = renderStride('neutral', { screen: 'workout', workout: 'warm_up' })
     await user.click(await screen.findByRole('button', { name: "Don't Allow" }))
     await user.click(screen.getByRole('button', { name: 'Share my live workout with Sam' }))
     expect(await screen.findByRole('heading', { name: 'Workout complete' })).toBeInTheDocument()
+    const map = screen.getByRole('dialog', { name: 'Share this workout’s route and heart rate?' })
+    for (const b of within(map).getAllByRole('button')) expect(b).toHaveAttribute('data-emphasis', 'plain')
+    await user.click(within(map).getByRole('button', { name: 'Keep Private' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(app.state().flows.stride_hr_all_day).toBeNull()
   })
 
   it('takes the Workouts tab back to a workout in progress', async () => {
@@ -170,6 +214,18 @@ describe('Rewards (Task 10)', () => {
     expect(app.state().points).toBe(START_COINS - REPORT_COST + 200)
     expect(strideTaskOutcome(10, app.state())).toEqual({ done: true, reportUnlocked: true })
   })
+
+  it.each(LEVELS)('%s: reaching Gold pays no coins and is not one of the paid offers', async (level) => {
+    const user = userEvent.setup()
+    const app = renderStride(level, { screen: 'rewards' })
+    const tier = within(screen.getByText('You’re 40 points from Gold').closest('.tier-card') as HTMLElement)
+    expect(tier.getByRole('button', { name: 'Reach Gold' })).toHaveAttribute('data-emphasis', level === 'nudged' ? 'primary' : 'plain')
+    expect(document.querySelectorAll('.offer-card')).toHaveLength(3)
+    await user.click(tier.getByRole('button', { name: 'Reach Gold' }))
+    expect(screen.getByText('You reached Gold')).toBeInTheDocument()
+    expect(app.state().points).toBe(START_COINS)
+    expect(app.eventsOf('settled').map((e) => [e.flowId, e.value])).toEqual([['stride_gold_tier', 'reach_gold']])
+  })
 })
 
 describe('Profile', () => {
@@ -186,6 +242,9 @@ describe('Profile', () => {
     expect(app.state().accountPageVisits).toBe(1)
   })
 })
+
+/** Flows that depend on a sharing answer, so declining everything leaves them unasked. */
+const NOT_APPLICABLE_WHEN_DECLINED: string[] = ['stride_health_detail', 'stride_hr_all_day', 'stride_streak_autosync']
 
 /** Does tasks 7–10, declining everything. Returns the outcome of each task. */
 async function declineEverything(friction: Friction) {
@@ -207,6 +266,7 @@ async function declineEverything(friction: Friction) {
   await user.click(await screen.findByRole('button', { name: "Don't Allow" }))
   await user.click(screen.getByRole('button', { name: 'Send a summary only' }))
   await screen.findByRole('heading', { name: 'Workout complete' })
+  await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Keep Private' }))
   outcomes[8] = strideTaskOutcome(8, app.state()).done
 
   await user.click(tab('Plans'))
@@ -217,6 +277,7 @@ async function declineEverything(friction: Friction) {
 
   await user.click(tab('Rewards'))
   await user.click(screen.getByRole('button', { name: 'Unlock' }))
+  await user.click(screen.getByRole('button', { name: 'Not Now' }))
   for (const card of document.querySelectorAll<HTMLElement>('.offer-card')) {
     await user.click(within(card).getByRole('button', { name: 'Decline' }))
   }
@@ -230,7 +291,7 @@ describe('decline everything (Stride)', () => {
     expect(outcomes).toEqual({ 7: true, 8: true, 9: true, 10: true })
     const s = app.state()
     for (const flow of STRIDE_FLOW_LIST) {
-      if (flow.id === 'stride_health_detail' || flow.id === 'stride_hr_all_day') expect(s.flows[flow.id], flow.id).toBeNull()
+      if (NOT_APPLICABLE_WHEN_DECLINED.includes(flow.id)) expect(s.flows[flow.id], flow.id).toBeNull()
       else expect(s.flows[flow.id], flow.id).toBe(flow.privacyOption)
     }
     expect(bonusDollars(s.points)).toBe(0.12)
@@ -242,7 +303,7 @@ describe('decline everything (Stride)', () => {
     const settled = app.eventsOf('settled').map((e) => String(e.flowId))
     expect(new Set(shown).size).toBe(shown.length)
     expect(settled.sort()).toEqual(
-      STRIDE_FLOW_IDS.filter((id) => id !== 'stride_health_detail' && id !== 'stride_hr_all_day').sort(),
+      STRIDE_FLOW_IDS.filter((id) => !NOT_APPLICABLE_WHEN_DECLINED.includes(id)).sort(),
     )
     for (const id of settled) {
       const firstShown = app.events.findIndex((e) => e.type === 'prompt_shown' && e.flowId === id)

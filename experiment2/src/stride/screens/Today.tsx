@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { FlowChoice } from '../../core/FlowChoice'
-import { MoonIcon, PulseIcon } from '../../core/icons'
+import { FlameIcon, MoonIcon, PulseIcon } from '../../core/icons'
 import { LoadingBlock } from '../../core/Loading'
 import { Sheet } from '../../core/Sheet'
 import { useBusy } from '../../core/useBusy'
@@ -18,6 +18,13 @@ export function Today() {
   const access = state.flows.stride_health_access
   const accessAnswered = state.settled.includes('stride_health_access')
   const flow = STRIDE_FLOWS.getFlow('stride_health_access')
+  const streak = STRIDE_FLOWS.getFlow('stride_streak_autosync')
+  // The streak prompt follows a successful connect, once the sync has finished.
+  const askStreak =
+    accessAnswered &&
+    busy === null &&
+    STRIDE_FLOWS.isApplicable('stride_streak_autosync', state.flows) &&
+    !state.settled.includes('stride_streak_autosync')
 
   const onAccessChosen = (value: string) => {
     if (value !== 'dont_allow') settleFlow('stride_health_detail')
@@ -66,6 +73,10 @@ export function Today() {
           </div>
         </div>
         {state.flows.stride_health_detail === 'summary' && <p className="muted small">Showing daily summaries only.</p>}
+        <div className="streak-chip small">
+          <FlameIcon /> 3-day streak
+          {state.flows.stride_streak_autosync === 'keep_streak' && <span className="muted"> · counting steps in the background</span>}
+        </div>
       </div>
     )
 
@@ -88,6 +99,12 @@ export function Today() {
         <Sheet icon={<PulseIcon />} title={flow.title} description={flow.description}>
           <FlowChoice flowId="stride_health_detail" />
           <FlowChoice flowId="stride_health_access" onChosen={onAccessChosen} />
+        </Sheet>
+      )}
+
+      {askStreak && (
+        <Sheet icon={<FlameIcon />} title={streak.title} description={streak.description}>
+          <FlowChoice flowId="stride_streak_autosync" />
         </Sheet>
       )}
     </section>

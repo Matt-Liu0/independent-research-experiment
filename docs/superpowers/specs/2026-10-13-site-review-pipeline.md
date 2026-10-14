@@ -26,6 +26,7 @@ Oct 13, 2026 · From Matt's review of both apps
 - **(9) App order stays randomized and balanced (Matt, Oct 13).**
 - **(10) Face ID dropped (Matt, Oct 13).** Removed in v0.14.0; Stride has 12 flows, all paired.
 - **Wording proposal approved (Matt, Oct 13)** and applied in v0.14.0, Stride included.
+- **(8) Stride nudges chosen (Matt, Oct 13):** G1 streak, G2 social proof with a fixed friend count, G3 status tier; no countdown. Analysis: each flow against its own stated verdict. Built in v0.15.0.
 
 ## Measurements behind (4)
 

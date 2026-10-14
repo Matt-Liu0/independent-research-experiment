@@ -180,6 +180,12 @@ describe('flowCodebook', () => {
       ci_informationCategory: 'demographic',
       ci_attribute: 'home_address',
     })
+    expect(book.find((r) => r.flowId === 'checkout_partner_offers')?.nudgeType).toBeNull()
+    expect(book.filter((r) => r.nudgeType !== null).map((r) => [r.flowId, r.nudgeType, r.counterpart])).toEqual([
+      ['stride_streak_autosync', 'streak', null],
+      ['stride_community_map', 'social_proof', null],
+      ['stride_gold_tier', 'status', null],
+    ])
   })
 })
 

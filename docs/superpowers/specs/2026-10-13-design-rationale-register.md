@@ -6,7 +6,7 @@ One row per design decision: what we chose, why, the supporting source, and what
 
 - **How sources are marked:** a source in **bold brackets** was checked against the paper or page itself (references at the end). "Our choice" means no published source decides it, and the reason is given instead.
 - **Gaps:** rows marked **needs source** are where a citation would strengthen the paper. Matt and Noah should fill or accept them.
-- **Version:** current to site version 0.14.0.
+- **Version:** current to site version 0.15.0.
 
 ## 1. Study frame
 
@@ -55,6 +55,10 @@ One row per design decision: what we chose, why, the supporting source, and what
 | C5 | Stride mirrors Bramble | Same unit, kind, recipient type, condition, points and buttons; health instead of location | Our choice: isolates information type (the CI question) |
 | C6 | Extra Bramble flows | Saved card (financial), birthday deals (demographic) | Matt, Oct 8: diversify information types |
 | C7 | Face ID | Dropped | Real Face ID keeps the face data on the phone, so "Stride saves a scan" isn't how phones work; it also had no counterpart (Matt, Oct 13) |
+| C8 | Stride-only gamified flows | G1 streak (background steps), G2 social proof (public community map), G3 status tier (sleep tracker); no coins; same two levels | Matt, Oct 13 (option A). Sources in `2026-10-13-stride-gamified-nudges.md`: Silverman & Barasch 2023; Das et al. 2014; Mathur et al. 2019; Hassan et al. 2018 (**[H]**); Vitality (**[V]**) |
+| C9 | No countdown (G4), no confirmshaming | Left out | Countdown adds stress and may look fake; confirmshaming would change decline wording across levels (Matt, Oct 13) |
+| C10 | Fixed friend count ("8 of your 12 friends") | Fixed and the same for everyone | Follows Das et al.'s numbered social-proof notices (Matt, Oct 13) |
+| C11 | Analysis of gamified flows | Each flow against its own stated verdict; no nudge-vs-nudge test | One flow per nudge type, so nudge and flow are confounded at any n (see the nudge spec) |
 
 ## 5. Incentives
 
@@ -91,7 +95,8 @@ Screen-by-screen comparison with real apps. These are observations, not sources.
 | Stride health prompt | Same as the OS location prompt | Real Apple Health uses per-category switches | Kept identical to the counterpart on purpose (C5) |
 | Workout | Phases, live heart rate, coach | ⚠ 10 "minutes" in about 25 s | Necessary compression |
 | Stride insurer offer | Real precedent (**[V]**) | — | Strong realism anchor |
-| Strava-like public sharing | Defaults public in real apps (**[H]**) | Not in Stride yet | Candidate for the gamified nudges (see the nudge proposal) |
+| Strava-like public sharing | Defaults public in real apps (**[H]**) | Asked, not preset (G2) | Added in 0.15.0 |
+| Streak and status tier (G1, G3) | Common in fitness apps (Apple Fitness, Vitality) | ⚠ Rewards now has four asks (three offers and the Gold card) | Watch the suspicion answers in the pilot |
 
 ## References (all checked)
 
