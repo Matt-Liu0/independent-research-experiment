@@ -47,11 +47,12 @@
   list-style: none;
 }
 
-.plan-swatch {
+.plan-photo {
   flex: none;
-  width: 44px;
-  height: 44px;
+  width: 64px;
+  height: 64px;
   border-radius: 12px;
+  object-fit: cover;
 }
 
 /* The moving stripe on the current progress step, in Stride's blue. */

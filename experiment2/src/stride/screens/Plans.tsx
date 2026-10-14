@@ -29,7 +29,7 @@ export function Plans() {
           const saved = state.savedPlans.includes(plan.id)
           return (
             <li key={plan.id} className="card plan-card row">
-              <span className="plan-swatch" style={{ background: plan.swatch }} aria-hidden="true" />
+              <img className="plan-photo" src={plan.image} alt="" style={{ background: plan.swatch }} width={64} height={64} />
               <div style={{ flex: 1 }}>
                 <div className="product-name">{plan.name}</div>
                 <div className="muted small">{plan.detail}</div>
