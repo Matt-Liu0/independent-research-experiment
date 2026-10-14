@@ -12,6 +12,9 @@ export type EventType =
   | 'visibility'
   | 'resume'
   | 'error'
+  // Part 2 and the norming survey
+  | 'item'
+  | 'survey'
 
 export interface StudyEvent {
   type: EventType

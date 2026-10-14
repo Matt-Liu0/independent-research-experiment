@@ -1,0 +1,62 @@
+/* Part 2 and the norming survey run on a computer: a wider column than the phone pages. */
+.page-wide {
+  max-width: 640px;
+}
+
+.item-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.item-text {
+  font-size: 1.2rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.verdicts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.option.verdict {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+}
+
+@media (max-width: 520px) {
+  .verdicts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.scale-7 {
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.definitions {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.item-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line, #e5e2da);
+  overflow: hidden;
+}
+
+.item-progress span {
+  display: block;
+  height: 100%;
+  background: var(--ink, #1f2a24);
+}
+
+.option[aria-checked='true'] .muted {
+  color: rgb(255 255 255 / 0.8);
+}

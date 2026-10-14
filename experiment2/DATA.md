@@ -437,3 +437,39 @@ An agent link starts a fresh episode with the same app, flows, defaults, emphasi
   - `getRecord()`: the same participant record as section 1, plus `agent: { episodeId, model, condition, run, participant }`, and with `device.automated` true
   - `getEvents()`: every event, in the section 2 format
 - **Screen descriptions:** every decision button has `data-emphasis`: `primary` (the highlighted sharing option, nudged only) or `plain` (every other option; in neutral, all options). Switches use `aria-checked` and checkboxes `checked`. The harness's `get_screen` should report these (e.g. "primary", "ON") and never call anything a default.
+
+---
+
+## 9. Part 2 questionnaire and norming survey (`part2/{uid}`, `norming/{uid}`)
+
+Design and item wording: `docs/superpowers/specs/2026-10-14-part2-questionnaire-design.md`; the wording itself is in `src/part2/items.ts`. Part 2 runs on a computer under a different anonymous uid from Part 1, so the export joins the two by Prolific ID. Pilot data goes to `pilot_part2` and `pilot_norming`; one record per Prolific ID is claimed in `part2_pids` / `norming_pids`.
+
+### Record fields
+
+| Field | Meaning | Values |
+|---|---|---|
+| `prolificPid`, `studyId`, `sessionId`, `recruitment` | As in Part 1 | |
+| `variant` | Which survey | `part2` · `norming` |
+| `stage` | Where they are | Part 2: `device` → `intro` → `practice` → `comprehension` → `items` → `recall` → `background` → `done`. Norming: `consent` instead of `recall`, after `device` |
+| `device` | As in Part 1; `passedCheck` means a computer (Part 2) or any device (norming) | |
+| `sequence` | The page order, saved before the first item | list of `{kind: 'item', itemId, wording: 'A'/'B'}` or `{kind: 'attention', itemId}` (55 pages) |
+| `answers.<slot>` | One answer per page, keyed `itemId:A`, `itemId:B` or `attention_1` / `attention_2` | `{itemId, wording, position, verdict: allow/ask/block, confidence: 1–5, ms, changes}` |
+| `practice` | The unscored practice item | `{verdict, confidence}` |
+| `comprehension` | "Which option means the app should check with you every time?" (correct: `ask`) | `{attempts: [...], passed}`; at most two attempts |
+| `recall.<question>` | Part 2 only: what they remember choosing | the flow's own value (e.g. `once`, `arrival_only`, `accept`) or `dont_remember` |
+| `background` | IUIPC (10 items, 1–7), age range, gender (optional), AI assistant use | `{iuipc: [..10], ageRange, gender, aiUse}` |
+| `consentVersion` | Norming only | `norming-v1-draft` |
+| `createdAt`, `startedItemsAt`, `completedAt` | Server timestamps | |
+
+Events (`part2/{uid}/events`) use the same fields as Part 1, with types `stage`, `item` (`shown`, `answered`), `survey` (`comprehension`, `recall_submitted`, `background_submitted`), `visibility`, `resume` and `error`.
+
+### Export CSVs
+
+- **`verdicts.csv`** (main Part 2 table): one row per person × battery item (41 per person).
+  - **Stated verdict:** `verdict`, `confidence`, `wording`, `position`, `ms` and `changes` are the first time the item was asked.
+  - **Repeat:** `verdict2`, `confidence2` and `position2` are the repeat. `unstable` means the two verdicts differ; `uncertain` means both confidences were 1 or 2 (repeated items only).
+  - **Site:** `siteFriction`, `siteStatus`, `siteFirstVerdict`, `siteFinalVerdict` and `sayDoAgree` come from the same person's row in `flows.csv` (site flows only).
+- **`part2-participants.csv`:** one row per person. `studyCode` is their Part 1 code, or `X…` if no Part 1 record matches. It also has `matchedToPart1`, `daysSincePart1`, `comprehensionPassed`, `attention_1_passed`, `attention_2_passed`, `attentionPassed`, `itemsAnswered`, `medianItemMs` and `minutesOnItems`. Each recall answer comes with `<question>_correct`, compared with the first choice on the site (empty for "I don't remember"). The background survey gives `iuipc_1`…`iuipc_10`, `iuipc_control`, `iuipc_awareness`, `iuipc_collection`, `ageRange`, `gender` and `aiUse`.
+- **`norming-verdicts.csv`, `norming-participants.csv`:** the same tables for the norming sample. Study codes are `N001`…, and the site and recall columns are empty.
+- **`battery-codebook.csv`:** one row per battery item, with `kind` (`site` / `held_out`), `domain`, `repeated`, both wordings, the `ci_*` columns, and for held-out items `nearestSiteFlow`, `distance` and `differsOn`.
+- **`part2-id-map.csv`:** study code → Prolific ID for both samples. Private, like `id-map.csv`.

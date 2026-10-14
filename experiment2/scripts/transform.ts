@@ -62,7 +62,7 @@ function settledEvent(events: Record<string, unknown>[], flowId: string) {
 }
 
 /** The flow's GKC-CI parameters as flat columns (same for everyone; see src/core/ci.ts). */
-export function ciColumns(flow: FlowDef): Row {
+export function ciColumns(flow: Pick<FlowDef, 'ci'>): Row {
   const tp = flow.ci.transmissionPrinciple
   return {
     ci_sender: flow.ci.sender,

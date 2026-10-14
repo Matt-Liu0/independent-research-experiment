@@ -73,7 +73,15 @@ Prolific: submission "Awaiting review" ─▶ you approve ─▶ base pay; then 
 1. Make an allowlist from the Prolific IDs of everyone who completed Part 1 (the `id-map.csv` rows whose `studyCode` has `completed = true`).
 2. Create the Part 2 study with Prolific's **custom allowlist** screener set to those IDs, so only Part 1 participants can take it.
 3. Message them through Prolific when it opens. Part 1's closing page already tells them Part 2 opens in 7 days.
-4. Link the two parts by Prolific ID, then replace it with the study code for analysis.
+4. **Study URL:** `https://<site>/part2.html?PROLIFIC_PID={{%PROLIFIC_PID%}}&STUDY_ID={{%STUDY_ID%}}&SESSION_ID={{%SESSION_ID%}}`. Set **device** to desktop only (the page turns phones and tablets away).
+5. **Completion code:** set `VITE_PROLIFIC_PART2_CODE` in `.env` before building.
+6. **Linking:** the export joins Part 2 to Part 1 by Prolific ID and reuses the Part 1 study code (`part2-participants.csv` → `matchedToPart1`).
+
+## 7. Norming survey (separate people)
+
+1. **Study URL:** `https://<site>/norming.html?PROLIFIC_PID={{%PROLIFIC_PID%}}&STUDY_ID={{%STUDY_ID%}}&SESSION_ID={{%SESSION_ID%}}`. Any device.
+2. **Completion code:** `VITE_PROLIFIC_NORMING_CODE`.
+3. **Exclude** everyone who took Part 1 or the pilot (Prolific's custom blocklist, from `id-map.csv`).
 
 ## Code-recruited participants (students)
 

@@ -61,6 +61,7 @@ To change the area, edit `src/bramble/mapConfig.ts` (location, store pins, `MAP_
 | `src/study/` | Prolific entry, device check, consent, assignment (pattern × app order), tasks, Firestore store |
 | `src/study/consentText.ts` | **DRAFT** consent text: replace with the IRB version and bump `version` |
 | `src/surveys/` | Ease rating, SUS, suspicion question, settings check, closing |
+| `src/part2/` | Part 2 questionnaire and norming survey (`part2.html`, `norming.html`): battery wording (`items.ts`), order, screens, store |
 | `firestore.rules` | Security rules |
 | `scripts/export.ts` | CSV export |
 

@@ -5,6 +5,15 @@ Every build participants see has a version (`appVersion` on each record). Bump `
 
 
 
+## 0.16.0 (2026-10-14)
+
+- **Part 2 questionnaire and norming survey** (Matt: questionnaire first, all 29 site flows plus 12 repeats, on our own site). Spec: `docs/superpowers/specs/2026-10-14-part2-questionnaire-design.md`.
+  - **Battery:** 29 site flows, 12 reworded repeats (one per decision screen in each app, as matched pairs), 12 held-out flows (6 matched pairs). That makes 53 scored items plus 2 attention items, in a random order per person, with repeats at least 20 apart.
+  - **Wording:** generic apps ("your grocery delivery app", "your fitness app"), no nudges, rewards in dollars.
+  - **Pages:** `part2.html` (computer only: intro, practice, comprehension, items, recall check, background survey) and `norming.html` (any device: consent, then the same questionnaire without recall).
+  - **Data:** `part2` / `norming` collections with security rules. The export adds `verdicts.csv` (stated verdict next to the site verdict, with stability flags), `part2-participants.csv`, the norming tables, `battery-codebook.csv` and `part2-id-map.csv`.
+- Not yet built: scenario briefing, chat with the interviewer, filler, debrief.
+
 ## 0.15.0 (2026-10-13)
 
 - **Three Stride-only gamified flows** (stage 4 of the review; Matt chose G1–G3, without the countdown challenge, and a fixed friend count):

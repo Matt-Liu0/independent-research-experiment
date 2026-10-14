@@ -301,3 +301,59 @@ describe('pilot collections', () => {
     await assertSucceeds(enroll('alice2', 'pid_same'))
   })
 })
+
+describe('Part 2 and norming records', () => {
+  function part2Record(pid: string, variant: 'part2' | 'norming') {
+    return {
+      prolificPid: pid, studyId: 's', sessionId: 'x', variant, appVersion: '0.16.0', stage: 'device', withdrawn: false,
+      sequence: null, answers: {}, createdAt: serverTimestamp(),
+    }
+  }
+
+  async function enrollPart2(uid: string, col: string, pid = `pid_${uid}`) {
+    const d = db(uid)
+    await setDoc(doc(d, `${col}_pids`, pid), { uid, createdAt: serverTimestamp() })
+    await setDoc(doc(d, col, uid), part2Record(pid, col.endsWith('norming') ? 'norming' : 'part2'))
+    return d
+  }
+
+  it('lets a participant create, read and update their own Part 2 or norming record', async () => {
+    for (const col of ['part2', 'pilot_part2', 'norming', 'pilot_norming']) {
+      const d = await enrollPart2(`u_${col}`, col)
+      await assertSucceeds(updateDoc(doc(d, col, `u_${col}`), { stage: 'items', answers: { 'store_location:A': { verdict: 'allow' } } }))
+      await assertSucceeds(getDoc(doc(d, col, `u_${col}`)))
+      await assertSucceeds(addDoc(collection(d, col, `u_${col}`, 'events'), { type: 'item', clientT: 1, t: serverTimestamp() }))
+    }
+  })
+
+  it('refuses a record without a claim, with the wrong variant, or under another uid', async () => {
+    const d = db('a')
+    await assertFails(setDoc(doc(d, 'part2', 'a'), part2Record('pid_a', 'part2')))
+    await setDoc(doc(d, 'part2_pids', 'pid_a'), { uid: 'a', createdAt: serverTimestamp() })
+    await assertFails(setDoc(doc(d, 'part2', 'a'), part2Record('pid_a', 'norming')))
+    await assertFails(setDoc(doc(d, 'part2', 'b'), part2Record('pid_a', 'part2')))
+    await assertSucceeds(setDoc(doc(d, 'part2', 'a'), part2Record('pid_a', 'part2')))
+  })
+
+  it('locks identity fields, hides records from others, and refuses deletes', async () => {
+    const d = await enrollPart2('a', 'part2')
+    await assertFails(updateDoc(doc(d, 'part2', 'a'), { prolificPid: 'other' }))
+    await assertFails(updateDoc(doc(d, 'part2', 'a'), { variant: 'norming' }))
+    await assertFails(updateDoc(doc(d, 'part2', 'a'), { withdrawn: true }))
+    await assertFails(getDoc(doc(db('b'), 'part2', 'a')))
+    await assertFails(deleteDoc(doc(d, 'part2', 'a')))
+  })
+
+  it('lets only one user claim a Prolific ID for Part 2, separately from Part 1', async () => {
+    await assertSucceeds(setDoc(doc(db('a'), 'part2_pids', 'P'), { uid: 'a', createdAt: serverTimestamp() }))
+    await assertFails(setDoc(doc(db('b'), 'part2_pids', 'P'), { uid: 'b', createdAt: serverTimestamp() }))
+    // The same person has a Part 1 record on their phone under a different uid.
+    await assertSucceeds(setDoc(doc(db('phone'), 'pids', 'P'), { uid: 'phone', createdAt: serverTimestamp() }))
+  })
+
+  it('opens no other collection through the wildcard', async () => {
+    const d = db('a')
+    await assertFails(setDoc(doc(d, 'anything', 'a'), part2Record('pid_a', 'part2')))
+    await assertFails(setDoc(doc(d, 'anything_pids', 'x'), { uid: 'a', createdAt: serverTimestamp() }))
+  })
+})

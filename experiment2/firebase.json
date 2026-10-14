@@ -8,13 +8,21 @@
     ],
     "rewrites": [
       {
+        "source": "/part2",
+        "destination": "/part2.html"
+      },
+      {
+        "source": "/norming",
+        "destination": "/norming.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
     ],
     "headers": [
       {
-        "source": "/index.html",
+        "source": "/@(index|part2|norming).html",
         "headers": [
           {
             "key": "Cache-Control",
