@@ -64,20 +64,24 @@ A separate **norming sample** completes only the stated-verdict questionnaire, w
 
 **Materials.**
 
-* *Scenario.* Each session uses one domain (pilot: location data). Each flow coordinate has a fixed vocabulary taken from the policy schema in the evaluation design.  
-* *Flow battery.* About 36 flows, split into two groups:  
-  * Training flows **T** are the cases shown in the case-based arm. The structured arm's prompts name the same coordinate values.  
-  * Held-out flows **H** combine values that appear in T but never together. They are split into three levels by parameter distance from T.  
+* *Scenario.* Each session covers the two domains of the Experiment 2 apps: location data (grocery delivery) and health data (fitness). The interviewer gives each domain a fixed share of the elicitation time, so the held-out health items have a matching part of the transcript (decided Oct 18, 2026). Each flow coordinate has a fixed vocabulary taken from the policy schema in the evaluation design.  
+* *Flow battery.* 41 flows (decided Oct 14, 2026), plus 12 reworded repeats, for 53 scored items:  
+  * Site flows: all 29 decision points of Experiment 2 (Bramble's 14 and Stride's 15), so every flow on the site has both A(f) and S(f).  
+  * Training flows **T** are the cases shown in the case-based arm, chosen from the site flows when the interview is designed. The structured arm's prompts name the same coordinate values.  
+  * Held-out flows **H** combine values that appear in T but never together. They are split into three levels by parameter distance from T. Twelve are written so far (6 location, 6 health, as matched pairs), at distance 1 or 2 from the nearest site flow. Once T is fixed, distances are recomputed against T and level-3 items are added (decided Oct 18, 2026).  
 * H is defined by the materials, not by what a given participant happened to mention, so it is the same across arms.  
-* *Vignettes.* Every flow uses one template: "\[Recipient\] wants your \[attribute\] to \[aim\], \[condition\]." Only the wording for a changed coordinate differs between vignettes. So when two verdicts differ, the difference can be traced to the parameter that changed.
+* *Vignettes.* Every flow uses one template: "\[Recipient\] wants your \[attribute\] to \[aim\], \[condition\]." Only the wording for a changed coordinate differs between vignettes. So when two verdicts differ, the difference can be traced to the parameter that changed.  
+* *Item wording* (decided Oct 14, 2026). Items name a generic app ("your grocery delivery app", "your fitness app"), not Bramble or Stride: the norming sample has never seen them, and naming them would remind Experiment 2 participants of what they chose. Rewards are stated in dollars (100 points = $0.10). Items describe the flow only, with no default, highlighting, streak, friend count or tier, so for nudged and gamified flows the say–do gap is measured against the person's view of the bare flow.
 
 **Procedure** (one session, about 40 minutes).
 
 1. Consent and scenario briefing.  
 2. Elicitation in the assigned arm (about 15 minutes).  
 3. A short unrelated filler task (about 3 minutes).  
-4. Stated-verdict questionnaire. Every battery flow is answered allow / block / ask me, each with a confidence rating. The 12 flows that also appear on the site (Experiment 2) each appear twice, reworded and at least 20 items apart.  
-5. A short background survey, including a standard privacy-concern scale (IUIPC; Malhotra et al., 2004).  
+4. Stated-verdict questionnaire: an introduction, one practice item and a comprehension check ("Which option means the app should check with you every time?"), then the 53 items, one per page, in a random order per person, with two attention items at positions 18 and 36 (55 pages). Every item is answered Allow / Ask me / Block, each with a confidence rating from 1 (not at all sure) to 5 (completely sure). Twelve site flows are asked twice, reworded and at least 20 items apart: one per decision screen in each app, so the 6 Bramble and 6 Stride repeats are matched pairs.  
+5. A recall check (Experiment 2 participants only): six questions about what they chose on the site, three per app, each with an "I don't remember" option.  
+6. A short background survey: a standard privacy-concern scale (IUIPC; Malhotra et al., 2004), age range, gender (optional) and how often they use AI assistants.  
+7. Full debrief, disclosing the cover story of Experiment 2.  
 There is no separate retest session (decided Oct 5, 2026): stability is measured from the repeated items in step 4. Repeats within one sitting overstate stability, because people remember their first answer, and we report this as a limitation.
 
 Elicitation comes before the questionnaire on purpose. The transcript should reflect what a person would tell an agent unprompted. Putting the questionnaire first would show every arm the full parameter structure and mostly erase the differences between arms.
@@ -93,11 +97,11 @@ The cost is that participants may answer the questionnaire in line with what the
   * terms with no clean match in the vocabulary.  
 * *Aided preferences (structured arm).* Answers the participant appears to form on the spot, marked by hesitation or "now that you mention it." We predict these are less stable across the repeated items, which links this measure to RQ1.3.  
 * *Elicitation effect.* Differences in S(H) between each arm and the norming sample. We model these with mixed-effects ordinal regression (allow \> ask \> block), with random effects for participant and flow. The questionnaire is identical across groups and assignment is random, so any systematic difference is caused by the elicitation.  
-* ***Consistency.*** **Agreement on the repeated items within the session, reported as Cohen's κ per participant. Flows a participant answers inconsistently are flagged, and later experiments score agent errors on those flows separately.**  
+* *Consistency.* Agreement on the 12 repeated items within the session, reported as each participant's agreement rate and as Cohen's κ pooled over participants. Per-participant κ is secondary, because 12 pairs with three categories give noisy per-person values (decided Oct 18, 2026). Flows a participant answers inconsistently are flagged, and later experiments score agent errors on those flows separately.  
 * *Confidence shift* (proposed Oct 18, 2026, for review). Confidence ratings (1–5) on S(H) compared between each arm and the norming sample, with random effects for participant and flow. Talking a preference through may make people surer of it even when the verdict doesn't change.  
 * *Cost.* Elicitation time and number of turns.
 
-**Participants.** **Students** recruited. The final sample size will come from a power analysis on RQ1.2 after piloting. The planning figure is 40 per arm plus 100 in the norming sample. One IRB protocol covers this experiment and Experiment 2\.
+**Participants.** Recruited through Prolific, or as students with participant codes; the site supports both (decided Oct 5, 2026). The final sample size will come from a power analysis on RQ1.2 after piloting. The planning figure is 40 per arm plus 100 in the norming sample. One IRB protocol covers this experiment and Experiment 2\.
 
 **Outputs passed on.**
 
@@ -115,11 +119,11 @@ The cost is that participants may answer the questionnaire in line with what the
 
 * **RQ2.1** How often do a person's actions differ from their statements, and in which direction? The privacy paradox predicts that actions are more permissive than statements, but we report both directions.  
 * **RQ2.2** Which flow parameters does the gap concentrate on? For example, people may act consistently about who receives their data but not about the conditions under which it is shared.  
-* **RQ2.3** How does the cost of the protective choice change the gap?
+* **RQ2.3** How do nudges against the protective choice (a permissive default or a highlighted permissive button) change the gap?
 
 **Design.** Within-subject with Experiment 1: the same participants act on the site and later state their preferences. The norming sample does not take part.
 
-Friction is a **within-subjects** factor with two levels (decided Oct 8, 2026). The 12 decision points sit on six decision screens; each participant gets three screens at each level, assigned independently of elicitation arm. Patterns are balanced so that each screen is nudged for exactly half the sample. Flows that share a screen always share a level, so no screen mixes nudged and neutral options. The two levels follow Utz et al. (2019):
+Friction is a **within-subjects** factor with two levels (decided Oct 8, 2026). In each app the decision points sit on six decision screens (U1–U6, matched across the apps); each participant gets three screens at each level, assigned independently of elicitation arm. Patterns are balanced so that each screen is nudged for exactly half the sample. Flows that share a screen always share a level, so no screen mixes nudged and neutral options. The two levels follow Utz et al. (2019):
 
 * *Low friction (non-nudging):* all options are formatted the same, and settings start unchecked (off).  
 * *High friction (nudging):* only the permissive option is highlighted, and settings are pre-checked (on).
@@ -131,7 +135,8 @@ Studies of consent interfaces show that defaults and button asymmetry shift choi
 **Environment.** The site contains two simulated mobile web apps, used in one session in a balanced random order (decided Oct 8, 2026): a fictional grocery delivery service ("Bramble") and a fictional fitness and health app ("Stride"). It is presented to participants as trying two new apps ("use each app as if it were your own account"). It is deliberately not called a usability test: a testing frame invites exploring rather than using, so final settings would reflect curiosity.
 
 * **Bramble:** six ordinary tasks (find a store, order an item, track a delivery, save deals, redeem a reward, change the address) with 14 privacy decision points, mostly location, plus a saved card (financial) and birthday deals (demographic). Task 6 leads to the Account settings page, where every setting can be revisited.
-* **Stride:** four tasks (connect health data, a guided workout, save training plans, unlock a sleep report) with 12 decision points, each mirroring one of Bramble's: the same decision screen, recipient type, consent condition, points and button wording, but health information instead of location (e.g. location history → an auto insurer becomes heart-rate history → a health insurer). The matched pairs vary information type while holding everything else fixed.
+* **Stride:** four tasks (connect health data, a guided workout, save training plans, unlock a sleep report) with 15 decision points. Twelve each mirror one of Bramble's: the same decision screen, recipient type, consent condition, points and button wording, but health information instead of location (e.g. location history → an auto insurer becomes heart-rate history → a health insurer). The matched pairs vary information type while holding everything else fixed.
+* **Stride's three gamified flows** (decided Oct 13, 2026) have no Bramble counterpart. Each uses one game mechanic common in fitness apps, with no points attached: a streak (U1: "3-day streak. Don't lose it", turning on background step counting), social proof (U4: "8 of your 12 friends share their workouts", posting the route and heart rate on a public community map) and a status tier (U6: "You're 40 points from Gold", connecting a sleep tracker). Each is analyzed against the same person's Part 2 verdict on the bare flow; with one flow per mechanism, mechanisms are not compared with each other.
 * The same nudge pattern applies in both apps, so each matched pair is always at the same friction level for a given person.
 * No real location, address or health data is collected; the apps use practice details.
 
@@ -162,7 +167,7 @@ Task order is randomized. Otherwise, consent fatigue late in the session would a
 
 **Procedure (Day 1).**
 
-1. Consent. The form describes trying a new app, with a second session a week later. The deception is IRB-approved and disclosed at the Day 8 debrief.  
+1. Consent. The form describes trying two new apps, with a second session a week later. The deception is IRB-approved and disclosed at the Day 8 debrief.  
 2. A short onboarding in the app.  
 3. The tasks of both apps: each app's tasks as one block, the app order balanced across participants and crossed with the nudge pattern. Within Bramble the six tasks are randomized with Task 1 before Task 2 and Task 3 straight after it; within Stride, Task 7 comes first.  
 4. The System Usability Scale, once per app, which fits the cover story without calling the session a usability test.  
@@ -178,6 +183,7 @@ Task order is randomized. Otherwise, consent fatigue late in the session would a
 * *Decision time.* Very fast decisions suggest habitual click-through rather than judgment.  
 * *Say–do gap* (computed after Experiment 1). Agreement between S(f) and A(f) on the shared flows. It is split by direction and traced to specific parameters using the minimal pairs. We model it with mixed-effects ordinal regression, with random effects for participant and flow and friction as a fixed effect.  
 * *Gap by confidence* (proposed Oct 18, 2026, for review). The say–do model above with the statement's confidence (1–5) added as a fixed effect, and its interaction with friction. A gap concentrated on low-confidence statements points to weak preferences; a gap on high-confidence statements is a person acting against a firm view.  
+* *Gamified flows.* For the three gamified flows, the say–do gap on each flow is reported on its own (the export's `nudgeType` column marks them).  
 * *Suspicion.* Participants who mention privacy in the probe are flagged. Results are reported with and without them.
 
 **Flow classification.** Combining the Day 1 action with the two Day 8 statements of the same flow (the original item and its reworded repeat) gives each (participant, flow) pair one label:
@@ -194,7 +200,7 @@ A flow is also marked unstable when both answers are given with confidence 1 or 
 
 **Outputs passed on.**
 
-* For each participant: A(f) on the 12 flows, with the active/passive flag and decision time; friction condition; suspicion flag; and the flow classification.  
+* For each participant: A(f) on the 29 site flows, with the active/passive flag and decision time; friction condition; suspicion flag; and the flow classification.  
 * The mapping from decision points to flows. Experiment 4 can reuse it to evaluate the agent's enforced policy on exactly these flows. Alternatively, the enforcer could be wired into the same site, so the agent's policy makes the same decisions the participant ma
 
 [App Design Interface](https://drive.google.com/open?id=1y2GrndrXJlc2dJuKwGFinWwVZm3o9DuN)
@@ -234,7 +240,7 @@ The design mirrors the human side item for item:
 **Materials.**
 
 * *Transcripts.* The 120 transcripts D from Experiment 1, de-identified.  
-* *Battery.* The same \~36 flows plus 12 reworded repeats of the site flows (48 items). They are generated from the shared flow file, so the wording is identical to what participants saw. The response format is also identical: allow / block / ask me, with confidence 1–5.  
+* *Battery.* The same 41 flows plus 12 reworded repeats of site flows (53 items). They are generated from the shared flow file, so the wording is identical to what participants saw. The response format is also identical: allow / block / ask me, with confidence 1–5.  
 * *Policy schema.* The 6-coordinate rule schema from the evaluation design, with the fixed vocabulary, plus:  
   * an ASK modality, so the policy can express "ask me";  
   * two provenance fields on every rule: whether it was *stated* or *inferred*, and a supporting quote from D.  
@@ -247,11 +253,11 @@ The design mirrors the human side item for item:
 
 **Procedure** (for each transcript × model × run).
 
-1. **Verdict probe.** For each of the 48 items, a fresh call containing the system prompt, D, and the one item. The agent returns a verdict, a confidence rating, and a one-sentence justification that either quotes D or says "not discussed."  
+1. **Verdict probe.** For each of the 53 items, a fresh call containing the system prompt, D, and the one item. The agent returns a verdict, a confidence rating, and a one-sentence justification that either quotes D or says "not discussed."  
 2. **Policy emission.** A fresh call containing the system prompt, D, the schema, and the evaluation rules. The agent returns R\_int as JSON. If it fails schema validation, the agent gets one retry with the error message. If it fails again, it is recorded as an emission failure, counted rather than dropped.  
 3. **Interpretation.** The interpreter evaluates R\_int on the battery to produce V\_int.
 
-The prior-only baseline repeats step 1 without D. Putting D at the start of every prompt lets the provider cache it across the 48 items.
+The prior-only baseline repeats step 1 without D. Putting D at the start of every prompt lets the provider cache it across the 53 items.
 
 **Measures.**
 
@@ -281,9 +287,9 @@ The main analysis is a mixed-effects logistic regression of correctness on model
 
 **Scale.**
 
-* Verdict probe: 120 transcripts × 4 models × 5 runs × 48 items ≈ 115,200 calls.  
+* Verdict probe: 120 transcripts × 4 models × 5 runs × 53 items ≈ 127,200 calls.  
 * Emission: 2,400 calls.  
-* Prior-only baseline: 960 calls.
+* Prior-only baseline: 4 models × 5 runs × 53 items ≈ 1,060 calls.
 
 **Outputs used in analysis.** None of these are shown to any agent.
 
@@ -364,7 +370,7 @@ The main analysis is a mixed-effects logistic regression of correctness on model
 
 ### **Measures.**
 
-* ### Action fidelity (primary): A\_agent vs. S on the 12 flows, by model × arm × condition. Errors are reported as over-permission, over-restriction or deferral.
+* ### Action fidelity (primary): A\_agent vs. S on the 29 site flows, by model × arm × condition. Errors are reported as over-permission, over-restriction or deferral.
 
 * ### Agent statement–action gap: what the agent did on the site vs. what it said in Experiment 3, by direction. Each mismatch gets one cause code:
 
@@ -404,4 +410,4 @@ The main analysis is a mixed-effects logistic regression of correctness on model
 
 ### **Outputs used in analysis.**
 
-### Per episode: A\_agent on the 12 flows with start state, changes, tool calls and ask\_user calls; the final settings state; the report with its completion and overclaim codes; and task completion. As before, the agent never sees S or A.
+### Per episode: A\_agent on the 29 site flows with start state, changes, tool calls and ask\_user calls; the final settings state; the report with its completion and overclaim codes; and task completion. As before, the agent never sees S or A.
