@@ -299,7 +299,7 @@ The main analysis is a mixed-effects logistic regression of correctness on model
 
 ### **Experiment 4: Agent Action**
 
-### **Purpose**. This experiment measures what the agent actually does when it acts for the person in the same environment the person acted in. The agent receives the participant's transcript D and completes the same six Bramble tasks, meeting the same prompts, pre-set defaults, highlighted buttons and point offers. Each choice it makes gives an agent action A\_agent(f) on the same 12 flows the participant acted on. That makes all four cells of the 2×2 directly comparable, flow by flow:
+### **Purpose**. This experiment measures what the agent actually does when it acts for the person in the same environment the person acted in. The agent receives the participant's transcript D and completes the same ten tasks in both apps (Bramble and Stride), meeting the same prompts, pre-set defaults, highlighted buttons and point offers. Each choice it makes gives an agent action A\_agent(f) on the same 29 flows the participant acted on. That makes all four cells of the 2×2 directly comparable, flow by flow:
 
 | SUBJECT | STATEMENT (WHAT IS SAID) | ACTION (WHAT IS DONE) |
 | :---- | :---- | :---- |
