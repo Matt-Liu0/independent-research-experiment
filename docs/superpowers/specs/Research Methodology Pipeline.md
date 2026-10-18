@@ -94,6 +94,7 @@ The cost is that participants may answer the questionnaire in line with what the
 * *Aided preferences (structured arm).* Answers the participant appears to form on the spot, marked by hesitation or "now that you mention it." We predict these are less stable across the repeated items, which links this measure to RQ1.3.  
 * *Elicitation effect.* Differences in S(H) between each arm and the norming sample. We model these with mixed-effects ordinal regression (allow \> ask \> block), with random effects for participant and flow. The questionnaire is identical across groups and assignment is random, so any systematic difference is caused by the elicitation.  
 * ***Consistency.*** **Agreement on the repeated items within the session, reported as Cohen's κ per participant. Flows a participant answers inconsistently are flagged, and later experiments score agent errors on those flows separately.**  
+* *Confidence shift* (proposed Oct 18, 2026, for review). Confidence ratings (1–5) on S(H) compared between each arm and the norming sample, with random effects for participant and flow. Talking a preference through may make people surer of it even when the verdict doesn't change.  
 * *Cost.* Elicitation time and number of turns.
 
 **Participants.** **Students** recruited. The final sample size will come from a power analysis on RQ1.2 after piloting. The planning figure is 40 per arm plus 100 in the norming sample. One IRB protocol covers this experiment and Experiment 2\.
@@ -176,6 +177,7 @@ Task order is randomized. Otherwise, consent fatigue late in the session would a
 * *Active vs. passive.* Whether the participant changed the default or left it. Accepting a default is a different act from choosing, and the paradox literature suggests much of the gap comes from defaults.  
 * *Decision time.* Very fast decisions suggest habitual click-through rather than judgment.  
 * *Say–do gap* (computed after Experiment 1). Agreement between S(f) and A(f) on the shared flows. It is split by direction and traced to specific parameters using the minimal pairs. We model it with mixed-effects ordinal regression, with random effects for participant and flow and friction as a fixed effect.  
+* *Gap by confidence* (proposed Oct 18, 2026, for review). The say–do model above with the statement's confidence (1–5) added as a fixed effect, and its interaction with friction. A gap concentrated on low-confidence statements points to weak preferences; a gap on high-confidence statements is a person acting against a firm view.  
 * *Suspicion.* Participants who mention privacy in the probe are flagged. Results are reported with and without them.
 
 **Flow classification.** Combining the Day 1 action with the two Day 8 statements of the same flow (the original item and its reworded repeat) gives each (participant, flow) pair one label:
@@ -273,6 +275,7 @@ The prior-only baseline repeats step 1 without D. Putting D at the start of ever
 * *Behavior pull.* On say–do gap flows: the share of agent verdicts that match A instead of S. The agent never sees A, so any match must come from cues in D.  
 * *Consistency.* Agreement across the 5 runs and on reworded pairs, compared with the human figures from Experiment 1\.  
 * *Calibration.* Accuracy at each confidence level, and whether "not discussed" justifications predict errors.
+* *Human uncertainty* (proposed Oct 18, 2026, for review). Agent correctness by the participant's own confidence on that flow. As a sensitivity check, fidelity is also reported without flows the participant rated 1 or 2. Errors on flows the person was unsure about say less about the agent.  
 
 The main analysis is a mixed-effects logistic regression of correctness on model, arm, distance level, and flow label (consistent / say–do gap / unstable), with random intercepts for participant and flow.
 
