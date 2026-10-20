@@ -37,7 +37,7 @@ Prolific: submission "Awaiting review" ─▶ you approve ─▶ base pay; then 
 | Device | **Mobile only**. The site also checks for itself and turns computers away with a QR code |
 | Completion | "I'll redirect them using a URL", with the completion code from `.env.local` |
 | Time estimate | About **45–50 minutes**; update it from the pilot's median (`minutesToComplete` in `participants.csv`) |
-| Pay | At or above Prolific's recommended hourly rate for that time, plus the in-app bonus ($0.24–$1.14), paid separately |
+| Pay | At or above Prolific's recommended hourly rate for that time, plus the in-app bonus ($1.00–$12.00, usually under $10), paid separately |
 | Description | Use the cover story: "try two new apps". Don't mention privacy or nudging (the debrief comes at the end of Part 2) |
 | Places | Start with the pilot (below), then the full sample in batches |
 

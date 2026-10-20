@@ -385,7 +385,7 @@ Includes everyone who arrived, also people who declined consent or failed the de
 | `suspicion` | Suspicion answer |
 | `settings_q1` … `settings_q7` | Settings check (`q1` joined with `;`) |
 | `t1_done` … `t10_done`, plus each task's details (`t1_storeId`, `t1_usedZipSearch`, …, `t7_healthAnswered`, `t8_workoutDone`, `t9_plansSaved`, `t10_reportUnlocked`) | Task outcomes |
-| `bramblePoints`, `strideCoins`, `bonusUSD` (both balances ÷ 1,000, added in whole cents), `deliveryRedeemed`, `reportUnlocked` | Balances and the bonus to pay: $0.24–$1.14 |
+| `bramblePoints`, `strideCoins`, `bonusUSD` (both balances ÷ 100, so 1 point = 1 cent), `deliveryRedeemed`, `reportUnlocked` | Balances and the bonus to pay: $1.00–$12.00 (before 0.17.0: ÷ 1,000) |
 | `accountPageVisits`, `accountPageMs` (Bramble), `profilePageVisits`, `profilePageMs` (Stride), `taskCardReopens`, `mapShown` (`real` / `drawn`), `mapMoves`, `mapRecenters`, `timesHidden`, `errors`, `eventCount` | Behavior and data-quality flags (many map moves or settings-page visits suggest exploring like a tester) |
 
 ### `events.csv`: one row per event, sorted by time
