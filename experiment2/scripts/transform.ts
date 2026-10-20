@@ -213,7 +213,7 @@ function participantRow(code: string, collection: string, data: Record<string, u
     for (const [key, value] of Object.entries(outcomes[`t${t}`] ?? { done: null })) row[`t${t}_${key}`] = scalar(value)
   }
 
-  // The bonus is both balances together (100 points or coins = $0.10).
+  // The bonus is both balances together (100 points or coins = $1.00).
   const points = get(data, 'appState.points')
   const coins = get(data, 'strideState.points')
   row.bramblePoints = scalar(points)

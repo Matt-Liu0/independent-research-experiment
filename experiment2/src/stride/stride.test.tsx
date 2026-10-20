@@ -294,7 +294,7 @@ describe('decline everything (Stride)', () => {
       if (NOT_APPLICABLE_WHEN_DECLINED.includes(flow.id)) expect(s.flows[flow.id], flow.id).toBeNull()
       else expect(s.flows[flow.id], flow.id).toBe(flow.privacyOption)
     }
-    expect(bonusDollars(s.points)).toBe(0.12)
+    expect(bonusDollars(s.points)).toBe(0.5)
   }, 20_000)
 
   it.each(LEVELS)('%s: logs each shown flow once before its decisions, and settles each once', async (friction) => {
@@ -339,11 +339,11 @@ describe('parity between friction levels (Stride)', () => {
     expect(texts[0]).toBe(texts[1])
   })
 
-  it('pays $0.12–$0.57 in coins, like Bramble', () => {
+  it('pays $0.50–$5.00 in coins, like Bramble', () => {
     const offers = STRIDE_FLOW_LIST.filter((f) => f.points)
     const all = offers.reduce((sum, f) => sum + (f.points ?? 0), 0)
-    expect(bonusDollars(START_COINS - REPORT_COST)).toBe(0.12)
-    expect(bonusDollars(START_COINS - REPORT_COST + all)).toBe(0.57)
+    expect(bonusDollars(START_COINS - REPORT_COST)).toBe(0.5)
+    expect(bonusDollars(START_COINS - REPORT_COST + all)).toBe(5)
     expect(STRIDE_FLOWS.getFlow('stride_reward_university').points).toBe(100)
   })
 })

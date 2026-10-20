@@ -26,8 +26,8 @@ const alice: RawParticipant = {
     suspicion: '=HYPERLINK("x")',
     settingsCheck: { q1: ['maps', 'weather'], q2: 'while_using' },
     taskOutcome: { t1: { done: true, usedZipSearch: true, storesViewed: 6, msToFind: 4000, storeId: 'elm' } },
-    appState: { points: 120, flows: { store_location: 'dont_allow', courier_live: 'dont_share', reward_keel: 'decline' } },
-    strideState: { points: 320, reportUnlocked: true, flows: { stride_health_access: 'once' } },
+    appState: { points: 50, flows: { store_location: 'dont_allow', courier_live: 'dont_share', reward_keel: 'decline' } },
+    strideState: { points: 250, reportUnlocked: true, flows: { stride_health_access: 'once' } },
   },
   events: [
     ev(2, 100, { type: 'prompt_shown', flowId: 'store_location', defaultShown: null }),
@@ -70,8 +70,8 @@ describe('buildExport', () => {
   const result = buildExport('participants', [bob, alice, carol])
 
   it('lists Prolific bonuses only for people who finished, with both balances added', () => {
-    // Alice (Prolific, finished): 120 points + 320 coins = $0.44. Carol declined consent; Bob withdrew.
-    expect(prolificBonusLines(result)).toBe('PID_ALICE,0.44')
+    // Alice (Prolific, finished): 50 points + 250 coins = $3.00. Carol declined consent; Bob withdrew.
+    expect(prolificBonusLines(result)).toBe('PID_ALICE,3.00')
   })
 
   it('leaves out withdrawn participants and codes the rest in start order', () => {
@@ -102,9 +102,9 @@ describe('buildExport', () => {
       t1_done: true,
       t1_usedZipSearch: true,
       t2_done: null,
-      bramblePoints: 120,
-      strideCoins: 320,
-      bonusUSD: 0.44,
+      bramblePoints: 50,
+      strideCoins: 250,
+      bonusUSD: 3,
       reportUnlocked: true,
       taskCardReopens: 1,
       timesHidden: 1,

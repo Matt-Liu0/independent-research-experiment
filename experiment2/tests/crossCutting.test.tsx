@@ -152,8 +152,8 @@ describe('decline everything', () => {
         expect(s.flows[flow.id], flow.id).toBe(flow.privacyOption)
       }
     }
-    expect(s.points).toBe(120)
-    expect(bonusDollars(s.points)).toBe(0.12)
+    expect(s.points).toBe(50)
+    expect(bonusDollars(s.points)).toBe(0.5)
   }, 20_000)
 
   it.each(LEVELS)('%s: logs each shown flow once before its decisions, and settles each once', async (friction) => {
@@ -206,7 +206,7 @@ describe('accepting everything (nudged)', () => {
 })
 
 describe('points range', () => {
-  it('pays $0.12–$0.57 for every combination of offers once free delivery is redeemed', () => {
+  it('pays $0.50–$5.00 for every combination of offers once free delivery is redeemed', () => {
     const offers = FLOWS.filter((f) => f.points)
     const bonuses: number[] = []
     for (let mask = 0; mask < 2 ** offers.length; mask++) {
@@ -216,9 +216,9 @@ describe('points range', () => {
       })
       bonuses.push(bonusDollars(s.points))
     }
-    expect(Math.min(...bonuses)).toBe(0.12)
-    expect(Math.max(...bonuses)).toBe(0.57)
-    expect(bonuses.every((b) => b >= 0.12 && b <= 0.57)).toBe(true)
+    expect(Math.min(...bonuses)).toBe(0.5)
+    expect(Math.max(...bonuses)).toBe(5)
+    expect(bonuses.every((b) => b >= 0.5 && b <= 5)).toBe(true)
   })
 })
 

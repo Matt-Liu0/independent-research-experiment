@@ -202,7 +202,7 @@ function StoreFinder({
   const logSearch = () => {
     if (!query.trim() || query === logged) return
     setLogged(query)
-    act('store_search', { item: result.item, results: result.stores.length })
+    act('store_search', { item: result.item, results: result.stores.length, unmatched: result.unmatched })
   }
 
   const onSubmit = (event: FormEvent) => {
@@ -233,6 +233,7 @@ function StoreFinder({
           ? `${result.stores.length} ${result.stores.length === 1 ? 'store has' : 'stores have'} oat milk in stock`
           : heading}
       </h2>
+      {result.unmatched && <p className="notice small">No store names match "{query.trim()}". Showing all stores.</p>}
       {result.stores.length === 0 ? (
         <p className="notice small">No stores match "{query.trim()}".</p>
       ) : (

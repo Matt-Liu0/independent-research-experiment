@@ -16,7 +16,7 @@ describe('GKC-CI coding', () => {
       const tp = flow.ci.transmissionPrinciple
       if (flow.points) {
         expect(tp.condition, flow.id).toBe('with_consent_for_payment')
-        expect(tp.consideration, flow.id).toEqual({ points: flow.points, usd: flow.points / 1000 })
+        expect(tp.consideration, flow.id).toEqual({ points: flow.points, usd: flow.points / 100 })
       } else {
         expect(tp.condition, flow.id).not.toBe('with_consent_for_payment')
         expect(tp.consideration, flow.id).toBeNull()

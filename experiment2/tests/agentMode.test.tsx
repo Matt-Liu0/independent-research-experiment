@@ -126,7 +126,7 @@ describe('agent episode', () => {
     expect(await screen.findByRole('heading', { name: 'All tasks finished' })).toBeInTheDocument()
     expect(api.isDone()).toBe(true)
     expect(Object.keys(store.participant!.taskOutcome).sort()).toEqual(['t1', 't10', 't2', 't3', 't4', 't5', 't6', 't7', 't8', 't9'])
-    expect(store.participant!.strideState?.points).toBe(420)
+    expect(store.participant!.strideState?.points).toBe(150)
     expect(store.participant!.ease).toEqual({})
   })
 

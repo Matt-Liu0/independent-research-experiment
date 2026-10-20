@@ -19,6 +19,8 @@ const SAVE_DELAY_MS = 300
 export function TaskStage({ participant, mode, update, advance }: StageProps) {
   // Agent episodes: the harness gives each task's text, and there are no ease ratings.
   const agent = mode === 'agent'
+  // "I'm done with this task" lets a task be skipped; only demo links keep it, for testing.
+  const allowSkip = mode === 'demo'
   const order = participant.taskOrder ?? ALL_TASKS
   const { taskIndex, taskPhase } = participant
   const task = order[taskIndex]
@@ -37,6 +39,7 @@ export function TaskStage({ participant, mode, update, advance }: StageProps) {
       total={order.length}
       nextTask={order[taskIndex + 1]}
       agent={agent}
+      allowSkip={allowSkip}
       update={update}
       advance={advance}
     />
@@ -52,11 +55,12 @@ interface SessionProps {
   total: number
   nextTask: TaskNumber | undefined
   agent: boolean
+  allowSkip: boolean
   update: StageProps['update']
   advance: StageProps['advance']
 }
 
-function AppSession({ app, participant, task, taskIndex, taskPhase, total, nextTask, agent, update, advance }: SessionProps) {
+function AppSession({ app, participant, task, taskIndex, taskPhase, total, nextTask, agent, allowSkip, update, advance }: SessionProps) {
   // The app keeps its own state across its tasks; the record only saves copies of it.
   const [initialState] = useState<CoreState>(() => app.initial(savedStateOf(participant, app)))
   const nudgedUnits = useMemo(() => parsePattern(participant.pattern), [participant.pattern])
@@ -128,7 +132,16 @@ function AppSession({ app, participant, task, taskIndex, taskPhase, total, nextT
   else if (taskPhase === 'rating') body = <EaseRating key={task} taskNumber={taskIndex + 1} total={total} onSubmit={rate} />
   else
     body = (
-      <TaskRunner key={task} app={app} task={task} position={taskIndex + 1} total={total} showCard={!agent} onFinish={finishTask} />
+      <TaskRunner
+        key={task}
+        app={app}
+        task={task}
+        position={taskIndex + 1}
+        total={total}
+        showCard={!agent}
+        allowSkip={allowSkip}
+        onFinish={finishTask}
+      />
     )
 
   return (
@@ -138,8 +151,19 @@ function AppSession({ app, participant, task, taskIndex, taskPhase, total, nextT
   )
 }
 
-/** Asked when Done is tapped before the task looks finished. Same in both friction levels. */
-function UnfinishedCheck({ task, onAnswer }: { task: TaskNumber; onAnswer: (finished: boolean) => void }) {
+/**
+ * Asked when Done is tapped before the task looks finished. Same in both friction levels.
+ * Participants can only keep going; the skip option is for demo links.
+ */
+function UnfinishedCheck({
+  task,
+  allowSkip,
+  onAnswer,
+}: {
+  task: TaskNumber
+  allowSkip: boolean
+  onAnswer: (finished: boolean) => void
+}) {
   return (
     <div className="task-card-backdrop">
       <div className="task-card" role="dialog" aria-modal="true" aria-labelledby="unfinished-title">
@@ -150,9 +174,11 @@ function UnfinishedCheck({ task, onAnswer }: { task: TaskNumber; onAnswer: (fini
         <button type="button" className="btn btn-study" onClick={() => onAnswer(false)}>
           Keep going
         </button>
-        <button type="button" className="btn btn-link" onClick={() => onAnswer(true)}>
-          I'm done with this task
-        </button>
+        {allowSkip && (
+          <button type="button" className="btn btn-link" onClick={() => onAnswer(true)}>
+            I'm done with this task
+          </button>
+        )}
       </div>
     </div>
   )
@@ -191,6 +217,7 @@ function TaskRunner({
   position,
   total,
   showCard,
+  allowSkip,
   onFinish,
 }: {
   app: SessionApp
@@ -199,10 +226,15 @@ function TaskRunner({
   total: number
   /** Participants see the task card first; agents get the task text from the harness. */
   showCard: boolean
+  allowSkip: boolean
   onFinish: (outcome: TaskOutcome, state: CoreState) => void
 }) {
-  const { leaveScreen, getState } = useEngine()
+  const { leaveScreen, getState, state } = useEngine()
   const logged = useRef(false)
+  // The task's goal is reached: the bar says so, but the task doesn't end until Next is tapped,
+  // so decisions still on screen (e.g. the workout-complete prompts) aren't cut off.
+  const goalMet = showCard && app.outcome(task, state).done
+  const goalLogged = useRef(false)
   // Done tapped before the task's goal was reached: ask once whether they're finished.
   const [checking, setChecking] = useState(false)
   // card: task card open, app not mounted yet. splash: the app "opening". app: in use.
@@ -215,6 +247,12 @@ function TaskRunner({
     logged.current = true
     logEvent('task', { event: 'start', task, position })
   }, [task, position])
+
+  useEffect(() => {
+    if (!goalMet || goalLogged.current) return
+    goalLogged.current = true
+    logEvent('task', { event: 'goal_met', task })
+  }, [goalMet, task])
 
   useEffect(() => {
     if (phase !== 'splash') return
@@ -251,8 +289,8 @@ function TaskRunner({
   const App = app.App
   return (
     <div className="task-frame">
-      <TaskBar task={task} appName={APP_NAMES[app.id]} position={position} total={total} startOpen={showCard} onStart={start} onFinish={tapDone} />
-      {checking && <UnfinishedCheck task={task} onAnswer={answerCheck} />}
+      <TaskBar task={task} appName={APP_NAMES[app.id]} position={position} total={total} startOpen={showCard} complete={goalMet} onStart={start} onFinish={tapDone} />
+      {checking && <UnfinishedCheck task={task} allowSkip={allowSkip} onAnswer={answerCheck} />}
       {/* The app mounts only once the task card is closed, so no prompt opens (or starts timing) behind it. */}
       {phase === 'app' ? (
         <App />

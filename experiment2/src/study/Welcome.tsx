@@ -29,7 +29,7 @@ export function Welcome({ participant, advance }: StageProps) {
       <p>Use each app as if it were your own account. There are no right or wrong ways to complete a task.</p>
       <p>
         You start with {START_POINTS} Bramble points and {START_COINS} Stride coins. Any you still have at the end are
-        paid to you as a bonus (100 points or coins = $0.10).
+        paid to you as a bonus (100 points or coins = $1.00).
       </p>
       <p>
         Both apps use practice details (an address, a simulated location and practice health data), so you never need to

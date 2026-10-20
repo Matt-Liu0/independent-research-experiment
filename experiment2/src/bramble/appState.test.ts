@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { addressMatches, appReducer, bonusDollars, initialAppState, type AppAction, type AppState } from './appState'
+import { NEARBY_STORES, searchStores } from './data'
 
 const run = (actions: AppAction[], from: AppState = initialAppState()) => actions.reduce(appReducer, from)
 
 describe('appReducer', () => {
-  it('starts with 420 points, the practice address and no flow values', () => {
+  it('starts with 150 points, the practice address and no flow values', () => {
     const s = initialAppState()
-    expect(s.points).toBe(420)
+    expect(s.points).toBe(150)
     expect(s.address).toBe('12 Birch Lane, Apt 3')
     expect(Object.values(s.flows).every((v) => v === null)).toBe(true)
   })
@@ -45,15 +46,15 @@ describe('appReducer', () => {
     expect(s.settled).toEqual(['reward_keel'])
   })
 
-  it('redeems free delivery once, for 300 points', () => {
+  it('redeems free delivery once, for 100 points', () => {
     const s = run([{ type: 'redeem' }, { type: 'redeem' }])
-    expect(s.points).toBe(120)
+    expect(s.points).toBe(50)
     expect(s.deliveryRedeemed).toBe(true)
   })
 
   it("won't redeem without enough points", () => {
-    const s = run([{ type: 'addPoints', amount: -200 }, { type: 'redeem' }])
-    expect(s.points).toBe(220)
+    const s = run([{ type: 'addPoints', amount: -100 }, { type: 'redeem' }])
+    expect(s.points).toBe(50)
     expect(s.deliveryRedeemed).toBe(false)
   })
 
@@ -136,10 +137,10 @@ describe('addressMatches', () => {
 })
 
 describe('bonusDollars', () => {
-  it('pays 100 points = $0.10', () => {
-    expect(bonusDollars(420)).toBe(0.42)
-    expect(bonusDollars(120)).toBe(0.12)
-    expect(bonusDollars(570)).toBe(0.57)
+  it('pays 100 points = $1.00', () => {
+    expect(bonusDollars(150)).toBe(1.5)
+    expect(bonusDollars(50)).toBe(0.5)
+    expect(bonusDollars(500)).toBe(5)
   })
 })
 
@@ -151,5 +152,15 @@ describe('storableAppState', () => {
     expect(storableAppState({ ...s, address: '40 oak st.' }).address).toBe('40 Oak Street')
     expect(storableAppState({ ...s, address: '221B Baker Street' }).address).toBe(OTHER_ADDRESS)
     expect(displayAddress(OTHER_ADDRESS)).toBe('Your new address')
+  })
+})
+
+describe('searchStores', () => {
+  it('matches items and store names, and shows every store for anything else (a town, an address)', () => {
+    expect(searchStores(NEARBY_STORES, 'oat milk')).toMatchObject({ item: 'oat_milk', unmatched: false })
+    expect(searchStores(NEARBY_STORES, 'elm').stores.map((s) => s.id)).toEqual(['elm'])
+    const town = searchStores(NEARBY_STORES, 'Hamilton, NY')
+    expect(town).toMatchObject({ item: null, unmatched: true })
+    expect(town.stores).toEqual(NEARBY_STORES)
   })
 })

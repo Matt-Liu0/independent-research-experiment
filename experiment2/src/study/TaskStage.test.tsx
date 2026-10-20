@@ -10,10 +10,24 @@ import { newParticipant, type ParticipantDoc } from './types'
 
 const PARAMS = '?PROLIFIC_PID=pid1&STUDY_ID=s&SESSION_ID=x'
 
-/** Taps Done on a task that isn't finished, and confirms "I'm done" when asked. */
-async function finishUnfinished(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole('button', { name: 'Done' }))
-  await user.click(screen.getByRole('button', { name: "I'm done with this task" }))
+/** Task 4: saves two deals, which finishes it, and taps Next task. */
+async function saveTwoDeals(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: 'Deals' }))
+  await user.click(screen.getByRole('button', { name: 'Save Honeycrisp apples' }))
+  await user.click(screen.getByRole('button', { name: 'Save Greek yogurt, 32 oz' }))
+  await user.click(screen.getByRole('button', { name: 'Next task' }))
+}
+
+/** Task 6: saves the new address (after `first`, if given), which finishes it, and taps Next task. */
+async function moveAddress(user: ReturnType<typeof userEvent.setup>, first?: string) {
+  await user.click(screen.getByRole('button', { name: 'Account' }))
+  const input = screen.getByLabelText('Delivery address')
+  for (const address of first ? [first, '40 Oak Street'] : ['40 Oak Street']) {
+    await user.clear(input)
+    await user.type(input, address)
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+  }
+  await user.click(screen.getByRole('button', { name: 'Next task' }))
 }
 
 function atTasks(overrides: Partial<ParticipantDoc> = {}): MemoryStore {
@@ -54,10 +68,10 @@ describe('task stage', () => {
     const store = atTasks()
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} />)
     await user.click(await screen.findByRole('button', { name: 'Start task' }))
-    await finishUnfinished(user)
+    await saveTwoDeals(user)
 
     expect(screen.getByRole('heading', { name: 'How easy was that task?' })).toBeInTheDocument()
-    expect(store.participant?.taskOutcome.t4).toEqual({ done: false, dealsSaved: 0 })
+    expect(store.participant?.taskOutcome.t4).toEqual({ done: true, dealsSaved: 2 })
     expect(store.participant?.taskPhase).toBe('rating')
 
     await user.click(screen.getByRole('radio', { name: '6' }))
@@ -91,14 +105,9 @@ describe('task stage', () => {
     const store = atTasks({ taskOrder: [6, 1, 2, 3, 4, 5] })
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} />)
     await user.click(await screen.findByRole('button', { name: 'Start task' }))
-    await user.click(screen.getByRole('button', { name: 'Account' }))
-    const input = screen.getByLabelText('Delivery address')
-    await user.clear(input)
-    await user.type(input, '221B Baker Street')
-    await user.click(screen.getByRole('button', { name: 'Save' }))
-    await finishUnfinished(user)
-    expect(store.participant?.appState?.address).toBe('other')
-    expect(store.participant?.taskOutcome.t6).toEqual({ done: false, addressMatches: false })
+    await moveAddress(user, '221B Baker Street')
+    expect(store.participant?.appState?.address).toBe('40 Oak Street')
+    expect(store.participant?.taskOutcome.t6).toEqual({ done: true, addressMatches: true })
     expect(JSON.stringify(store.participant)).not.toContain('Baker')
     expect(JSON.stringify(store.events)).not.toContain('Baker')
   })
@@ -127,6 +136,8 @@ describe('unfinished-task check', () => {
     await user.click(screen.getByRole('button', { name: 'Keep going' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(store.participant?.taskPhase).toBe('doing')
+    // Participants can't skip a task: the only way on is to finish it.
+    expect(screen.queryByRole('button', { name: "I'm done with this task" })).not.toBeInTheDocument()
     // Leaving was only asked about, so the Deals settings haven't settled.
     expect(store.events.some((e) => e.type === 'settled')).toBe(false)
     expect(store.events.filter((e) => e.type === 'task').map((e) => [e.event, e.finished])).toEqual(
@@ -144,9 +155,35 @@ describe('unfinished-task check', () => {
     for (const s of screen.getAllByRole('switch')) if (s.getAttribute('aria-checked') === 'true') await user.click(s)
     await user.click(screen.getByRole('button', { name: 'Save Honeycrisp apples' }))
     await user.click(screen.getByRole('button', { name: 'Save Greek yogurt, 32 oz' }))
-    await user.click(screen.getByRole('button', { name: 'Done' }))
+    await user.click(screen.getByRole('button', { name: 'Next task' }))
     expect(screen.queryByRole('dialog', { name: /doesn't look finished/ })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'How easy was that task?' })).toBeInTheDocument()
+  })
+
+  it('says when the goal is reached, without ending the task, and logs it once', async () => {
+    const user = userEvent.setup()
+    const store = atTasks()
+    render(<StudyApp entry={parseEntry(PARAMS)} store={store} />)
+    await user.click(await screen.findByRole('button', { name: 'Start task' }))
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Deals' }))
+    await user.click(screen.getByRole('button', { name: 'Save Honeycrisp apples' }))
+    expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Save Greek yogurt, 32 oz' }))
+    expect(screen.getByRole('status')).toHaveTextContent('Task complete')
+    // The task is still running: the deal settings on this screen can still be changed.
+    expect(store.participant?.taskPhase).toBe('doing')
+    expect(screen.getAllByRole('switch').length).toBeGreaterThan(0)
+    expect(store.events.filter((e) => e.type === 'task' && e.event === 'goal_met')).toHaveLength(1)
+  })
+
+  it('keeps the skip option on demo links, for testing', async () => {
+    const user = userEvent.setup()
+    const existing = { ...atTasks().participant!, prolificPid: 'DEMO', studyId: 'DEMO', sessionId: 'DEMO' }
+    render(<StudyApp entry={parseEntry('?demo=neutral')} store={new MemoryStore({ existing })} />)
+    await user.click(await screen.findByRole('button', { name: 'Start task' }))
+    await user.click(screen.getByRole('button', { name: 'Done' }))
+    expect(screen.getByRole('button', { name: "I'm done with this task" })).toBeInTheDocument()
   })
 })
 
@@ -162,7 +199,7 @@ describe('two apps', () => {
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} />)
     await user.click(await screen.findByRole('button', { name: 'Start task' }))
     expect(screen.getByText('Task 6 of 10')).toBeInTheDocument()
-    await finishUnfinished(user)
+    await moveAddress(user)
     await user.click(screen.getByRole('radio', { name: '5' }))
     await user.click(screen.getByRole('button', { name: 'Continue' }))
 
@@ -178,7 +215,7 @@ describe('two apps', () => {
     await user.click(screen.getByRole('button', { name: 'Connect' }))
     await user.click(screen.getByRole('button', { name: "Don't Allow" }))
     // Declining counts as done, so there's no unfinished-task check.
-    await user.click(screen.getByRole('button', { name: 'Done' }))
+    await user.click(screen.getByRole('button', { name: 'Next task' }))
 
     // Each app's state is saved separately; Bramble's is untouched by Stride.
     expect(store.participant?.strideState?.flows.stride_health_access).toBe('dont_allow')

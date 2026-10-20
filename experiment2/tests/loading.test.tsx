@@ -81,9 +81,9 @@ describe('action spinners', () => {
   it('redeems after its spinner', async () => {
     const app = renderApp('neutral', { screen: 'rewards' })
     await click(screen.getByRole('button', { name: 'Redeem' }))
-    expect(app.state().points).toBe(420)
+    expect(app.state().points).toBe(150)
     await advance(TIMING.redeem)
-    expect(app.state().points).toBe(120)
+    expect(app.state().points).toBe(50)
   })
 })
 

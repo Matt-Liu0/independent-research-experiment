@@ -1,7 +1,7 @@
 // Stride's practice content. Health numbers are made up and the same for everyone.
 
-export const START_COINS = 420
-export const REPORT_COST = 300
+export const START_COINS = 150
+export const REPORT_COST = 100
 
 /** Today's practice stats, shown once health data is connected. */
 export const TODAY_STATS = { steps: '6,412', sleep: '7h 10m', restingHeartRate: 61 }

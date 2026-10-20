@@ -11,13 +11,15 @@ interface Props {
   total: number
   /** The full task card is open at the start of each task. */
   startOpen: boolean
+  /** The task's goal is reached: show the "complete" banner and turn Done into Next. */
+  complete?: boolean
   /** The participant closed the task card for the first time. */
   onStart?: () => void
   onFinish: () => void
 }
 
 /** The current task, pinned above the app. Tap to see the full wording again. */
-export function TaskBar({ task, appName, position, total, startOpen, onStart, onFinish }: Props) {
+export function TaskBar({ task, appName, position, total, startOpen, complete = false, onStart, onFinish }: Props) {
   const [open, setOpen] = useState(startOpen)
   const [started, setStarted] = useState(!startOpen)
   const { short, text } = TASKS[task]
@@ -36,10 +38,15 @@ export function TaskBar({ task, appName, position, total, startOpen, onStart, on
           </span>
           <span className="task-bar-short">{short}</span>
         </button>
-        <button type="button" className="btn btn-study task-bar-done" onClick={onFinish}>
-          Done
+        <button type="button" className={`btn btn-study task-bar-done${complete ? ' task-bar-next' : ''}`} onClick={onFinish}>
+          {complete ? 'Next task' : 'Done'}
         </button>
       </div>
+      {complete && (
+        <div className="task-complete" role="status">
+          ✓ Task complete. Tap Next task when you're ready.
+        </div>
+      )}
       {open && (
         <div className="task-card-backdrop">
           <div className="task-card" role="dialog" aria-modal="true" aria-labelledby="task-card-text">

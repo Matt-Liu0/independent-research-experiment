@@ -228,13 +228,13 @@ describe('Rewards', () => {
       const user = userEvent.setup()
       const app = renderApp(friction, { screen: 'rewards' })
       await user.click(screen.getByRole('button', { name: 'Redeem' }))
-      expect(app.state().points).toBe(120)
+      expect(app.state().points).toBe(50)
       expect(screen.getByRole('button', { name: 'Redeemed' })).toBeDisabled()
 
       await user.click(screen.getAllByRole('button', { name: 'Accept' })[1])
-      expect(app.state().points).toBe(220)
+      expect(app.state().points).toBe(150)
       expect(screen.getByText('Accepted · +100 pts')).toBeInTheDocument()
-      expect(screen.getByText('220 pts')).toBeInTheDocument()
+      expect(screen.getByText('150 pts')).toBeInTheDocument()
       app.unmount()
     }
   })
@@ -246,17 +246,17 @@ describe('Rewards', () => {
       const keel = () => screen.getByText('Keel Auto Insurance').closest('.offer-card') as HTMLElement
 
       await user.click(within(keel()).getByRole('button', { name: 'Accept' }))
-      expect(app.state().points).toBe(620)
+      expect(app.state().points).toBe(350)
       expect(within(keel()).getByText('Accepted · +200 pts')).toBeInTheDocument()
 
       await user.click(within(keel()).getByRole('button', { name: 'Change' }))
       await user.click(within(keel()).getByRole('button', { name: 'Decline' }))
-      expect(app.state().points).toBe(420)
+      expect(app.state().points).toBe(150)
       expect(within(keel()).getByText('Declined')).toBeInTheDocument()
 
       await user.click(within(keel()).getByRole('button', { name: 'Change' }))
       await user.click(within(keel()).getByRole('button', { name: 'Accept' }))
-      expect(app.state().points).toBe(620)
+      expect(app.state().points).toBe(350)
 
       // The first choice stays the measure; the changes are logged as later decisions.
       expect(app.eventsOf('settled')).toEqual([expect.objectContaining({ flowId: 'reward_keel', value: 'accept' })])
@@ -275,10 +275,10 @@ describe('Rewards', () => {
     const app = renderApp('neutral', { screen: 'rewards' })
     const uni = () => screen.getByText('University traffic study').closest('.offer-card') as HTMLElement
     await user.click(within(uni()).getByRole('button', { name: 'Decline' }))
-    expect(app.state().points).toBe(420)
+    expect(app.state().points).toBe(150)
     await user.click(within(uni()).getByRole('button', { name: 'Change' }))
     await user.click(within(uni()).getByRole('button', { name: 'Accept' }))
-    expect(app.state().points).toBe(520)
+    expect(app.state().points).toBe(250)
   })
 
   it('shows the same point amounts in both levels', () => {
@@ -308,7 +308,7 @@ describe('Account', () => {
     await user.click(within(keel).getByRole('button', { name: 'Declined' }))
     expect(fresh.eventsOf('decision').at(-1)).toMatchObject({ flowId: 'reward_keel', value: 'decline', source: 'account_page' })
     // Unlinking takes the points back, so the bonus always matches what is shared.
-    expect(fresh.state().points).toBe(420)
+    expect(fresh.state().points).toBe(150)
     expect(fresh.eventsOf('points').map((e) => e.amount)).toEqual([200, -200])
     expect(fresh.state().accountPageVisits).toBe(1)
   })

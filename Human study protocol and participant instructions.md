@@ -125,7 +125,7 @@ Nothing before the suspicion question mentions privacy, so the site measures how
 >
 > Use Bramble as if it were your own account. There are no right or wrong ways to complete a task.
 >
-> You start with 420 Bramble points. Any points you still have at the end are paid to you as a bonus (100 points = $0.10).
+> You start with 150 Bramble points and 150 Stride coins. Any you still have at the end are paid to you as a bonus (100 points or coins = $1.00).
 >
 > Bramble uses a practice address and a simulated location, so you never need to give your real ones.
 >

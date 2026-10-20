@@ -51,14 +51,14 @@ const SITE_TEXT: Record<string, { A: string; B?: string }> = {
     B: "Your grocery delivery app wants to pass the record of places you've been to its partner brands, so they can advertise to you.",
   },
   reward_keel: {
-    A: 'A car insurance company wants your location history from your grocery delivery app to offer you a safe-driving discount, and the app gives you a $0.20 reward.',
+    A: 'A car insurance company wants your location history from your grocery delivery app to offer you a safe-driving discount, and the app gives you a $2.00 reward.',
   },
   reward_university: {
-    A: 'A university traffic research lab wants your location history from your grocery delivery app, with your name removed, for research, and the app gives you a $0.10 reward.',
+    A: 'A university traffic research lab wants your location history from your grocery delivery app, with your name removed, for research, and the app gives you a $1.00 reward.',
   },
   reward_data_partners: {
-    A: 'Data companies want your location history from your grocery delivery app for market research, and the app gives you a $0.15 reward.',
-    B: 'For a $0.15 reward, your grocery delivery app wants to give your location history to data companies that do market research.',
+    A: 'Data companies want your location history from your grocery delivery app for market research, and the app gives you a $1.50 reward.',
+    B: 'For a $1.50 reward, your grocery delivery app wants to give your location history to data companies that do market research.',
   },
   save_card: { A: 'Your grocery delivery app wants to keep your payment card on file to make checkout faster next time.' },
   birthday_deals: { A: 'Your grocery delivery app wants your birthday to send you a birthday deal.' },
@@ -91,14 +91,14 @@ const SITE_TEXT: Record<string, { A: string; B?: string }> = {
     B: 'Your fitness app wants to pass your health history to its partner brands, so they can advertise to you.',
   },
   stride_reward_insurer: {
-    A: 'A health insurance company wants your heart-rate and activity history from your fitness app to offer you a wellness discount, and the app gives you a $0.20 reward.',
+    A: 'A health insurance company wants your heart-rate and activity history from your fitness app to offer you a wellness discount, and the app gives you a $2.00 reward.',
   },
   stride_reward_university: {
-    A: 'A university sleep research lab wants your sleep history from your fitness app, with your name removed, for research, and the app gives you a $0.10 reward.',
+    A: 'A university sleep research lab wants your sleep history from your fitness app, with your name removed, for research, and the app gives you a $1.00 reward.',
   },
   stride_reward_data_partners: {
-    A: 'Data companies want your activity history from your fitness app for market research, and the app gives you a $0.15 reward.',
-    B: 'For a $0.15 reward, your fitness app wants to give your activity history to data companies that do market research.',
+    A: 'Data companies want your activity history from your fitness app for market research, and the app gives you a $1.50 reward.',
+    B: 'For a $1.50 reward, your fitness app wants to give your activity history to data companies that do market research.',
   },
   stride_streak_autosync: {
     A: 'Your fitness app wants to count your steps in the background at all times, even when the app is closed, to keep your streak going.',
@@ -118,7 +118,7 @@ export const SITE_ITEMS: BatteryItem[] = ALL_FLOWS.map((flow) => {
   return { id: flow.id, domain: flow.app, kind: 'site', text, ci: flow.ci }
 })
 
-const paid = (points: number) => ({ points, usd: points / 1000 })
+const paid = (points: number) => ({ points, usd: points / 100 })
 
 /**
  * Held-out flows: values that appear on the site, never together. Six matched pairs, one
@@ -130,13 +130,13 @@ export const HELD_OUT_ITEMS: BatteryItem[] = [
     domain: 'bramble',
     kind: 'held_out',
     text: {
-      A: 'A university traffic research lab wants your location history from your grocery delivery app, with your name attached, for research, and the app gives you a $0.10 reward.',
+      A: 'A university traffic research lab wants your location history from your grocery delivery app, with your name attached, for research, and the app gives you a $1.00 reward.',
     },
     ci: {
       sender: 'bramble', recipient: 'university_traffic_lab', recipientType: 'third_party_research', subject: 'participant',
       informationCategory: 'digital_activity', attribute: 'location_history', granularity: 'exact', temporality: 'historical', identifiability: 'identified',
       transmissionPrinciple: { aim: 'research', condition: 'with_consent_for_payment', temporal: 'ongoing', consideration: paid(100) },
-      statement: "The grocery app shares the participant's identified location history with a university traffic lab, with consent and for $0.10, for research.",
+      statement: "The grocery app shares the participant's identified location history with a university traffic lab, with consent and for $1.00, for research.",
     },
   },
   {
@@ -182,13 +182,13 @@ export const HELD_OUT_ITEMS: BatteryItem[] = [
     domain: 'bramble',
     kind: 'held_out',
     text: {
-      A: "A health insurance company wants your location history from your grocery delivery app (the stores you've visited) to set your insurance price, and the app gives you a $0.20 reward.",
+      A: "A health insurance company wants your location history from your grocery delivery app (the stores you've visited) to set your insurance price, and the app gives you a $2.00 reward.",
     },
     ci: {
       sender: 'bramble', recipient: 'keel_health_insurance', recipientType: 'third_party_commercial', subject: 'participant',
       informationCategory: 'digital_activity', attribute: 'location_history', granularity: 'exact', temporality: 'historical', identifiability: 'identified',
       transmissionPrinciple: { aim: 'insurance_pricing', condition: 'with_consent_for_payment', temporal: 'ongoing', consideration: paid(200) },
-      statement: "The grocery app shares the participant's location history with a health insurer, with consent and for $0.20, to price their insurance.",
+      statement: "The grocery app shares the participant's location history with a health insurer, with consent and for $2.00, to price their insurance.",
     },
   },
   {
@@ -208,13 +208,13 @@ export const HELD_OUT_ITEMS: BatteryItem[] = [
     domain: 'stride',
     kind: 'held_out',
     text: {
-      A: 'A university sleep research lab wants your sleep history from your fitness app, with your name attached, for research, and the app gives you a $0.10 reward.',
+      A: 'A university sleep research lab wants your sleep history from your fitness app, with your name attached, for research, and the app gives you a $1.00 reward.',
     },
     ci: {
       sender: 'stride', recipient: 'university_sleep_lab', recipientType: 'third_party_research', subject: 'participant',
       informationCategory: 'health', attribute: 'sleep_history', granularity: 'exact', temporality: 'historical', identifiability: 'identified',
       transmissionPrinciple: { aim: 'research', condition: 'with_consent_for_payment', temporal: 'ongoing', consideration: paid(100) },
-      statement: "The fitness app shares the participant's identified sleep history with a university sleep lab, with consent and for $0.10, for research.",
+      statement: "The fitness app shares the participant's identified sleep history with a university sleep lab, with consent and for $1.00, for research.",
     },
   },
   {
@@ -258,13 +258,13 @@ export const HELD_OUT_ITEMS: BatteryItem[] = [
     domain: 'stride',
     kind: 'held_out',
     text: {
-      A: 'A car insurance company wants your activity history from your fitness app to set your insurance price, and the app gives you a $0.20 reward.',
+      A: 'A car insurance company wants your activity history from your fitness app to set your insurance price, and the app gives you a $2.00 reward.',
     },
     ci: {
       sender: 'stride', recipient: 'keel_auto_insurance', recipientType: 'third_party_commercial', subject: 'participant',
       informationCategory: 'health', attribute: 'activity_history', granularity: 'exact', temporality: 'historical', identifiability: 'identified',
       transmissionPrinciple: { aim: 'insurance_pricing', condition: 'with_consent_for_payment', temporal: 'ongoing', consideration: paid(200) },
-      statement: "The fitness app shares the participant's activity history with a car insurer, with consent and for $0.20, to price their insurance.",
+      statement: "The fitness app shares the participant's activity history with a car insurer, with consent and for $2.00, to price their insurance.",
     },
   },
   {

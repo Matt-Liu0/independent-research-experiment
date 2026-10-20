@@ -5,7 +5,7 @@ import type { StrideTask } from './types'
 /** Stride's task wording (tasks 7–10; Bramble's are 1–6). */
 export const STRIDE_TASKS: Record<StrideTask, { short: string; text: string }> = {
   7: { short: 'Connect your health data', text: 'Connect your health data to Stride, and check your stats for today.' },
-  8: { short: 'Do the workout, tell Sam', text: 'Do the 10-minute guided workout with coach Maya, and let your housemate Sam know how it goes.' },
+  8: { short: 'Do the workout, tell Sam', text: 'Do a short guided workout with coach Maya, and let your housemate Sam know how it goes.' },
   9: { short: "Save two plans you'd try", text: "Browse this week's training plans and save two you'd try." },
   10: { short: 'Unlock the sleep report with coins', text: 'Use your coins to unlock the premium sleep report.' },
 }

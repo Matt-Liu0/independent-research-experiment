@@ -5,7 +5,16 @@ Every build participants see has a version (`appVersion` on each record). Bump `
 
 
 
-## 0.16.0 (2026-10-14)
+## 0.17.0 (2026-10-20)
+
+Changes from Noah's walkthrough (Oct 19).
+
+- **Points are worth more (item 2):** 100 points or coins = $1.00 (was $0.10). Each app starts at 150 (was 420), free delivery and the sleep report cost 100 (was 300), and the offers stay +200 / +100 / +150, now worth $2.00 / $1.00 / $1.50. The bonus is $0.50–$5.00 per app once the reward is redeemed. Part 2 items word the rewards in the new dollar amounts.
+- **"Task complete" strip (item 3):** when a task's goal is reached, a strip under the task bar says so and Done becomes Next task. The task still ends only on that tap, so decisions left on the screen (e.g. the workout-complete prompts) aren't cut off. Logged as `task` / `goal_met`.
+- **Workout wording (item 6):** Task 8 says "a short guided workout" instead of "the 10-minute guided workout" (it takes about 24 seconds).
+- **Store search (item 7):** a search that matches no item or store name (e.g. a town) shows every store, with a note, instead of an empty list.
+- **No skipping tasks (item 10):** "I'm done with this task" in the unfinished-task check is shown on demo links only; participants can only keep going.
+
 
 - **Part 2 questionnaire and norming survey** (Matt: questionnaire first, all 29 site flows plus 12 repeats, on our own site). Spec: `docs/superpowers/specs/2026-10-14-part2-questionnaire-design.md`.
   - **Battery:** 29 site flows, 12 reworded repeats (one per decision screen in each app, as matched pairs), 12 held-out flows (6 matched pairs). That makes 53 scored items plus 2 attention items, in a random order per person, with repeats at least 20 apart.

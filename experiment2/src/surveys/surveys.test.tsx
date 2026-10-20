@@ -118,8 +118,8 @@ describe('Closing', () => {
       strideState: { ...initialStrideState(), points: 220 },
     }
     render(<Closing {...p} />)
-    // Both balances: 270 points ($0.27) plus 220 coins ($0.22).
-    expect(screen.getByText(/270 Bramble points and 220 Stride coins, so your bonus is \$0\.49/)).toBeInTheDocument()
+    // Both balances: 270 points ($2.70) plus 220 coins ($2.20).
+    expect(screen.getByText(/270 Bramble points and 220 Stride coins, so your bonus is \$4\.90/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Saving…' })).toHaveAttribute('aria-disabled', 'true')
     release()
     const link = await screen.findByRole('link', { name: 'Back to Prolific' })

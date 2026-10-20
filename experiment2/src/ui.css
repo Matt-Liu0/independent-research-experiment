@@ -248,6 +248,22 @@
   font-size: 15px;
 }
 
+/* Goal reached: Next stands out, and a strip under the bar says the task is complete. */
+.task-bar-next {
+  background: #fff;
+  color: var(--ink);
+  border-color: #fff;
+}
+
+.task-complete {
+  padding: 8px 12px;
+  background: var(--sand);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
 .task-card-backdrop {
   position: fixed;
   inset: 0;

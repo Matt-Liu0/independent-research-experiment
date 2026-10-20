@@ -74,13 +74,21 @@ export function distanceLabel(miles: number, precise: boolean): string {
   return precise ? `${miles.toFixed(1)} mi` : `about ${Math.max(1, Math.round(miles))} mi`
 }
 
-/** What a store-finder search matches: an item (oat milk, sourdough) or part of a store name. */
-export function searchStores(stores: Store[], query: string): { stores: Store[]; item: 'oat_milk' | 'sourdough' | null } {
+/**
+ * What a store-finder search matches: an item (oat milk, sourdough) or part of a store name.
+ * Anything else (a town, an address) matches every store, flagged `unmatched`, so a search
+ * never ends in an empty list.
+ */
+export function searchStores(
+  stores: Store[],
+  query: string,
+): { stores: Store[]; item: 'oat_milk' | 'sourdough' | null; unmatched: boolean } {
   const q = query.trim().toLowerCase()
-  if (!q) return { stores, item: null }
-  if (/oat|milk/.test(q)) return { stores: stores.filter((s) => s.hasOatMilk), item: 'oat_milk' }
-  if (/sourdough|bread|loaf/.test(q)) return { stores, item: 'sourdough' }
-  return { stores: stores.filter((s) => s.name.toLowerCase().includes(q)), item: null }
+  if (!q) return { stores, item: null, unmatched: false }
+  if (/oat|milk/.test(q)) return { stores: stores.filter((s) => s.hasOatMilk), item: 'oat_milk', unmatched: false }
+  if (/sourdough|bread|loaf/.test(q)) return { stores, item: 'sourdough', unmatched: false }
+  const named = stores.filter((s) => s.name.toLowerCase().includes(q))
+  return named.length > 0 ? { stores: named, item: null, unmatched: false } : { stores, item: null, unmatched: true }
 }
 
 export interface Product {
@@ -129,5 +137,5 @@ export const MOVE_ADDRESS = '40 Oak Street'
 export const PRACTICE_BIRTHDAY = 'May 14'
 export const PRACTICE_CARD = 'Visa ending 4242'
 
-export const START_POINTS = 420
-export const REDEEM_COST = 300
+export const START_POINTS = 150
+export const REDEEM_COST = 100
