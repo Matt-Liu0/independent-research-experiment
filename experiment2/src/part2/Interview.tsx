@@ -36,7 +36,7 @@ export function Chat({ advance, interviewer }: Part2StageProps & { interviewer: 
   const [status, setStatus] = useState<Status>('loading')
   const [draft, setDraft] = useState('')
   const [failed, setFailed] = useState<string | null>(null)
-  const listEnd = useRef<HTMLDivElement>(null)
+  const log = useRef<HTMLDivElement>(null)
   const loaded = useRef(false)
 
   const load = () => {
@@ -61,8 +61,10 @@ export function Chat({ advance, interviewer }: Part2StageProps & { interviewer: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Keep the newest message in view by scrolling the conversation box only, never the page.
   useEffect(() => {
-    listEnd.current?.scrollIntoView?.({ block: 'end' })
+    const el = log.current
+    if (el) el.scrollTop = el.scrollHeight
   }, [view, status])
 
   const send = (text: string) => {
@@ -119,7 +121,7 @@ export function Chat({ advance, interviewer }: Part2StageProps & { interviewer: 
   return (
     <main className="page page-wide chat-page">
       <h1>Chat with the assistant</h1>
-      <div className="chat-log" role="log" aria-live="polite" aria-label="Conversation">
+      <div ref={log} className="chat-log" role="log" aria-live="polite" aria-label="Conversation">
         {view?.turns.map((t, i) => (
           <div key={i} className={`chat-bubble chat-${t.role}`}>
             <span className="visually-hidden">{t.role === 'interviewer' ? 'Assistant: ' : 'You: '}</span>
@@ -133,7 +135,6 @@ export function Chat({ advance, interviewer }: Part2StageProps & { interviewer: 
             <span />
           </div>
         )}
-        <div ref={listEnd} />
       </div>
       {failed && (
         <p className="notice notice-warn small" role="alert">

@@ -70,14 +70,21 @@
   white-space: nowrap;
 }
 
-/* The interview chat. */
+/* The interview chat: the page fills the window, the conversation scrolls inside its own box,
+   and the input stays at the bottom, so nothing grows as messages are added. */
+.chat-page {
+  height: 100dvh;
+  min-height: 0;
+}
+
 .chat-log {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-height: 240px;
-  max-height: 55vh;
+  flex: 1 1 0;
+  min-height: 200px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
