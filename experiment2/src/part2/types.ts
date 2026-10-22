@@ -5,8 +5,21 @@ import type { Slot } from './order'
 /** part2: Part 2 of the main study (Day 8, computer). norming: the separate norming survey. */
 export type Variant = 'part2' | 'norming'
 
-/** Stages built so far. The scenario briefing, chat, filler and debrief come next (spec, "Not in this piece"). */
-const PART2_STAGES = ['device', 'intro', 'practice', 'comprehension', 'items', 'recall', 'background', 'done'] as const
+/** Part 2 (pipeline, Experiment 1 "Procedure"): briefing, the interview, a filler, the questionnaire, recall, background, debrief. */
+const PART2_STAGES = [
+  'device',
+  'briefing',
+  'chat',
+  'filler',
+  'intro',
+  'practice',
+  'comprehension',
+  'items',
+  'recall',
+  'background',
+  'debrief',
+  'done',
+] as const
 const NORMING_STAGES = ['device', 'consent', 'intro', 'practice', 'comprehension', 'items', 'background', 'done'] as const
 export type Part2Stage = (typeof PART2_STAGES)[number] | (typeof NORMING_STAGES)[number]
 
@@ -42,6 +55,26 @@ export interface Background {
   aiUse: string
 }
 
+/** Elicitation arm, assigned by the interviewer function (balanced). */
+export type Arm = 'open' | 'structured' | 'case'
+
+/** Written by the interviewer function only (participants can't change it): the transcript itself is kept server-side. */
+export interface InterviewSummary {
+  done: boolean
+  turns: number
+  participantTurns: number
+  participantChars: number
+  startedAt: number
+  endedAt: number | null
+  minutes: number | null
+}
+
+export interface FillerResult {
+  solved: number
+  attempted: number
+  ms: number
+}
+
 export interface Part2Doc extends ProlificParams {
   variant: Variant
   appVersion: string
@@ -63,12 +96,18 @@ export interface Part2Doc extends ProlificParams {
   /** Part 2 only: recall question ID → answer. */
   recall: Record<string, string> | null
   background: Background | null
+  /** Part 2 only. Set by the server; null until the chat starts. */
+  arm: Arm | null
+  interview: InterviewSummary | null
+  filler: FillerResult | null
+  /** Ticked on the debrief page: the participant asks for their data to be removed. */
+  withdrawRequested: boolean
   createdAt?: unknown
   startedItemsAt?: unknown
   completedAt?: unknown
 }
 
-export type Part2TimestampField = 'consentAt' | 'startedItemsAt' | 'completedAt'
+export type Part2TimestampField = 'consentAt' | 'startedItemsAt' | 'completedAt' | 'chatStartedAt' | 'debriefAt'
 
 export function newPart2Doc(variant: Variant, params: ProlificParams, now = new Date()): Part2Doc {
   return {
@@ -89,6 +128,10 @@ export function newPart2Doc(variant: Variant, params: ProlificParams, now = new 
     comprehension: null,
     recall: null,
     background: null,
+    arm: null,
+    interview: null,
+    filler: null,
+    withdrawRequested: false,
   }
 }
 

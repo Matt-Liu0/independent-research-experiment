@@ -1,7 +1,7 @@
 {
   "name": "experiment2",
   "private": true,
-  "version": "0.17.0",
+  "version": "0.18.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,11 +12,13 @@
     "test:watch": "vitest",
     "test:rules": "firebase emulators:exec --only firestore,auth --project demo-bramble --config firebase.test.json \"vitest run --config vitest.rules.config.ts\"",
     "emulators": "firebase emulators:start --only auth,firestore --project demo-bramble",
+    "emulators:chat": "npm --prefix functions run build && firebase emulators:start --only auth,firestore,functions --project demo-bramble",
     "typecheck": "tsc -b",
     "export": "tsx scripts/export.ts",
     "dev:phone": "vite --host",
     "emulators:phone": "firebase emulators:start --only auth,firestore --project demo-bramble --config firebase.phone.json",
     "build:map": "tsx scripts/build-map.ts",
+    "test:functions": "npm --prefix functions run build && firebase emulators:exec --only auth,firestore,functions --project demo-bramble --config firebase.functions-test.json \"vitest run --config vitest.functions.config.ts\"",
     "test:load": "firebase emulators:exec --only firestore,auth --project demo-bramble --config firebase.test.json \"vitest run --config vitest.load.config.ts\""
   },
   "dependencies": {

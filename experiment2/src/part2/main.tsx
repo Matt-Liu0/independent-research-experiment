@@ -7,6 +7,7 @@ import { installVisibilityLogging, logEvent } from '../log/logEvent'
 import { ErrorBoundary } from '../study/ErrorBoundary'
 import { getFirebase } from '../study/firebase'
 import { parsePart2Entry } from './entry'
+import { CallableInterviewer, ScriptedInterviewer, type Interviewer } from './interviewer'
 import { Part2App } from './Part2App'
 import { FirestorePart2Store, MemoryPart2Store, type Part2Store } from './store'
 
@@ -18,7 +19,13 @@ function createStore(): Part2Store {
   return new FirestorePart2Store(db, auth, entry.variant, entry.mode === 'pilot')
 }
 
+function createInterviewer(): Interviewer {
+  if (entry.mode === 'demo') return new ScriptedInterviewer(entry.arm)
+  return new CallableInterviewer(getFirebase().functions, entry.mode === 'pilot', entry.arm)
+}
+
 const store = createStore()
+const interviewer = createInterviewer()
 installVisibilityLogging()
 window.addEventListener('error', (e) => logEvent('error', { where: 'window', message: String(e.message) }))
 window.addEventListener('unhandledrejection', (e) => logEvent('error', { where: 'promise', message: String(e.reason) }))
@@ -26,7 +33,7 @@ window.addEventListener('unhandledrejection', (e) => logEvent('error', { where: 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      <Part2App entry={entry} store={store} />
+      <Part2App entry={entry} store={store} interviewer={interviewer} />
     </ErrorBoundary>
   </StrictMode>,
 )

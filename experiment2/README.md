@@ -29,7 +29,7 @@ Phone web app for Part 1 of the study: two practice apps in one session, **Bramb
 | `/?demo=nudged`, `/?demo=neutral` or `/?demo=mixed` | Researcher preview: any device, nothing saved. `nudged`/`neutral` set every screen to that level; `mixed` gives a random 3-of-6 pattern, as participants get. Add `&first=stride` or `&first=bramble` to choose the app order (otherwise random) |
 | `/?agent=1&EPISODE_ID=…&nudged=U1-U3-U5&taskOrder=4-1-2-3-5-6-7-9-8-10` | Experiment 4 agent episode, driven by the MCP harness; data read from `window.__brambleAgent` (see `DATA.md` section 8) |
 
-To try the app locally: `npm run dev`, then open http://localhost:5173/?demo=nudged. For a run that saves to the emulator, start `npm run emulators` too and use `http://localhost:5173/?PROLIFIC_PID=test1&STUDY_ID=s&SESSION_ID=x` (the device check needs a phone, or Chrome DevTools' phone emulation).
+To try the app locally: `npm run dev`, then open http://localhost:5173/?demo=nudged. Part 2 with a stand-in interviewer (no model, nothing saved): http://localhost:5173/part2.html?demo=1 (add `&arm=structured` or `&arm=case` to label the arm). To talk to the real interviewer locally, put `ANTHROPIC_API_KEY=<key>` in `functions/.secret.local` (git-ignored), run `npm run emulators:chat`, and open `http://localhost:5173/part2.html?code=test1&pilot=1&anydevice=1` (add `&arm=…` to choose the arm on pilot links); move the record to the chat by going through the briefing. For a run that saves to the emulator, start `npm run emulators` too and use `http://localhost:5173/?PROLIFIC_PID=test1&STUDY_ID=s&SESSION_ID=x` (the device check needs a phone, or Chrome DevTools' phone emulation).
 
 ## Testing on a real phone
 
@@ -61,7 +61,8 @@ To change the area, edit `src/bramble/mapConfig.ts` (location, store pins, `MAP_
 | `src/study/` | Prolific entry, device check, consent, assignment (pattern × app order), tasks, Firestore store |
 | `src/study/consentText.ts` | **DRAFT** consent text: replace with the IRB version and bump `version` |
 | `src/surveys/` | Ease rating, SUS, suspicion question, settings check, closing |
-| `src/part2/` | Part 2 questionnaire and norming survey (`part2.html`, `norming.html`): battery wording (`items.ts`), order, screens, store |
+| `src/part2/` | Part 2 and the norming survey (`part2.html`, `norming.html`): briefing and chat (`Interview.tsx`), filler and debrief (`Wrapup.tsx`, wording in `sessionText.ts`, **DRAFT**), battery wording (`items.ts`), order, screens, store |
+| `functions/` | The Part 2 interviewer, a Cloud Function (`interviewTurn`): arm assignment, the interview script (`interview.ts`), the interviewer's prompts and the case set T (`prompts.ts`, **DRAFT**, T empty) |
 | `firestore.rules` | Security rules |
 | `scripts/export.ts` | CSV export |
 
@@ -72,8 +73,10 @@ Step by step with Prolific (settings, pilot, bonuses, Part 2): `PROLIFIC.md`.
 1. Create the Firebase project (Anonymous Auth on, Firestore in a US region) on the **Blaze plan** with a budget alert (the free plan's 20,000 writes a day is less than 100 participants need), then copy `.env.example` to `.env.local` and fill it in with `VITE_USE_EMULATORS=false`.
 2. Put the IRB consent text in `src/study/consentText.ts`, set `isDraft: false`, and fill in the contact line.
 3. Set the Prolific completion and return codes in `.env.local`.
-4. `npm test && npm run test:rules && npm run build`, then `npx firebase deploy --only hosting,firestore:rules --project <project-id>`.
-5. Bump `version` in `package.json` for every change made during data collection and note it in `CHANGELOG.md`.
+4. Store the Anthropic API key for the interviewer as a secret (it prompts for the key; it never goes in a file): `npx firebase functions:secrets:set ANTHROPIC_API_KEY --project <project-id>`.
+5. Approve the interviewer wording (`functions/src/prompts.ts`, `PROMPTS_ARE_DRAFT`), the briefing and debrief (`src/part2/sessionText.ts`), and fill in the case set T if the case arm runs.
+6. `npm test && npm run test:rules && npm run test:functions && npm run build`, then `npx firebase deploy --only hosting,firestore:rules,functions --project <project-id>`.
+7. Bump `version` in `package.json` for every change made during data collection and note it in `CHANGELOG.md`.
 
 ## Export
 

@@ -5,6 +5,19 @@ Every build participants see has a version (`appVersion` on each record). Bump `
 
 
 
+## 0.18.0 (2026-10-22)
+
+The rest of Part 2 (pipeline, Experiment 1 "Procedure"). Matt chose Claude Sonnet 5.5 as the interviewer, a Cloud Function, an empty case set for now, and draft wording.
+
+- **Stages:** `briefing` → `chat` → `filler` before the questionnaire, and `debrief` after the background survey.
+- **Interviewer** (`functions/`, Cloud Function `interviewTurn`): one fixed model (`claude-sonnet-5-5`, low effort, server-side refusal fallback) for everyone. Assigns the arm on the first call (least-used, so arms stay balanced), keeps the transcript in `part2_interviews` where no browser can read it, and saves a summary on the record. Location first, then health, at most 7.5 minutes each; fixed openers, cases and closing, so only follow-ups come from the model. Open arm: up to three generic follow-ups per domain. Structured: the six coordinates in order. Case: each case in T, then the inferred rule, up to three rounds. **The case arm isn't assigned until T is filled in.**
+- **Wording is DRAFT** (banners on the pages): interviewer prompts (`functions/src/prompts.ts`), briefing and debrief (`src/part2/sessionText.ts`). The briefing says replies come from Claude and asks people not to type identifying details.
+- **Filler:** 10 anagrams for 3 minutes (or until all are solved). **Debrief:** discloses Part 1's cover story and offers "Please remove my data", which the export honors for Part 1 and Part 2.
+- **Rules:** `arm` and `interview` can only be written by the function; transcripts and arm counters are closed to browsers.
+- **Export:** `arm` and interview columns in `part2-participants.csv`, `group` in the verdict tables, and `transcripts.jsonl`.
+- **Demo and pilot links:** `part2.html?demo=1` uses a scripted stand-in (no model). Pilot links take `&arm=open|structured|case`.
+- Tests: the interview script (unit), the function in the emulator (`npm run test:functions`), the rules, the export and the full Part 2 flow.
+
 ## 0.17.0 (2026-10-20)
 
 Changes from Noah's walkthrough (Oct 19).

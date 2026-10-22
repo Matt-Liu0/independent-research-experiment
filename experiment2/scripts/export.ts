@@ -12,7 +12,7 @@ import { pathToFileURL } from 'node:url'
 import { initializeApp } from 'firebase-admin/app'
 import { getFirestore, type Firestore } from 'firebase-admin/firestore'
 import { buildExport, flowCodebook, prolificBonusLines, toCsv, type ExportResult, type RawParticipant } from './transform'
-import { batteryCodebook, buildPart2Export } from './transformPart2'
+import { batteryCodebook, buildPart2Export, buildTranscripts, type RawInterview } from './transformPart2'
 
 export async function loadParticipants(db: Firestore, collection: string): Promise<RawParticipant[]> {
   const snapshot = await db.collection(collection).get()
@@ -49,6 +49,7 @@ export function writePart2Export(
   part2: RawParticipant[],
   norming: RawParticipant[],
   part1: ExportResult | null,
+  interviews: RawInterview[] = [],
 ) {
   const p2 = buildPart2Export(part2, 'part2', pilot, part1)
   const nm = buildPart2Export(norming, 'norming', pilot, null)
@@ -58,6 +59,9 @@ export function writePart2Export(
   writeFileSync(join(outDir, 'norming-participants.csv'), toCsv(nm.participants))
   writeFileSync(join(outDir, 'norming-verdicts.csv'), toCsv(nm.verdicts))
   writeFileSync(join(outDir, 'battery-codebook.csv'), toCsv(batteryCodebook()))
+  // The interview transcripts D (one JSON object per line). Free text: participants were asked
+  // not to type identifying details, but read them before sharing.
+  writeFileSync(join(outDir, 'transcripts.jsonl'), buildTranscripts(interviews, p2.idMap) + '\n')
   // Private, like id-map.csv.
   writeFileSync(join(outDir, 'part2-id-map.csv'), toCsv([...p2.idMap, ...nm.idMap]))
   return { part2: p2, norming: nm }
@@ -73,18 +77,23 @@ async function main() {
   const collection = pilot ? 'pilot_participants' : 'participants'
 
   initializeApp({ projectId })
-  const raw = await loadParticipants(getFirestore(), collection)
+  const prefix = pilot ? 'pilot_' : ''
+  const part2 = await loadParticipants(getFirestore(), `${prefix}part2`)
+  // Asked on the Part 2 debrief to have their data removed: left out of Part 1 too.
+  const removePids = new Set(part2.filter((p) => p.data.withdrawRequested === true).map((p) => String(p.data.prolificPid)))
+  const raw = (await loadParticipants(getFirestore(), collection)).filter((p) => !removePids.has(String(p.data.prolificPid)))
   const result = writeExport(outDir, collection, raw)
   const withdrawn = raw.length - result.participants.length
   console.log(
-    `Exported ${result.participants.length} participants (${withdrawn} withdrawn, left out), ` +
+    `Exported ${result.participants.length} participants (${withdrawn} withdrawn and ${removePids.size} who asked on the debrief, left out), ` +
       `${result.events.length} events, ${result.flows.length} flow rows → ${outDir}`,
   )
-  const prefix = pilot ? 'pilot_' : ''
-  const part2 = await loadParticipants(getFirestore(), `${prefix}part2`)
   const norming = await loadParticipants(getFirestore(), `${prefix}norming`)
-  const p2 = writePart2Export(outDir, pilot, part2, norming, result)
-  console.log(`Exported Part 2 for ${p2.part2.participants.length} and the norming survey for ${p2.norming.participants.length} → ${outDir}`)
+  const interviews = (await getFirestore().collection(`${prefix}part2_interviews`).get()).docs.map((d) => ({ uid: d.id, data: d.data() }))
+  const p2 = writePart2Export(outDir, pilot, part2, norming, result, interviews)
+  console.log(
+    `Exported Part 2 for ${p2.part2.participants.length} (${interviews.length} interviews) and the norming survey for ${p2.norming.participants.length} → ${outDir}`,
+  )
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {

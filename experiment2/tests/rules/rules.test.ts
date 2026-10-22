@@ -344,6 +344,29 @@ describe('Part 2 and norming records', () => {
     await assertFails(deleteDoc(doc(d, 'part2', 'a')))
   })
 
+  it('leaves the interview arm and summary to the server: participants can neither set nor change them', async () => {
+    const d = db('a')
+    await setDoc(doc(d, 'part2_pids', 'pid_a'), { uid: 'a', createdAt: serverTimestamp() })
+    await assertFails(setDoc(doc(d, 'part2', 'a'), { ...part2Record('pid_a', 'part2'), arm: 'open' }))
+    await assertFails(setDoc(doc(d, 'part2', 'a'), { ...part2Record('pid_a', 'part2'), interview: { done: true } }))
+    await assertSucceeds(setDoc(doc(d, 'part2', 'a'), { ...part2Record('pid_a', 'part2'), arm: null, interview: null }))
+    await assertFails(updateDoc(doc(d, 'part2', 'a'), { arm: 'structured' }))
+    await assertFails(updateDoc(doc(d, 'part2', 'a'), { interview: { done: true } }))
+    await assertSucceeds(updateDoc(doc(d, 'part2', 'a'), { stage: 'filler', filler: { solved: 3, attempted: 4, ms: 180000 } }))
+  })
+
+  it('keeps transcripts and arm counters out of reach of every browser', async () => {
+    const d = await enrollPart2('a', 'part2')
+    for (const col of ['part2_interviews', 'pilot_part2_interviews']) {
+      await assertFails(getDoc(doc(d, col, 'a')))
+      await assertFails(setDoc(doc(d, col, 'a'), { state: {} }))
+    }
+    for (const col of ['part2_meta', 'pilot_part2_meta']) {
+      await assertFails(getDoc(doc(d, col, 'arms')))
+      await assertFails(setDoc(doc(d, col, 'arms'), { open: 0 }))
+    }
+  })
+
   it('lets only one user claim a Prolific ID for Part 2, separately from Part 1', async () => {
     await assertSucceeds(setDoc(doc(db('a'), 'part2_pids', 'P'), { uid: 'a', createdAt: serverTimestamp() }))
     await assertFails(setDoc(doc(db('b'), 'part2_pids', 'P'), { uid: 'b', createdAt: serverTimestamp() }))

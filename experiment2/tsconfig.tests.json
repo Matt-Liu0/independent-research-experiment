@@ -18,5 +18,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["tests", "scripts", "src/env.d.ts", "src/test/setup.ts"]
+  "include": ["tests", "scripts", "src/env.d.ts", "src/test/setup.ts", "functions/src/interview.test.ts"]
 }

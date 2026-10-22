@@ -7,6 +7,7 @@ import {
   persistentMultipleTabManager,
   type Firestore,
 } from 'firebase/firestore'
+import { connectFunctionsEmulator, getFunctions, type Functions } from 'firebase/functions'
 
 const env = import.meta.env
 
@@ -20,7 +21,7 @@ export const firebaseConfig = {
 /** demo-* project IDs only exist in the emulator, so they always use it. */
 export const usesEmulators = env.VITE_USE_EMULATORS === 'true' || firebaseConfig.projectId.startsWith('demo-')
 
-let instance: { app: FirebaseApp; db: Firestore; auth: Auth } | null = null
+let instance: { app: FirebaseApp; db: Firestore; auth: Auth; functions: Functions } | null = null
 
 /** Created on first use, so tests and demo mode never touch Firebase. */
 export function getFirebase() {
@@ -31,11 +32,14 @@ export function getFirebase() {
     localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
   })
   const auth = getAuth(app)
+  // The Part 2 interviewer (functions/). Same region as the function's default.
+  const functions = getFunctions(app, 'us-central1')
   if (usesEmulators) {
     const host = window.location.hostname
     connectFirestoreEmulator(db, host, 8080)
     connectAuthEmulator(auth, `http://${host}:9099`, { disableWarnings: true })
+    connectFunctionsEmulator(functions, host, 5001)
   }
-  instance = { app, db, auth }
+  instance = { app, db, auth, functions }
   return instance
 }

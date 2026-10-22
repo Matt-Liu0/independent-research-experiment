@@ -3,12 +3,14 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import type { DeviceInfo } from '../study/types'
 import { parsePart2Entry, type Part2Entry } from './entry'
+import { ScriptedInterviewer } from './interviewer'
 import { ATTENTION_ITEMS, BATTERY, REPEATED_ITEMS, getItem } from './items'
 import { slotKey, validSequence } from './order'
 import { Part2App } from './Part2App'
 import { MemoryPart2Store } from './store'
 import { RECALL_QUESTIONS } from './surveyContent'
-import type { Part2Doc, Variant } from './types'
+import { newPart2Doc, type Part2Doc, type Variant } from './types'
+import { ANAGRAMS } from './Wrapup'
 
 const PAGES = BATTERY.length + REPEATED_ITEMS.length + ATTENTION_ITEMS.length
 const PARAMS = { prolificPid: 'P1', studyId: 'S', sessionId: 'X', recruitment: 'prolific' as const }
@@ -17,10 +19,16 @@ const device = (passedCheck: boolean): DeviceInfo => ({
   os: 'other', screenW: 1440, screenH: 900, userAgent: 'test', touch: false, passedCheck, automated: false,
 })
 
-async function renderPart2(variant: Variant, options: { existing?: Part2Doc; passes?: boolean } = {}) {
-  const store = new MemoryPart2Store(variant, options.existing)
+/** Part 2 records already past the chat and filler, for the questionnaire tests. */
+const atQuestionnaire = (): Part2Doc => ({ ...newPart2Doc('part2', PARAMS), stage: 'intro', arm: 'open' })
+
+async function renderPart2(variant: Variant, options: { existing?: Part2Doc; passes?: boolean; fromStart?: boolean } = {}) {
+  const existing = options.existing ?? (variant === 'part2' && !options.fromStart ? atQuestionnaire() : undefined)
+  const store = new MemoryPart2Store(variant, existing)
   const entry: Part2Entry = { variant, mode: 'study', params: PARAMS }
-  const view = render(<Part2App entry={entry} store={store} detect={() => device(options.passes ?? true)} />)
+  const view = render(
+    <Part2App entry={entry} store={store} interviewer={new ScriptedInterviewer()} detect={() => device(options.passes ?? true)} />,
+  )
   await act(async () => {})
   return { store, view, doc: () => store.doc! }
 }
@@ -47,7 +55,55 @@ async function throughComprehension(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('Part 2', () => {
-  it('runs intro → practice → comprehension → 55 items → recall → background, saving every answer', async () => {
+  it('runs the briefing, the chat and the filler before the questionnaire', async () => {
+    const user = userEvent.setup()
+    const { doc, store } = await renderPart2('part2', { fromStart: true })
+    expect(screen.getByRole('heading', { name: 'Part 2: your views' })).toBeInTheDocument()
+    expect(screen.getByText(/sent to Anthropic/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Start the chat' }))
+    expect(doc().stage).toBe('chat')
+
+    expect(await screen.findByText(/grocery delivery app/)).toBeInTheDocument()
+    const box = screen.getByLabelText('Your message')
+    for (const answer of ['Only while I use it', 'No sharing', 'Heart rate is private', 'Ask me first']) {
+      await user.type(box, answer)
+      await user.keyboard('{Enter}')
+      expect(await screen.findByText(answer)).toBeInTheDocument()
+    }
+    // Only lengths are logged, never what was typed.
+    expect(store.events.filter((e) => e.type === 'chat' && e.event === 'sent').map((e) => e.chars)).toEqual([19, 10, 21, 12])
+    expect(JSON.stringify(store.events)).not.toContain('Heart rate is private')
+    await user.click(await screen.findByRole('button', { name: 'Continue' }))
+
+    expect(screen.getByRole('heading', { name: 'A short puzzle' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
+    const inputs = screen.getAllByRole('textbox')
+    for (const [i, a] of ANAGRAMS.entries()) await user.type(inputs[i], a.answer.toLowerCase())
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+    expect(doc().filler).toMatchObject({ solved: ANAGRAMS.length, attempted: ANAGRAMS.length })
+    expect(screen.getByRole('heading', { name: 'Your views' })).toBeInTheDocument()
+  })
+
+  it('asks for the message again if the assistant fails to reply', async () => {
+    const user = userEvent.setup()
+    const interviewer = new ScriptedInterviewer()
+    const store = new MemoryPart2Store('part2', { ...newPart2Doc('part2', PARAMS), stage: 'chat' })
+    render(<Part2App entry={{ variant: 'part2', mode: 'study', params: PARAMS }} store={store} interviewer={interviewer} />)
+    await screen.findByText(/grocery delivery app/)
+    const real = interviewer.send.bind(interviewer)
+    interviewer.send = async () => {
+      throw new Error('unavailable')
+    }
+    await user.type(screen.getByLabelText('Your message'), 'hello')
+    await user.click(screen.getByRole('button', { name: 'Send' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent("couldn't reply")
+    expect(screen.getByLabelText('Your message')).toHaveValue('hello')
+    interviewer.send = real
+    await user.click(screen.getByRole('button', { name: 'Send' }))
+    expect(await screen.findByText('Is there anything else I should keep in mind?')).toBeInTheDocument()
+  })
+
+  it('runs intro → practice → comprehension → 55 items → recall → background → debrief, saving every answer', async () => {
     const user = userEvent.setup()
     const { doc, store } = await renderPart2('part2')
     expect(screen.getByRole('heading', { name: 'Your views' })).toBeInTheDocument()
@@ -84,6 +140,12 @@ describe('Part 2', () => {
     await user.click(radio('How often do you use AI assistants (such as ChatGPT, Claude, Gemini or Siri)?', 'Never'))
     await user.click(screen.getByRole('button', { name: 'Finish' }))
     expect(doc().background).toEqual({ iuipc: Array(10).fill(6), ageRange: '25–34', gender: null, aiUse: 'Never' })
+
+    expect(screen.getByRole('heading', { name: 'About this study' })).toBeInTheDocument()
+    expect(screen.getByText(/made by the research team/)).toBeInTheDocument()
+    await user.click(screen.getByRole('checkbox', { name: 'Please remove my data from the study' }))
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+    expect(doc().withdrawRequested).toBe(true)
     expect(doc().stage).toBe('done')
     expect(await screen.findByRole('link', { name: 'Back to Prolific' })).toHaveAttribute('href', expect.stringContaining('cc=TEST-PART2'))
   }, 60_000)
@@ -129,7 +191,7 @@ describe('Part 2', () => {
   })
 
   it('turns phones away, asking for a computer', async () => {
-    const { doc } = await renderPart2('part2', { passes: false })
+    const { doc } = await renderPart2('part2', { passes: false, fromStart: true })
     expect(screen.getByRole('heading', { name: 'Please use a computer' })).toBeInTheDocument()
     expect(doc().stage).toBe('device')
   })
@@ -152,6 +214,10 @@ describe('norming survey', () => {
     expect(parsePart2Entry('?PROLIFIC_PID=a&STUDY_ID=b&SESSION_ID=c', '/norming.html')).toMatchObject({ variant: 'norming', mode: 'study' })
     expect(parsePart2Entry('?code=S12&pilot=1', '/part2')).toMatchObject({ variant: 'part2', mode: 'pilot', params: { prolificPid: 'S12' } })
     expect(parsePart2Entry('?demo=1', '/part2.html')).toMatchObject({ mode: 'demo' })
+    // An arm can be picked on demo and pilot links only.
+    expect(parsePart2Entry('?demo=1&arm=structured', '/part2.html').arm).toBe('structured')
+    expect(parsePart2Entry('?code=S12&pilot=1&arm=case', '/part2').arm).toBe('case')
+    expect(parsePart2Entry('?code=S12&arm=case', '/part2').arm).toBeUndefined()
     expect(parsePart2Entry('', '/part2.html').params).toBeNull()
   })
 })

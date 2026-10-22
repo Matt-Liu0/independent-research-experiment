@@ -62,8 +62,9 @@ export function buildPart2Export(
   const part1Row = new Map((part1?.participants ?? []).map((r) => [r.studyCode as string, r]))
   const siteRow = new Map((part1?.flows ?? []).map((r) => [`${r.studyCode}|${r.flowId}`, r]))
 
+  // withdrawRequested: ticked on the debrief page; their data is left out like a withdrawal.
   const kept = raw
-    .filter((p) => p.data.withdrawn !== true)
+    .filter((p) => p.data.withdrawn !== true && p.data.withdrawRequested !== true)
     .sort((a, b) => (ms(a.data.createdAt) ?? 0) - (ms(b.data.createdAt) ?? 0) || a.uid.localeCompare(b.uid))
 
   const result: Part2ExportResult = { participants: [], verdicts: [], idMap: [] }
@@ -99,6 +100,8 @@ export function buildPart2Export(
       consentVersion: (p.data.consentVersion as string) ?? null,
       stage: (p.data.stage as string) ?? null,
       completed: p.data.stage === 'done',
+      arm: (p.data.arm as string) ?? null,
+      ...interviewColumns(p.data),
       os: ((p.data.device as Record<string, unknown> | null)?.os as string) ?? null,
       resumeCount: (p.data.resumeCount as number) ?? null,
       practiceVerdict: ((p.data.practice as Record<string, unknown> | null)?.verdict as string) ?? null,
@@ -147,6 +150,8 @@ export function buildPart2Export(
       result.verdicts.push({
         studyCode: code,
         sample: variant,
+        // The comparison group for the elicitation effect: the person's arm, or the norming sample.
+        group: variant === 'norming' ? 'norming' : ((p.data.arm as string) ?? null),
         itemId: item.id,
         kind: item.kind,
         domain: item.domain,
@@ -175,3 +180,56 @@ export function buildPart2Export(
   return result
 }
 
+
+/** Part 2 only: the interview summary (written by the server), the filler and the debrief. */
+function interviewColumns(data: Record<string, unknown>): Row {
+  const iv = data.interview as Record<string, unknown> | null | undefined
+  const filler = data.filler as Record<string, unknown> | null | undefined
+  return {
+    interviewDone: (iv?.done as boolean) ?? null,
+    interviewMinutes: (iv?.minutes as number) ?? null,
+    interviewParticipantTurns: (iv?.participantTurns as number) ?? null,
+    interviewParticipantChars: (iv?.participantChars as number) ?? null,
+    fillerSolved: (filler?.solved as number) ?? null,
+    chatStartedAt: toIso(data.chatStartedAt),
+    debriefAt: toIso(data.debriefAt),
+  }
+}
+
+/** One saved interview, as the function stores it in <col>_interviews/<uid>. */
+export interface RawInterview {
+  uid: string
+  data: Record<string, unknown>
+}
+
+/**
+ * The transcripts D, one JSON object per line, keyed by study code: the agents' only input in
+ * Experiments 3 and 4. People left out of the Part 2 export (withdrawn) are left out here too.
+ */
+export function buildTranscripts(interviews: RawInterview[], idMap: Row[]): string {
+  const codeOfUid = new Map(idMap.map((r) => [r.uid as string, r.studyCode as string]))
+  return interviews
+    .filter((iv) => codeOfUid.has(iv.uid))
+    .map((iv) => {
+      const state = iv.data.state as { arm: string; done: boolean; turns: Record<string, unknown>[] }
+      return {
+        studyCode: codeOfUid.get(iv.uid)!,
+        arm: state.arm,
+        done: state.done,
+        model: iv.data.model ?? null,
+        promptsVersion: iv.data.promptsVersion ?? null,
+        turns: state.turns.map((t) => ({
+          role: t.role,
+          text: t.text,
+          domain: t.domain,
+          at: typeof t.at === 'number' ? new Date(t.at).toISOString() : null,
+          source: t.source ?? null,
+          model: t.model ?? null,
+          caseId: t.caseId ?? null,
+        })),
+      }
+    })
+    .sort((a, b) => a.studyCode.localeCompare(b.studyCode))
+    .map((t) => JSON.stringify(t))
+    .join('\n')
+}

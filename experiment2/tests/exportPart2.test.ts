@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildExport } from '../scripts/transform'
-import { batteryCodebook, buildPart2Export } from '../scripts/transformPart2'
+import { batteryCodebook, buildPart2Export, buildTranscripts } from '../scripts/transformPart2'
 import { BATTERY, REPEATED_ITEMS } from '../src/part2/items'
 import type { ItemAnswer } from '../src/part2/types'
 
@@ -27,6 +27,10 @@ const part2Raw = [
     events: [],
     data: {
       prolificPid: 'PID1', variant: 'part2', stage: 'done', withdrawn: false, createdAt: at(8), startedItemsAt: at(9),
+      arm: 'structured',
+      interview: { done: true, turns: 14, participantTurns: 6, participantChars: 410, startedAt: 1, endedAt: 2, minutes: 12.5 },
+      filler: { solved: 7, attempted: 9, ms: 180000 },
+      withdrawRequested: false,
       comprehension: { attempts: ['allow', 'ask'], passed: true },
       answers: {
         'store_location:B': answer('store_location', 'B', 3, 'ask', 2),
@@ -76,6 +80,46 @@ describe('Part 2 export', () => {
   it('marks Part 2 records with no Part 1 match', () => {
     const lone = buildPart2Export(part2Raw, 'part2', true, null)
     expect(lone.participants[0]).toMatchObject({ studyCode: 'PX001', matchedToPart1: false })
+  })
+})
+
+describe('interview data', () => {
+  const out = buildPart2Export(part2Raw, 'part2', false, part1)
+
+  it('adds the arm and interview summary per person, and the arm as each verdict row\'s group', () => {
+    expect(out.participants[0]).toMatchObject({ arm: 'structured', interviewDone: true, interviewMinutes: 12.5, interviewParticipantTurns: 6, fillerSolved: 7 })
+    expect(out.verdicts.every((v) => v.group === 'structured')).toBe(true)
+    const norming = buildPart2Export([{ ...part2Raw[0], uid: 'n1', data: { ...part2Raw[0].data, variant: 'norming', arm: null } }], 'norming', false, null)
+    expect(norming.verdicts[0].group).toBe('norming')
+  })
+
+  it('leaves out people who asked on the debrief for their data to be removed', () => {
+    const asked = buildPart2Export([{ ...part2Raw[0], data: { ...part2Raw[0].data, withdrawRequested: true } }], 'part2', false, part1)
+    expect(asked.participants).toHaveLength(0)
+    expect(asked.verdicts).toHaveLength(0)
+  })
+
+  it('writes one transcript per kept person, under their study code', () => {
+    const state = {
+      arm: 'structured',
+      done: true,
+      turns: [
+        { role: 'interviewer', text: 'Hi', domain: 'location', at: Date.UTC(2026, 10, 8), source: 'fixed' },
+        { role: 'participant', text: 'Only while using', domain: 'location', at: Date.UTC(2026, 10, 8, 0, 1) },
+      ],
+    }
+    const lines = buildTranscripts(
+      [
+        { uid: 'laptop', data: { state, model: 'claude-sonnet-5-5', promptsVersion: 'v1' } },
+        { uid: 'someone-withdrawn', data: { state, model: 'claude-sonnet-5-5', promptsVersion: 'v1' } },
+      ],
+      out.idMap,
+    ).split('\n')
+    expect(lines).toHaveLength(1)
+    const t = JSON.parse(lines[0])
+    expect(t).toMatchObject({ studyCode: 'P001', arm: 'structured', model: 'claude-sonnet-5-5' })
+    expect(t.turns[1]).toMatchObject({ role: 'participant', text: 'Only while using', at: '2026-11-08T00:01:00.000Z', source: null })
+    expect(JSON.stringify(t)).not.toContain('laptop')
   })
 })
 

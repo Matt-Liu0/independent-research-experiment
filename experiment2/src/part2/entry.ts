@@ -1,7 +1,7 @@
 import { DEVICE_SKIP_ALLOWED } from '../study/prolific'
 import type { DeviceInfo, ProlificParams } from '../study/types'
 import { detectOs } from '../study/device'
-import type { Variant } from './types'
+import type { Arm, Variant } from './types'
 
 export type Part2Mode = 'study' | 'pilot' | 'demo'
 
@@ -10,6 +10,13 @@ export interface Part2Entry {
   mode: Part2Mode
   params: ProlificParams | null
   skipDeviceCheck?: boolean
+  /** Demo and pilot links only: &arm=open|structured|case picks the interview arm, to try each one. */
+  arm?: Arm
+}
+
+function armParam(q: URLSearchParams): Arm | undefined {
+  const arm = q.get('arm')
+  return arm === 'open' || arm === 'structured' || arm === 'case' ? arm : undefined
 }
 
 const SAFE_ID = /^[A-Za-z0-9_-]{1,64}$/
@@ -24,9 +31,10 @@ export function parsePart2Entry(search: string, pathname: string, allowDeviceSki
   const variant = variantOf(pathname)
   const q = new URLSearchParams(search)
   if (q.get('demo') === '1') {
-    return { variant, mode: 'demo', params: { prolificPid: 'DEMO', studyId: 'DEMO', sessionId: 'DEMO' }, skipDeviceCheck: true }
+    return { variant, mode: 'demo', params: { prolificPid: 'DEMO', studyId: 'DEMO', sessionId: 'DEMO' }, skipDeviceCheck: true, arm: armParam(q) }
   }
   const mode: Part2Mode = q.get('pilot') === '1' ? 'pilot' : 'study'
+  const arm = mode === 'pilot' ? armParam(q) : undefined
   const skipDeviceCheck = allowDeviceSkip && q.get('anydevice') === '1'
   const code = q.get('code')
   if (code !== null) {
@@ -34,12 +42,13 @@ export function parsePart2Entry(search: string, pathname: string, allowDeviceSki
       variant,
       mode,
       skipDeviceCheck,
+      arm,
       params: SAFE_ID.test(code) ? { prolificPid: code, studyId: 'CODE', sessionId: 'CODE', recruitment: 'code' } : null,
     }
   }
   const [prolificPid, studyId, sessionId] = ['PROLIFIC_PID', 'STUDY_ID', 'SESSION_ID'].map((k) => q.get(k) ?? '')
   const valid = [prolificPid, studyId, sessionId].every((v) => SAFE_ID.test(v))
-  return { variant, mode, skipDeviceCheck, params: valid ? { prolificPid, studyId, sessionId, recruitment: 'prolific' } : null }
+  return { variant, mode, skipDeviceCheck, arm, params: valid ? { prolificPid, studyId, sessionId, recruitment: 'prolific' } : null }
 }
 
 /**

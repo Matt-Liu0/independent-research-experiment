@@ -27,8 +27,8 @@ beforeAll(async () => {
       pattern: 'U1U2U6',
       withdrawn: false,
       stage: 'done',
-      appState: { points: 220, flows: { reward_university: 'accept' } },
-      strideState: { points: 120, flows: { stride_reward_university: 'decline' } },
+      appState: { points: 155, flows: { reward_university: 'accept' } },
+      strideState: { points: 50, flows: { stride_reward_university: 'decline' } },
     })
     await setDoc(doc(db, COLLECTION, `exp_a_${run}`, 'events', 'e1'), {
       type: 'prompt_shown', flowId: 'reward_university', defaultShown: null, clientT: 10, t: t(1),
@@ -62,8 +62,8 @@ describe('export from Firestore', () => {
 
     expect(participants.trim().split('\n')).toHaveLength(2)
     expect(participants).toContain('PL001')
-    // Bonus: 220 Bramble points ($0.22) plus 120 Stride coins ($0.12).
-    expect(participants).toContain('0.34')
+    // Bonus: 155 Bramble points ($1.55) plus 50 Stride coins ($0.50).
+    expect(participants).toContain('2.05')
     expect(participants).not.toContain('EXPORT_')
     const [header, ...rows] = flows.trim().split('\n').map((line) => line.split(','))
     const rowOf = (flowId: string) => {

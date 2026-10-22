@@ -4,33 +4,41 @@ import { NORMING_CONSENT } from '../study/consentText'
 import { Message } from '../study/Message'
 import { completionUrl, fromProlific } from '../study/prolific'
 import { NORMING_COMPLETION_CODE, PART2_COMPLETION_CODE, detectPart2Device, type Part2Entry } from './entry'
+import { Briefing, Chat } from './Interview'
+import type { Interviewer } from './interviewer'
 import { Comprehension, Intro, Items, Practice } from './Questionnaire'
 import type { Part2StageProps } from './stageProps'
 import type { Part2Store } from './store'
 import { BackgroundSurvey, Recall } from './Surveys'
+import { Debrief, Filler } from './Wrapup'
 import { nextPart2Stage, type Part2Doc, type Part2Stage, type Part2TimestampField, type Variant } from './types'
 
 type Boot = { state: 'loading' } | { state: 'ready' } | { state: 'blocked'; reason: 'missing_params' | 'taken' | 'pid_mismatch' | 'error' }
 
 const STAGES: Record<Exclude<Part2Stage, 'device'>, ComponentType<Part2StageProps>> = {
   consent: NormingConsent,
+  briefing: Briefing,
+  chat: Chat,
+  filler: Filler,
   intro: Intro,
   practice: Practice,
   comprehension: Comprehension,
   items: Items,
   recall: Recall,
   background: BackgroundSurvey,
+  debrief: Debrief,
   done: Done,
 }
 
 interface Props {
   entry: Part2Entry
   store: Part2Store
+  interviewer: Interviewer
   detect?: (variant: Variant) => ReturnType<typeof detectPart2Device>
 }
 
 /** Part 2 (Day 8, computer) and the norming survey: the same shell, different stages (types.ts). */
-export function Part2App({ entry, store, detect = detectPart2Device }: Props) {
+export function Part2App({ entry, store, interviewer, detect = detectPart2Device }: Props) {
   const [boot, setBoot] = useState<Boot>(entry.params ? { state: 'loading' } : { state: 'blocked', reason: 'missing_params' })
   const [doc, setDoc] = useState<Part2Doc | null>(null)
   const docRef = useRef<Part2Doc | null>(null)
@@ -94,7 +102,7 @@ export function Part2App({ entry, store, detect = detectPart2Device }: Props) {
   }
   if (!doc) return null
 
-  const props: Part2StageProps = { doc, store, update, advance }
+  const props: Part2StageProps = { doc, store, interviewer, update, advance }
   const Stage = doc.stage === 'device' ? null : STAGES[doc.stage]
   return (
     <>
@@ -197,7 +205,7 @@ function Done({ doc, store }: Part2StageProps) {
       <h1>Thank you</h1>
       <p>
         {doc.variant === 'part2'
-          ? 'That was the last of the questions. The rest of Part 2 is still being built.'
+          ? "That's the end of Part 2. Thank you for taking part in both parts of the study."
           : 'Your payment will arrive within 3 days.'}
       </p>
       {!saved && (

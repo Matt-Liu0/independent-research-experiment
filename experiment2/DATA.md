@@ -450,7 +450,7 @@ Design and item wording: `docs/superpowers/specs/2026-10-14-part2-questionnaire-
 |---|---|---|
 | `prolificPid`, `studyId`, `sessionId`, `recruitment` | As in Part 1 | |
 | `variant` | Which survey | `part2` · `norming` |
-| `stage` | Where they are | Part 2: `device` → `intro` → `practice` → `comprehension` → `items` → `recall` → `background` → `done`. Norming: `consent` instead of `recall`, after `device` |
+| `stage` | Where they are | Part 2: `device` → `briefing` → `chat` → `filler` → `intro` → `practice` → `comprehension` → `items` → `recall` → `background` → `debrief` → `done` (from 0.18.0; before, `device` went straight to `intro` and `background` to `done`). Norming: `device` → `consent` → `intro` → … → `items` → `background` → `done` |
 | `device` | As in Part 1; `passedCheck` means a computer (Part 2) or any device (norming) | |
 | `sequence` | The page order, saved before the first item | list of `{kind: 'item', itemId, wording: 'A'/'B'}` or `{kind: 'attention', itemId}` (55 pages) |
 | `answers.<slot>` | One answer per page, keyed `itemId:A`, `itemId:B` or `attention_1` / `attention_2` | `{itemId, wording, position, verdict: allow/ask/block, confidence: 1–5, ms, changes}` |
@@ -459,9 +459,22 @@ Design and item wording: `docs/superpowers/specs/2026-10-14-part2-questionnaire-
 | `recall.<question>` | Part 2 only: what they remember choosing | the flow's own value (e.g. `once`, `arrival_only`, `accept`) or `dont_remember` |
 | `background` | IUIPC (10 items, 1–7), age range, gender (optional), AI assistant use | `{iuipc: [..10], ageRange, gender, aiUse}` |
 | `consentVersion` | Norming only | `norming-v1-draft` |
-| `createdAt`, `startedItemsAt`, `completedAt` | Server timestamps | |
+| `arm` | Part 2 only: the interview arm. **Written by the interviewer function only** (the rules refuse it from the browser), balanced across arms | `open` · `structured` · `case` (the case arm is assigned only once the case set T is filled in), or `null` before the chat |
+| `interview` | Part 2 only: summary of the interview, also written only by the function. The transcript itself is in `part2_interviews` (below) | `{done, turns, participantTurns, participantChars, startedAt, endedAt, minutes}` (times in ms) |
+| `filler` | Part 2 only: the word puzzle between the chat and the questionnaire | `{solved, attempted, ms}` (0–10 words) |
+| `withdrawRequested` | Part 2 only: ticked "Please remove my data from the study" on the debrief. The export leaves the person out of every file, Part 1 included | `true` / `false` |
+| `createdAt`, `chatStartedAt`, `startedItemsAt`, `debriefAt`, `completedAt` | Server timestamps (`chatStartedAt`, `debriefAt`: Part 2 only) | |
 
-Events (`part2/{uid}/events`) use the same fields as Part 1, with types `stage`, `item` (`shown`, `answered`), `survey` (`comprehension`, `recall_submitted`, `background_submitted`), `visibility`, `resume` and `error`.
+Events (`part2/{uid}/events`) use the same fields as Part 1, with types `stage`, `item` (`shown`, `answered`), `survey` (`comprehension`, `recall_submitted`, `background_submitted`, `filler_start`, `filler_done`, `debrief`), `chat` (`sent` with `chars` and `turn`; `reply` with `ms` and `done`; `error`; `continue`), `visibility`, `resume` and `error`. Chat events never contain what was typed: the text is only in the transcript.
+
+### The interview (server-side)
+
+The chat runs through the `interviewTurn` Cloud Function (`functions/src/`): the browser sends each message, and the function adds the interviewer's reply. Two collections are written by the function only; no security rule opens them, so no browser can read or change them:
+
+- **`part2_interviews/{uid}`** (`pilot_part2_interviews`): the transcript **D**. `model` (`claude-sonnet-5-5`), `promptsVersion`, `createdAt`, `updatedAt`, and `state`: `{arm, domainIndex, domainStartedAt, startedAt, endedAt, done, turns}`. Each turn is `{role: interviewer/participant, text, domain: location/health, at (ms), source: fixed/model, model, caseId}`. `source: fixed` marks the scripted openers, cases and closing; `model` records which model wrote each reply (normally `claude-sonnet-5-5`; another model if a refusal fell back, `declined` if the fixed fallback line was used).
+- **`part2_meta/arms`** (`pilot_part2_meta`): how many people have each arm, `{open, structured, case}`. The next person gets the least-used arm.
+
+How the interview runs (all in `functions/src/interview.ts`, wording in `functions/src/prompts.ts`): location first, then health, each with a fixed opener and at most 7.5 minutes. The open arm gets up to three follow-ups per domain; the structured arm goes through the six coordinates (up to 10 answers); the case arm shows each case in T as fixed text, then up to three rounds on the inferred rule.
 
 ### Export CSVs
 
@@ -469,7 +482,11 @@ Events (`part2/{uid}/events`) use the same fields as Part 1, with types `stage`,
   - **Stated verdict:** `verdict`, `confidence`, `wording`, `position`, `ms` and `changes` are the first time the item was asked.
   - **Repeat:** `verdict2`, `confidence2` and `position2` are the repeat. `unstable` means the two verdicts differ; `uncertain` means both confidences were 1 or 2 (repeated items only).
   - **Site:** `siteFriction`, `siteStatus`, `siteFirstVerdict`, `siteFinalVerdict` and `sayDoAgree` come from the same person's row in `flows.csv` (site flows only).
-- **`part2-participants.csv`:** one row per person. `studyCode` is their Part 1 code, or `X…` if no Part 1 record matches. It also has `matchedToPart1`, `daysSincePart1`, `comprehensionPassed`, `attention_1_passed`, `attention_2_passed`, `attentionPassed`, `itemsAnswered`, `medianItemMs` and `minutesOnItems`. Each recall answer comes with `<question>_correct`, compared with the first choice on the site (empty for "I don't remember"). The background survey gives `iuipc_1`…`iuipc_10`, `iuipc_control`, `iuipc_awareness`, `iuipc_collection`, `ageRange`, `gender` and `aiUse`.
+- **`verdicts.csv`** also has `group`: the person's `arm`, or `norming` in `norming-verdicts.csv`. Stack the two files and use `group` for the elicitation-effect model.
+- **`part2-participants.csv`:** one row per person. `studyCode` is their Part 1 code, or `X…` if no Part 1 record matches. It also has `arm`, `interviewDone`, `interviewMinutes`, `interviewParticipantTurns`, `interviewParticipantChars`, `fillerSolved`, `chatStartedAt`, `debriefAt`, `matchedToPart1`, `daysSincePart1`, `comprehensionPassed`, `attention_1_passed`, `attention_2_passed`, `attentionPassed`, `itemsAnswered`, `medianItemMs` and `minutesOnItems`. Each recall answer comes with `<question>_correct`, compared with the first choice on the site (empty for "I don't remember"). The background survey gives `iuipc_1`…`iuipc_10`, `iuipc_control`, `iuipc_awareness`, `iuipc_collection`, `ageRange`, `gender` and `aiUse`.
 - **`norming-verdicts.csv`, `norming-participants.csv`:** the same tables for the norming sample. Study codes are `N001`…, and the site and recall columns are empty.
 - **`battery-codebook.csv`:** one row per battery item, with `kind` (`site` / `held_out`), `domain`, `repeated`, both wordings, the `ci_*` columns, and for held-out items `nearestSiteFlow`, `distance` and `differsOn`.
+- **`transcripts.jsonl`:** one interview per line, `{studyCode, arm, done, model, promptsVersion, turns: [{role, text, domain, at, source, model, caseId}]}`. The agents' input in Experiments 3 and 4. It's free text: participants are asked not to type identifying details, but read it before sharing.
 - **`part2-id-map.csv`:** study code → Prolific ID for both samples. Private, like `id-map.csv`.
+
+People who ticked `withdrawRequested` are left out of every file, Part 1's included (matched by Prolific ID).

@@ -24,8 +24,9 @@ Prolific: submission "Awaiting review" ─▶ you approve ─▶ base pay; then 
 1. **Firebase:**
    - Switch the project to the **Blaze (pay-as-you-go) plan** and set a budget alert (for example $5).
    - On the free plan, Firestore allows 20,000 writes a day. One participant makes roughly 250–400, so a 100-person day would hit the limit, and writes after it would be lost.
-   - At this size Blaze costs a few cents.
-2. **Deploy:** `npm test && npm run test:rules && npm run build`, then deploy hosting and rules (see `README.md`, "Before launch").
+   - At this size Blaze costs a few cents. Cloud Functions (the Part 2 interviewer) also need Blaze; their own cost is cents.
+   - **Anthropic API:** the interviewer calls Claude Sonnet 5.5, billed to your Anthropic account (an estimated $0.20–$0.50 per Part 2 participant: about 20 short replies; set a spending limit in the Anthropic console). Store the key with `npx firebase functions:secrets:set ANTHROPIC_API_KEY`.
+2. **Deploy:** `npm test && npm run test:rules && npm run test:functions && npm run build`, then deploy hosting, rules and functions (see `README.md`, "Before launch").
 3. **Consent:** the IRB consent text is in `src/study/consentText.ts`, with `isDraft: false`.
 4. **Codes:** create the study in Prolific (next section) to get its completion code, put it in `.env.local`, then **rebuild and redeploy**.
 

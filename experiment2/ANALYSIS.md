@@ -2,7 +2,7 @@
 
 How to go from the Firestore database to the Experiment 1 and 2 results in the pipeline (`../docs/superpowers/specs/Research Methodology Pipeline.md`). What every column means is in `DATA.md` section 7 (Part 1) and section 9 (Part 2 and norming); this guide says which files and columns to use for each question, and in what order.
 
-Parts not built yet: the Part 2 interviewer chat, so there is no elicitation-arm column or transcript yet. Steps that need them are marked **(needs the chat)**.
+The case arm is only assigned once the case set T is filled in (`functions/src/prompts.ts`); until then Part 2 people are in the open-ended or structured arm.
 
 ## 1. Export
 
@@ -25,6 +25,7 @@ Parts not built yet: the Part 2 interviewer chat, so there is no elicitation-arm
 | `part2-participants.csv` | Part 2 participant | attention, comprehension, recall, IUIPC |
 | `norming-verdicts.csv`, `norming-participants.csv` | the same, norming sample | the no-elicitation baseline |
 | `flow-codebook.csv`, `battery-codebook.csv` | flow / item | GKC-CI parameters for tracing gaps to parameters |
+| `transcripts.jsonl` | Part 2 interview | the transcripts D: coverage coding (RQ1.1) and the agents' input in Experiments 3 and 4 |
 | `id-map.csv`, `part2-id-map.csv`, `prolific-bonuses.txt` | person | **payment only**. Contain Prolific IDs: never share or analyze these |
 
 Analyze only files keyed by `studyCode`. `exports/` is git-ignored; keep it that way.
@@ -42,6 +43,7 @@ Write the rules down, ideally in the preregistration, before opening the outcome
 
 **Part 2** (`part2-participants.csv`):
 - `attentionPassed` = `false` or `comprehensionPassed` = `false`.
+- `interviewDone` = `false` (left the chat early or it failed): report separately; they have no complete transcript.
 - `matchedToPart1` = `false` (no Part 1 record, so no say–do comparison).
 - Very fast answering: `medianItemMs` far below the rest (decide the cutoff from the pilot).
 
@@ -82,8 +84,13 @@ Main table: `verdicts.csv` (Part 2), plus `norming-verdicts.csv`.
   kappa2(rep[, c("verdict", "verdict2")])
   ```
   `unstable` (the two answers differ) and `uncertain` (both confidences 1–2) are the flags later experiments use.
-- **Elicitation effect (RQ1.2) (needs the chat):** stack Part 2 and norming verdicts with a `group` column (each arm, or `norming`) and model
-  `clmm(verdict ~ group + (1 | studyCode) + (1 | itemId))`. Until the chat exists, all Part 2 people are one group, so this is only Part 2 vs. norming.
+- **Elicitation effect (RQ1.2):** stack `verdicts.csv` and `norming-verdicts.csv`; their `group` column is the arm, or `norming`. Then
+  ```r
+  both <- rbind(verdicts, norming)
+  both$group <- relevel(factor(both$group), ref = "norming")
+  clmm(verdict ~ group + (1 | studyCode) + (1 | itemId), data = both)
+  ```
+- **Coverage and cost (RQ1.1):** code `transcripts.jsonl` for which flow coordinates and values each transcript addresses. Cost is in `part2-participants.csv`: `interviewMinutes`, `interviewParticipantTurns`, `interviewParticipantChars`, by `arm`. Turns with `source: fixed` are scripted (openers, cases, closing); only `source: model` turns were written by the interviewer.
 - **Confidence shift (proposed):** the same model with `confidence` as the outcome.
 - **Norms per flow:** from `norming-verdicts.csv`, each item's majority verdict and its agreement rate.
 

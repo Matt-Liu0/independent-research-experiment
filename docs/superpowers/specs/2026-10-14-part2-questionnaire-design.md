@@ -144,7 +144,7 @@ On our own site, as a second page (`part2.html`) in the same project and Firebas
 
 ## Not in this piece
 
-The scenario briefing, the chat with the interviewer (three arms), the filler task and the debrief come next. The arm assignment (balanced across arms) belongs with the chat.
+Built in 0.18.0 (Oct 22, 2026): the scenario briefing, the chat with the interviewer (three arms, assigned by the interviewer function and balanced), the filler task and the debrief. See `experiment2/CHANGELOG.md` and `experiment2/DATA.md` section 9.
 
 ## Sources
 

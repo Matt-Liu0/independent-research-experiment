@@ -15,6 +15,7 @@ export type EventType =
   // Part 2 and the norming survey
   | 'item'
   | 'survey'
+  | 'chat'
 
 export interface StudyEvent {
   type: EventType

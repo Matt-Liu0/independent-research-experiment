@@ -113,7 +113,11 @@ service cloud.firestore {
 
     // ---- Part 2 and the norming survey ----
     // Same pattern as Part 1: one record per Prolific ID (claimed in <col>_pids), owner-only,
-    // with fields that can't change after creation. No assignment yet (the chat arm comes later).
+    // with fields that can't change after creation. The interview arm and its summary are
+    // written only by the interviewer function (Admin SDK, which bypasses these rules), so
+    // participants can neither set nor change them. The transcripts (<col>_interviews) and the
+    // arm counters (part2_meta, pilot_part2_meta) have no rule here, so no browser can read or
+    // write them.
 
     function part2Collection(col) {
       return col in ['part2', 'pilot_part2', 'norming', 'pilot_norming'];
@@ -131,13 +135,15 @@ service cloud.firestore {
         && d.variant == part2Variant(col)
         && d.withdrawn == false
         && d.stage == 'device'
+        && d.get('arm', null) == null
+        && d.get('interview', null) == null
         && d.createdAt == request.time
         && get(docPath(col + '_pids', d.prolificPid)).data.uid == uid;
     }
 
     function validPart2Update() {
       let changed = request.resource.data.diff(resource.data).affectedKeys();
-      return !changed.hasAny(['prolificPid', 'studyId', 'sessionId', 'variant', 'appVersion', 'createdAt', 'withdrawn']);
+      return !changed.hasAny(['prolificPid', 'studyId', 'sessionId', 'variant', 'appVersion', 'createdAt', 'withdrawn', 'arm', 'interview']);
     }
 
     match /{col}/{uid} {
