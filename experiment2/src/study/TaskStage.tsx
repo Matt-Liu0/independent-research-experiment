@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CoreState } from '../core/engine'
+import type { AppId } from '../core/flowTypes'
 import { useEngine } from '../core/engine'
 import { Splash } from '../core/Loading'
 import { delayFor } from '../core/timing'
@@ -7,6 +8,7 @@ import { parsePattern } from '../core/units'
 import { logEvent, setLogContext } from '../log/logEvent'
 import { EaseRating } from '../surveys/EaseRating'
 import { ALL_TASKS, APP_NAMES, appOfTask, type TaskNumber } from './apps'
+import { HomeScreen } from './HomeScreen'
 import { SESSION_APPS, savedStateOf, type SessionApp } from './sessionApps'
 import type { StageProps } from './stageProps'
 import { TaskBar } from './TaskBar'
@@ -38,6 +40,8 @@ export function TaskStage({ participant, mode, update, advance }: StageProps) {
       taskPhase={taskPhase}
       total={order.length}
       nextTask={order[taskIndex + 1]}
+      previousTask={order[taskIndex - 1]}
+      firstApp={appOfTask(order[0])}
       agent={agent}
       allowSkip={allowSkip}
       update={update}
@@ -54,13 +58,15 @@ interface SessionProps {
   taskPhase: ParticipantDoc['taskPhase']
   total: number
   nextTask: TaskNumber | undefined
+  previousTask: TaskNumber | undefined
+  firstApp: ReturnType<typeof appOfTask>
   agent: boolean
   allowSkip: boolean
   update: StageProps['update']
   advance: StageProps['advance']
 }
 
-function AppSession({ app, participant, task, taskIndex, taskPhase, total, nextTask, agent, allowSkip, update, advance }: SessionProps) {
+function AppSession({ app, participant, task, taskIndex, taskPhase, total, nextTask, previousTask, firstApp, agent, allowSkip, update, advance }: SessionProps) {
   // The app keeps its own state across its tasks; the record only saves copies of it.
   const [initialState] = useState<CoreState>(() => app.initial(savedStateOf(participant, app)))
   const nudgedUnits = useMemo(() => parsePattern(participant.pattern), [participant.pattern])
@@ -140,6 +146,8 @@ function AppSession({ app, participant, task, taskIndex, taskPhase, total, nextT
         total={total}
         showCard={!agent}
         allowSkip={allowSkip}
+        installed={app.id === firstApp ? [app.id] : [firstApp, app.id]}
+        firstInApp={previousTask === undefined || appOfTask(previousTask) !== app.id}
         onFinish={finishTask}
       />
     )
@@ -218,6 +226,8 @@ function TaskRunner({
   total,
   showCard,
   allowSkip,
+  installed,
+  firstInApp,
   onFinish,
 }: {
   app: SessionApp
@@ -227,6 +237,10 @@ function TaskRunner({
   /** Participants see the task card first; agents get the task text from the harness. */
   showCard: boolean
   allowSkip: boolean
+  /** Study apps on the home screen so far, in the order they were installed. */
+  installed: AppId[]
+  /** The first task in this app: the home screen shows a hint, and the second app is marked new. */
+  firstInApp: boolean
   onFinish: (outcome: TaskOutcome, state: CoreState) => void
 }) {
   const { leaveScreen, getState, state } = useEngine()
@@ -237,8 +251,9 @@ function TaskRunner({
   const goalLogged = useRef(false)
   // Done tapped before the task's goal was reached: ask once whether they're finished.
   const [checking, setChecking] = useState(false)
-  // card: task card open, app not mounted yet. splash: the app "opening". app: in use.
-  const [phase, setPhase] = useState<'card' | 'splash' | 'app'>(() =>
+  // card: task card open, app not mounted yet. home: the phone's home screen, until the app's
+  // icon is tapped. splash: the app "opening". app: in use.
+  const [phase, setPhase] = useState<'card' | 'home' | 'splash' | 'app'>(() =>
     showCard ? 'card' : delayFor('splash') > 0 ? 'splash' : 'app',
   )
 
@@ -260,7 +275,8 @@ function TaskRunner({
     return () => clearTimeout(timer)
   }, [phase])
 
-  const start = () => setPhase(delayFor('splash') > 0 ? 'splash' : 'app')
+  const start = () => setPhase('home')
+  const open = () => setPhase(delayFor('splash') > 0 ? 'splash' : 'app')
 
   const finish = () => {
     // Settle flows that settle on leaving (Deals, Plans) and close settings-page timing before scoring the task.
@@ -294,6 +310,8 @@ function TaskRunner({
       {/* The app mounts only once the task card is closed, so no prompt opens (or starts timing) behind it. */}
       {phase === 'app' ? (
         <App />
+      ) : phase === 'home' ? (
+        <HomeScreen app={app.id} installed={installed} isNew={firstInApp && installed.length > 1} hint={firstInApp} onOpen={open} />
       ) : (
         <div className={app.id === 'stride' ? 'stride' : 'bramble'}>
           {phase === 'splash' ? <Splash name={APP_NAMES[app.id]} /> : <div className="splash" />}

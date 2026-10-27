@@ -463,3 +463,121 @@ a.btn[aria-disabled='true'] {
     animation: none;
   }
 }
+
+/* Phone home screen between the task card and the app (study/HomeScreen.tsx). */
+.home-screen {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: 28px 18px calc(14px + env(safe-area-inset-bottom));
+  background: linear-gradient(160deg, #3d5a80 0%, #6d8fb3 45%, #e0b49a 100%);
+  color: #fff;
+}
+
+.home-widget {
+  margin-bottom: 28px;
+  text-align: center;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+}
+
+.home-time {
+  font-size: 54px;
+  font-weight: 300;
+  line-height: 1.05;
+}
+
+.home-date {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px 10px;
+}
+
+.home-app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+
+.home-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.18);
+}
+
+.home-icon svg {
+  width: 34px;
+  height: 34px;
+}
+
+.home-label {
+  max-width: 72px;
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+  white-space: nowrap;
+}
+
+.home-new-dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #1e88e5;
+}
+
+.home-app-nudge .home-icon {
+  animation: home-wiggle 450ms ease-in-out 2;
+}
+
+@keyframes home-wiggle {
+  25% { transform: rotate(-7deg); }
+  75% { transform: rotate(7deg); }
+}
+
+.home-spacer {
+  flex: 1;
+}
+
+.home-hint {
+  align-self: center;
+  margin: 0 0 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.35);
+  font-size: 14px;
+}
+
+.home-dock {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 8px;
+  border-radius: 26px;
+  background: rgb(255 255 255 / 0.25);
+  backdrop-filter: blur(10px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-app-nudge .home-icon {
+    animation: none;
+  }
+}

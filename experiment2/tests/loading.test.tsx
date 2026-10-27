@@ -100,7 +100,7 @@ describe('finding stores', () => {
 })
 
 describe('task splash', () => {
-  it('opens the app with a splash only after the task card is closed', async () => {
+  it('opens the app from the home screen, with a splash, only after the task card is closed', async () => {
     const existing = {
       ...newParticipant({ prolificPid: 'p', studyId: 's', sessionId: 'x' }),
       stage: 'tasks' as const,
@@ -112,6 +112,10 @@ describe('task splash', () => {
 
     expect(screen.queryByRole('navigation', { name: 'Bramble' })).not.toBeInTheDocument()
     await click(screen.getByRole('button', { name: 'Start task' }))
+    // The phone's home screen first; the app opens from its icon.
+    expect(screen.getByText('Tap Bramble to open it')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Opening Bramble')).not.toBeInTheDocument()
+    await click(screen.getByRole('button', { name: 'Bramble' }))
     expect(screen.getByLabelText('Opening Bramble')).toBeInTheDocument()
     await advance(TIMING.splash)
     expect(screen.getByRole('navigation', { name: 'Bramble' })).toBeInTheDocument()
