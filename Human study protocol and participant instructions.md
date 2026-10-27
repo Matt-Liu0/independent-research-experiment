@@ -11,7 +11,7 @@ Each participant in the main sample does two parts, a week apart. Everything the
 | Part | When | Device | Length | What happens | Produces | Pay ($15/hour, gift card) |
 | --- | --- | --- | --- | --- | --- | --- |
 | Part 1 | Day 1 | Own smartphone | \~50 min | Consent, six Bramble tasks with an ease rating after each, usability survey, suspicion question, settings check | A (Exp 2), H (everyday settings) | $12.50 + points bonus ($1.00–$12.00) |
-| Part 2 | Day 8 | Computer | \~35 min (budgeted at 45) | Scenario briefing, chat with the assistant, filler, 48-item questionnaire, recall check, background survey, debrief | D and S (Exp 1), stability flags | $15/hour (budgeted $11.25) + $3 completion bonus |
+| Part 2 | Day 8 | Computer | \~35 min | Scenario briefing, chat with the assistant, filler, 48-item questionnaire, recall check, background survey, debrief | D and S (Exp 1), stability flags | $8.75 + $3 completion bonus |
 
 - **Why these devices.** Part 1 runs on the participant's own phone, so Bramble feels like a real app and the settings check reads that same phone. Part 2 runs on a computer, because answers typed on a phone are shorter, and that would change the transcripts.
 - **One sitting per part.** Each part is done in one sitting. Part 2 closes 90 minutes after it starts, and a gap of more than 10 minutes during the chat is flagged.
@@ -51,7 +51,7 @@ The 82% comes from online panels; students invited directly may return at a diff
 - **Randomize late.** Assign friction at the start of Part 1, where it applies. Assign the elicitation arm at the start of Part 2, balanced within each friction level, so dropout after Part 1 can't unbalance the arms.
 - **Check for uneven dropout.** Compare return rates between the friction levels. If high friction loses more people, the site itself drove them away, and that must be reported.
 - **Retention practices.** Pay the $3 completion bonus after Part 2: Prolific found an 80% higher hourly rate changed retention by under 3 points, while completion bonuses work better. State the full schedule and pay up front, message people before each part opens, remind those who haven't finished, and invite only people who completed the previous part.
-- **Budget.** At $15/hour, participant payments come to about $3,550 for the main sample and a 10-person pilot. With the interviewer and agent API costs, hosting and a 10% contingency the study comes to about $4,150 (about $5,700 if every points bonus reaches $12). Students are paid directly by gift card, so there is no platform fee.
+- **Budget.** At $15/hour, participant payments come to about $3,290 for the main sample and a 10-person pilot. With the interviewer and agent API costs (Experiment 3 at 3 runs, Experiment 4 at 1 run), hosting and a 10% contingency the study comes to about $3,850 (about $5,380 if every points bonus reaches $12). Students are paid directly by gift card, so there is no platform fee.
 
 **What about 90 can show.** Most comparisons are within a person: the say–do gap, and every agent measure, since each transcript is scored against the same person's answers on all 36 flows and for every model. Those are well powered. Comparisons between groups are the limit:
 

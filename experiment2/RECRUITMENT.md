@@ -34,7 +34,7 @@ npm run export ──▶ who finished, and each person's bonus ──▶ you buy
 | | People | Length | Pay |
 |---|---|---|---|
 | Part 1 (Experiment 2, phone) | about **129** invited and started | about 50 min | **$12.50** base ($15/hour) plus the points bonus ($1.00–$12.00; budgeted at $2 on average) |
-| Part 2 (Experiment 1, computer) | about **98** return | about 35 min (the budget sheet still assumes 45) | $15/hour base plus a **$3** completion bonus |
+| Part 2 (Experiment 1, computer) | about **98** return | about 35 min | **$8.75** base ($15/hour) plus a **$3** completion bonus |
 | Pilot (both parts) | **10** | as above | as above |
 
 The target is **90 analyzable** participants (30 per interview arm). The number to invite comes from the drop-off rates in the budget (93% valid Part 1, 82% return, 92% analyzable); recheck it after the pilot.

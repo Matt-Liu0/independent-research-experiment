@@ -193,7 +193,7 @@ Task order is randomized. Otherwise, consent fatigue late in the session would a
 
 A flow is also marked unstable when both answers are given with confidence 1 or 2. Repeats within one sitting overstate stability, so some "say–do gap" flows may really be unstable statements; we report this as a limitation. Experiments 3 and 4 use these labels to score agent errors separately on consistent and inconsistent flows.
 
-**Participants.** The same people as the three Experiment 1 arms (planning figure 120), with friction varied within each person. We over-recruit to cover dropout between the two sessions.
+**Participants.** The same people as the three Experiment 1 arms (planning figure 90), with friction varied within each person. We over-recruit to cover dropout between the two sessions.
 
 **Outputs passed on.**
 
@@ -221,7 +221,7 @@ Comparing V\_probe with V\_int shows whether writing the policy down loses somet
 **Design.**
 
 * Every Experiment 1 transcript goes to every agent model. Model therefore varies within each transcript, while elicitation arm varies between transcripts, as before.  
-* Each (transcript, model) pair is run 5 times.  
+* Each (transcript, model) pair is run 3 times (reduced from 5 to fit the study budget, Oct 27, 2026).  
 * The two probes use separate, fresh contexts. If the agent wrote its policy first, its verdicts would just read off that policy, and the gap between the two would disappear.  
 * A **prior-only baseline** runs the verdict probe with no transcript: "You are acting for a new user you haven't spoken with yet." This shows what the agent does by default.
 
@@ -230,12 +230,12 @@ The design mirrors the human side item for item:
 | HUMAN (EXPERIMENT 1\) | AGENT (EXPERIMENT 3\) |
 | :---- | :---- |
 | Stated verdicts S(f) on the battery | Verdict probe V\_probe(f) on the identical battery |
-| Reworded repeat items within the session | Same reworded items plus 5 independent runs |
+| Reworded repeat items within the session | Same reworded items plus 3 independent runs |
 | Case-based arm: rule the participant confirmed | Emitted policy R\_int |
 
 **Materials.**
 
-* *Transcripts.* The 120 transcripts D from Experiment 1, de-identified.  
+* *Transcripts.* The 90 transcripts D from Experiment 1, de-identified.  
 * *Battery.* The same 41 flows plus 12 reworded repeats of site flows (53 items). They are generated from the shared flow file, so the wording is identical to what participants saw. The response format is also identical: allow / block / ask me, with confidence 1–5.  
 * *Policy schema.* The 6-coordinate rule schema from the evaluation design, with the fixed vocabulary, plus:  
   * an ASK modality, so the policy can express "ask me";  
@@ -275,7 +275,7 @@ The prior-only baseline repeats step 1 without D. Putting D at the start of ever
   * the default the agent chose, and whether it used priorities.  
 * *Transcript use.* Fidelity gain over the prior-only baseline. On flows where V\_probe with D equals V\_probe without D, the transcript made no difference to the agent.  
 * *Behavior pull.* On say–do gap flows: the share of agent verdicts that match A instead of S. The agent never sees A, so any match must come from cues in D.  
-* *Consistency.* Agreement across the 5 runs and on reworded pairs, compared with the human figures from Experiment 1\.  
+* *Consistency.* Agreement across the 3 runs and on reworded pairs, compared with the human figures from Experiment 1\.  
 * *Calibration.* Accuracy at each confidence level, and whether "not discussed" justifications predict errors.
 * *Human uncertainty* (proposed Oct 18, 2026, for review). Agent correctness by the participant's own confidence on that flow. As a sensitivity check, fidelity is also reported without flows the participant rated 1 or 2. Errors on flows the person was unsure about say less about the agent.  
 
@@ -283,9 +283,9 @@ The main analysis is a mixed-effects logistic regression of correctness on model
 
 **Scale.**
 
-* Verdict probe: 120 transcripts × 4 models × 5 runs × 53 items ≈ 127,200 calls.  
-* Emission: 2,400 calls.  
-* Prior-only baseline: 4 models × 5 runs × 53 items ≈ 1,060 calls.
+* Verdict probe: 90 transcripts × 4 models × 3 runs × 53 items ≈ 57,240 calls.  
+* Emission: 1,080 calls (about 1,190 with retries).  
+* Prior-only baseline: 4 models × 3 runs × 53 items ≈ 640 calls.
 
 **Outputs used in analysis.** None of these are shown to any agent.
 
@@ -324,7 +324,7 @@ The main analysis is a mixed-effects logistic regression of correctness on model
 
   * ### Transcript \+ its own policy: D plus the policy R\_int that the same model wrote in Experiment 3\. This tests whether a written-down policy keeps the agent consistent under task pressure.
 
-* ### Runs: 3 per combination.
+* ### Runs: 1 per combination (reduced from 3 to fit the study budget, Oct 27, 2026). Every agent still meets every transcript in both conditions; what is lost is the run-to-run spread.
 
 * ### Environment: the same two apps as Part 1 (Bramble and Stride), with the same defaults, highlighted buttons and points. Each episode uses the matched participant's task order and nudged-screen pattern, so position effects and nudges line up flow by flow.
 
@@ -398,11 +398,11 @@ The main analysis is a mixed-effects logistic regression of correctness on model
 
 * ### Process: task completion, tool calls per task, tasks that hit the cap, and ask\_user calls.
 
-* ### Consistency: agreement of choices across the 3 runs.
+* ### Consistency: with one run per combination, run-to-run agreement is not estimated here; RQ3.4 covers agent consistency on the statement side (3 runs in Experiment 3). Rerunning a random subset of episodes would restore it if the budget allows.
 
 ### **Scale.**
 
-### About 100 transcripts × 4 models × 2 conditions × 3 runs \= 2,400 episodes, each roughly 30–60 tool calls.
+### About 90 transcripts × 4 models × 2 conditions × 1 run \= 720 episodes, each roughly 30–60 tool calls.
 
 ### **Outputs used in analysis.**
 
