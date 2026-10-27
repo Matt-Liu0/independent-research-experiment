@@ -6,14 +6,13 @@ export const BRIEFING = {
   isDraft: true,
   title: 'Part 2: your views',
   paragraphs: [
-    'Thanks for coming back. This part has three steps and takes about 40 minutes.',
-    "First, you'll chat with an AI assistant for about 15 minutes. Imagine that soon an assistant like this will manage your apps for you, including what they do with your information. It will ask how you'd want a grocery delivery app and a fitness app to handle your information. Answer in your own words: there are no right or wrong answers, and you can say as much or as little as you like.",
-    "Then there's a short puzzle, and after that a set of short questions about different situations.",
+    'Thanks for coming back. This part takes about 35 minutes: a chat with an AI assistant (about 15 minutes), a short puzzle, then short questions about different situations.',
+    "Imagine that soon an assistant like this will manage your apps for you, including what they do with your information. It will ask how you'd want a grocery delivery app and a fitness app to handle your information. Answer in your own words: there are no right or wrong answers.",
   ],
   points: [
-    "The assistant's replies are written by an AI model (Claude, made by Anthropic). Your messages are sent to Anthropic to produce those replies.",
-    "Please don't type your name, address or other details that could identify you.",
-    'Type your answers in the chat box and press Enter to send.',
+    'The replies are written by an AI model (Claude, made by Anthropic), so your messages are sent to Anthropic.',
+    "Please don't type your name, address or anything else that could identify you.",
+    'Press Enter to send a message.',
   ],
   start: 'Start the chat',
 }

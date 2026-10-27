@@ -46,7 +46,7 @@ It also answers questions of its own: which elicitation format captures preferen
 **Research questions.**
 
 * **RQ1.1** How much of the flow space does each elicitation format cover, and at what cost in time and turns?  
-* **RQ1.2** Does the elicitation format change stated preferences? Structured questioning may create preferences a person didn't hold beforehand, such as a notification requirement that exists only because the interviewer asked about it.  
+* **RQ1.2** Does the elicitation format change stated preferences, relative to the least-directive (open-ended) format? Structured questioning may create preferences a person didn't hold beforehand, such as a notification requirement that exists only because the interviewer asked about it.  
 * **RQ1.3** How stable are stated preferences within one person, across repeated, reworded items within the session?
 
 **Design.** Between-subjects, three elicitation arms, random assignment:
@@ -55,10 +55,7 @@ It also answers questions of its own: which elicitation format captures preferen
 * *Structured GKC-CI elicitation.* The interviewer goes through the six flow coordinates in a fixed order (sender, recipient, subject, attribute, aim, condition) and asks for a value for each.  
 * *Case-based judgment with rule induction.* The participant judges a fixed set of cases (allow / block / ask me). The interviewer then states the rule it infers, and the participant confirms or corrects it.
 
-A separate **norming sample** completes only the stated-verdict questionnaire, with no elicitation. It does two jobs:
-
-* It is the no-elicitation control for RQ1.2.  
-* Its majority verdict on each flow is the social-norm reference used in Experiment 3 to test whether agent errors lean toward what people in general want rather than what this participant said.
+There is no separate no-elicitation (norming) sample (decided Oct 27, 2026, to save budget). RQ1.2 therefore compares the arms with each other, with the open-ended arm as the reference. It cannot show whether the open-ended interview itself shifts answers; that is a stated limitation. The social-norm reference used in Experiment 3 is the sample norm: on each flow, the majority verdict of all other Part 2 participants (leave-one-out, pooled over arms).
 
 **Interviewer.** All participants get the same interviewer: one model with fixed prompts and settings, separate from the agents evaluated later. This turns the transcripts into a fixed corpus. Any number of agent models can then be run on the same D in Experiments 3–4 without collecting new human data. It also removes a confound from the earlier worked example, where the agent chose which cases to show and so partly decided which rule got induced. Here the researchers fix the case set.
 
@@ -71,13 +68,13 @@ A separate **norming sample** completes only the stated-verdict questionnaire, w
   * Held-out flows **H** combine values that appear in T but never together. They are split into three levels by parameter distance from T. Twelve are written so far (6 location, 6 health, as matched pairs), at distance 1 or 2 from the nearest site flow. Once T is fixed, distances are recomputed against T and level-3 items are added (decided Oct 18, 2026).  
 * H is defined by the materials, not by what a given participant happened to mention, so it is the same across arms.  
 * *Vignettes.* Every flow uses one template: "\[Recipient\] wants your \[attribute\] to \[aim\], \[condition\]." Only the wording for a changed coordinate differs between vignettes. So when two verdicts differ, the difference can be traced to the parameter that changed.  
-* *Item wording* (decided Oct 14, 2026). Items name a generic app ("your grocery delivery app", "your fitness app"), not Bramble or Stride: the norming sample has never seen them, and naming them would remind Experiment 2 participants of what they chose. Rewards are stated in dollars (100 points = $1.00). Items describe the flow only, with no default, highlighting, streak, friend count or tier, so for nudged and gamified flows the say–do gap is measured against the person's view of the bare flow.
+* *Item wording* (decided Oct 14, 2026). Items name a generic app ("your grocery delivery app", "your fitness app"), not Bramble or Stride: naming them would remind Experiment 2 participants of what they chose. Rewards are stated in dollars (100 points = $1.00). Items describe the flow only, with no default, highlighting, streak, friend count or tier, so for nudged and gamified flows the say–do gap is measured against the person's view of the bare flow.
 
-**Procedure** (one session, about 40 minutes).
+**Procedure** (one session, about 35 minutes).
 
 1. Consent and scenario briefing.  
 2. Elicitation in the assigned arm (about 15 minutes).  
-3. A short unrelated filler task (about 3 minutes).  
+3. A short unrelated filler task (about 2 minutes; shortened from 3, Oct 27, 2026).  
 4. Stated-verdict questionnaire: an introduction, one practice item and a comprehension check ("Which option means the app should check with you every time?"), then the 53 items, one per page, in a random order per person, with two attention items at positions 18 and 36 (55 pages). Every item is answered Allow / Ask me / Block, each with a confidence rating from 1 (not at all sure) to 5 (completely sure). Twelve site flows are asked twice, reworded and at least 20 items apart: one per decision screen in each app, so the 6 Bramble and 6 Stride repeats are matched pairs.  
 5. A recall check (Experiment 2 participants only): six questions about what they chose on the site, three per app, each with an "I don't remember" option.  
 6. A short background survey: a standard privacy-concern scale (IUIPC; Malhotra et al., 2004), age range, gender (optional) and how often they use AI assistants.  
@@ -96,17 +93,17 @@ The cost is that participants may answer the questionnaire in line with what the
   * exceptions added late;  
   * terms with no clean match in the vocabulary.  
 * *Aided preferences (structured arm).* Answers the participant appears to form on the spot, marked by hesitation or "now that you mention it." We predict these are less stable across the repeated items, which links this measure to RQ1.3.  
-* *Elicitation effect.* Differences in S(H) between each arm and the norming sample. We model these with mixed-effects ordinal regression (allow \> ask \> block), with random effects for participant and flow. The questionnaire is identical across groups and assignment is random, so any systematic difference is caused by the elicitation.  
+* *Elicitation effect.* Differences in S(H) between the structured and case-based arms and the open-ended arm. We model these with mixed-effects ordinal regression (allow \> ask \> block), with random effects for participant and flow. The questionnaire is identical across arms and assignment is random, so any systematic difference is caused by the elicitation format.  
 * *Consistency.* Agreement on the 12 repeated items within the session, reported as each participant's agreement rate and as Cohen's κ pooled over participants. Per-participant κ is secondary, because 12 pairs with three categories give noisy per-person values (decided Oct 18, 2026). Flows a participant answers inconsistently are flagged, and later experiments score agent errors on those flows separately.  
-* *Confidence shift* (proposed Oct 18, 2026, for review). Confidence ratings (1–5) on S(H) compared between each arm and the norming sample, with random effects for participant and flow. Talking a preference through may make people surer of it even when the verdict doesn't change.  
+* *Confidence shift* (proposed Oct 18, 2026, for review). Confidence ratings (1–5) on S(H) compared between the structured and case-based arms and the open-ended arm, with random effects for participant and flow. Talking a preference through may make people surer of it even when the verdict doesn't change.  
 * *Cost.* Elicitation time and number of turns.
 
-**Participants.** Recruited through Prolific, or as students with participant codes; the site supports both (decided Oct 5, 2026). The final sample size will come from a power analysis on RQ1.2 after piloting. The planning figure is 40 per arm plus 100 in the norming sample. One IRB protocol covers this experiment and Experiment 2\.
+**Participants.** Recruited through Prolific, or as students with participant codes; the site supports both (decided Oct 5, 2026). The final sample size will come from a power analysis on RQ1.2 after piloting. The planning figure is 40 per arm. One IRB protocol covers this experiment and Experiment 2\.
 
 **Outputs passed on.**
 
 * For each participant: D, S(f) with confidence over the full battery, consistency flags, and, in the case-based arm, the induced rule with the participant's corrections.  
-* For each flow: the norming-sample majority verdict and its agreement rate.
+* For each flow: the sample-norm majority verdict and its agreement rate (leave-one-out for each participant).
 
 ### **Experiment 2: Human Action**
 
@@ -121,7 +118,7 @@ The cost is that participants may answer the questionnaire in line with what the
 * **RQ2.2** Which flow parameters does the gap concentrate on? For example, people may act consistently about who receives their data but not about the conditions under which it is shared.  
 * **RQ2.3** How do nudges against the protective choice (a permissive default or a highlighted permissive button) change the gap?
 
-**Design.** Within-subject with Experiment 1: the same participants act on the site and later state their preferences. The norming sample does not take part.
+**Design.** Within-subject with Experiment 1: the same participants act on the site and later state their preferences.
 
 Friction is a **within-subjects** factor with two levels (decided Oct 8, 2026). In each app the decision points sit on six decision screens (U1–U6, matched across the apps); each participant gets three screens at each level, assigned independently of elicitation arm. Patterns are balanced so that each screen is nudged for exactly half the sample. Flows that share a screen always share a level, so no screen mixes nudged and neutral options. The two levels follow Utz et al. (2019):
 
@@ -226,14 +223,13 @@ Comparing V\_probe with V\_int shows whether writing the policy down loses somet
 * Every Experiment 1 transcript goes to every agent model. Model therefore varies within each transcript, while elicitation arm varies between transcripts, as before.  
 * Each (transcript, model) pair is run 5 times.  
 * The two probes use separate, fresh contexts. If the agent wrote its policy first, its verdicts would just read off that policy, and the gap between the two would disappear.  
-* A **prior-only baseline** runs the verdict probe with no transcript: "You are acting for a new user you haven't spoken with yet." This shows what the agent does by default and is the agent counterpart of the norming sample.
+* A **prior-only baseline** runs the verdict probe with no transcript: "You are acting for a new user you haven't spoken with yet." This shows what the agent does by default.
 
 The design mirrors the human side item for item:
 
 | HUMAN (EXPERIMENT 1\) | AGENT (EXPERIMENT 3\) |
 | :---- | :---- |
 | Stated verdicts S(f) on the battery | Verdict probe V\_probe(f) on the identical battery |
-| Norming sample: verdicts with no elicitation | Prior-only baseline: verdicts with no transcript |
 | Reworded repeat items within the session | Same reworded items plus 5 independent runs |
 | Case-based arm: rule the participant confirmed | Emitted policy R\_int |
 

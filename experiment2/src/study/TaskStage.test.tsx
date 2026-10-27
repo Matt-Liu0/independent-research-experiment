@@ -75,7 +75,6 @@ describe('task stage', () => {
     expect(store.participant?.taskPhase).toBe('rating')
 
     await user.click(screen.getByRole('radio', { name: '6' }))
-    await user.click(screen.getByRole('button', { name: 'Continue' }))
     expect(store.participant?.ease).toEqual({ t4: 6 })
     expect(store.participant?.taskIndex).toBe(1)
     expect(await screen.findByText('Find a store near you that has oat milk in stock, and set it as your store.')).toBeInTheDocument()
@@ -95,7 +94,6 @@ describe('task stage', () => {
     const store = atTasks({ taskIndex: 5, taskPhase: 'rating', appState: initialAppState() })
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} />)
     await user.click(await screen.findByRole('radio', { name: '3' }))
-    await user.click(screen.getByRole('button', { name: 'Continue' }))
     expect(store.participant?.stage).toBe('sus')
     expect(await screen.findByRole('heading', { name: 'What did you think of Bramble?' })).toBeInTheDocument()
   })
@@ -201,7 +199,6 @@ describe('two apps', () => {
     expect(screen.getByText('Task 6 of 10')).toBeInTheDocument()
     await moveAddress(user)
     await user.click(screen.getByRole('radio', { name: '5' }))
-    await user.click(screen.getByRole('button', { name: 'Continue' }))
 
     expect(await screen.findByRole('heading', { name: 'Now try Stride' })).toBeInTheDocument()
     expect(store.participant).toMatchObject({ taskIndex: 6, taskPhase: 'intro' })
