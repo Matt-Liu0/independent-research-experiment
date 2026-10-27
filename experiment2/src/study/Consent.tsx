@@ -2,10 +2,9 @@ import { useState } from 'react'
 import { logEvent } from '../log/logEvent'
 import { CONSENT } from './consentText'
 import { Message } from './Message'
-import { fromProlific } from './prolific'
 import type { StageProps } from './stageProps'
 
-export function Consent({ participant, store, update, advance }: StageProps) {
+export function Consent({ store, update, advance }: StageProps) {
   const [status, setStatus] = useState<'reading' | 'assigning' | 'error' | 'declined'>('reading')
 
   async function agree() {
@@ -32,11 +31,7 @@ export function Consent({ participant, store, update, advance }: StageProps) {
   if (status === 'declined') {
     return (
       <Message title="Thank you">
-        <p>
-          {fromProlific(participant.recruitment)
-            ? "You've chosen not to take part. Please return this study on Prolific. You won't be penalized."
-            : "You've chosen not to take part. You can close this page."}
-        </p>
+        <p>You've chosen not to take part. You can close this page.</p>
       </Message>
     )
   }

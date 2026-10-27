@@ -13,7 +13,7 @@ import { Suspicion } from './Suspicion'
 
 function props(os: DeviceOs = 'ios') {
   const participant = {
-    ...newParticipant({ prolificPid: 'p', studyId: 's', sessionId: 'x' }),
+    ...newParticipant({ participantCode: 'p' }),
     device: { os, screenW: 390, screenH: 844, userAgent: '', touch: true, passedCheck: true, automated: false },
   }
   const advance = vi.fn<StageProps['advance']>()
@@ -107,7 +107,7 @@ describe('Settings check', () => {
 })
 
 describe('Closing', () => {
-  it('waits for writes to save before the Prolific link works, and shows the bonus', async () => {
+  it('shows the bonus, and says the participant is done only once the answers are saved', async () => {
     let release = () => {}
     const store = new MemoryStore()
     store.flush = () => new Promise<void>((resolve) => (release = resolve))
@@ -120,23 +120,17 @@ describe('Closing', () => {
     render(<Closing {...p} />)
     // Both balances: 270 points ($2.70) plus 220 coins ($2.20).
     expect(screen.getByText(/270 Bramble points and 220 Stride coins, so your bonus is \$4\.90/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Saving…' })).toHaveAttribute('aria-disabled', 'true')
-    release()
-    const link = await screen.findByRole('link', { name: 'Back to Prolific' })
-    expect(link).toHaveAttribute('href', 'https://app.prolific.com/submissions/complete?cc=TEST-COMPLETE')
-  })
-
-  it('ends without Prolific for participant-code entries', async () => {
-    const p = props()
-    p.participant = { ...p.participant, recruitment: 'code' }
-    render(<Closing {...p} />)
-    expect(screen.queryByRole('link')).not.toBeInTheDocument()
     expect(screen.getByText(/paid as described in your invitation/)).toBeInTheDocument()
+    expect(screen.getByText('Saving your answers…')).toBeInTheDocument()
+    expect(screen.queryByText(/all done for today/)).not.toBeInTheDocument()
+    release()
     expect(await screen.findByText("You're all done for today. You can close this page.")).toBeInTheDocument()
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
 
-  it('has no Prolific link in demo mode', () => {
+  it('says nothing was saved in demo mode', () => {
     render(<Closing {...props()} mode="demo" />)
+    expect(screen.getByText('Demo: nothing was saved.')).toBeInTheDocument()
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
 })

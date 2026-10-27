@@ -1,4 +1,4 @@
-import type { DeviceInfo, ProlificParams } from '../study/types'
+import type { DeviceInfo, EntryParams } from '../study/types'
 import type { VerdictValue, Wording } from './items'
 import type { Slot } from './order'
 
@@ -66,7 +66,7 @@ export interface FillerResult {
   ms: number
 }
 
-export interface Part2Doc extends ProlificParams {
+export interface Part2Doc extends EntryParams {
   appVersion: string
   stage: Part2Stage
   withdrawn: boolean
@@ -97,7 +97,7 @@ export interface Part2Doc extends ProlificParams {
 
 export type Part2TimestampField = 'startedItemsAt' | 'completedAt' | 'chatStartedAt' | 'debriefAt'
 
-export function newPart2Doc(params: ProlificParams, now = new Date()): Part2Doc {
+export function newPart2Doc(params: EntryParams, now = new Date()): Part2Doc {
   return {
     ...params,
     appVersion: __APP_VERSION__,

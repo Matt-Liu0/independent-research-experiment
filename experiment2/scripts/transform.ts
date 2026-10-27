@@ -169,7 +169,6 @@ function participantRow(code: string, collection: string, data: Record<string, u
   const row: Row = {
     studyCode: code,
     pilot: collection.startsWith('pilot_'),
-    recruitment: scalar(data.recruitment ?? 'prolific'),
     appVersion: scalar(data.appVersion),
     consentVersion: scalar(data.consentVersion),
     consentDeclined: scalar(data.consentDeclined),
@@ -266,7 +265,7 @@ export function buildExport(collection: string, raw: RawParticipant[]): ExportRe
   kept.forEach((p, i) => {
     const code = `${collection.startsWith('pilot_') ? 'PL' : 'P'}${String(i + 1).padStart(3, '0')}`
     const events = [...p.events].sort(compareEvents)
-    result.idMap.push({ studyCode: code, prolificPid: scalar(p.data.prolificPid), uid: p.uid })
+    result.idMap.push({ studyCode: code, participantCode: scalar(p.data.participantCode), uid: p.uid })
     result.participants.push(participantRow(code, collection, p.data, events))
     result.events.push(...events.map((e) => eventRow(code, e)))
     if (typeof p.data.pattern === 'string') result.flows.push(...flowRows(code, p.data, events))
@@ -275,16 +274,14 @@ export function buildExport(collection: string, raw: RawParticipant[]): ExportRe
 }
 
 /**
- * Prolific bulk-bonus lines: one `<Prolific ID>,<amount>` per Prolific participant who
- * finished Part 1 and earned a bonus. Paste into Prolific's bulk bonus form (see PROLIFIC.md).
- * Code-recruited participants are paid outside Prolific, so they're left out.
+ * Points bonuses to pay: one row per participant who finished Part 1 and earned a bonus, by
+ * participant code, for adding to their gift card (see RECRUITMENT.md).
  */
-export function prolificBonusLines(result: ExportResult): string {
-  const pidOf = new Map(result.idMap.map((r) => [r.studyCode, r.prolificPid]))
+export function bonusPayments(result: ExportResult): Row[] {
+  const codeOf = new Map(result.idMap.map((r) => [r.studyCode, r.participantCode]))
   return result.participants
-    .filter((p) => p.recruitment === 'prolific' && p.completed === true && typeof p.bonusUSD === 'number' && p.bonusUSD > 0)
-    .map((p) => `${pidOf.get(p.studyCode)},${(p.bonusUSD as number).toFixed(2)}`)
-    .join('\n')
+    .filter((p) => p.completed === true && typeof p.bonusUSD === 'number' && p.bonusUSD > 0)
+    .map((p) => ({ participantCode: codeOf.get(p.studyCode) ?? null, bonusUSD: (p.bonusUSD as number).toFixed(2) }))
 }
 
 /** CSV with every column that appears in any row. Guards against spreadsheet formula injection. */

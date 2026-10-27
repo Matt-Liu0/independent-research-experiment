@@ -1,6 +1,6 @@
 import { logEvent } from '../log/logEvent'
 
-// The phone's Back button or swipe would otherwise leave the study (usually back to Prolific).
+// The phone's Back button or swipe would otherwise leave the study (usually back to the invitation email).
 // We keep an extra history entry in place: Back moves between app screens when the app is
 // open, and does nothing during consent, ratings and surveys, so answers can't be redone.
 

@@ -32,18 +32,12 @@ export interface AgentMeta {
   participant: string | null
 }
 
-/** How the participant was recruited: Prolific link, or a participant code we handed out (e.g. students). */
-export type Recruitment = 'prolific' | 'code'
-
 /**
- * Who the participant is. For code entries, prolificPid holds the participant code (it is the
- * one-record-per-person key either way), and studyId / sessionId are "CODE".
+ * Who the participant is: the participant code from their invitation link (?code=S0123), the
+ * one-record-per-person key. DEMO on demo links, AGENT-<episode> on agent links.
  */
-export interface ProlificParams {
-  prolificPid: string
-  studyId: string
-  sessionId: string
-  recruitment?: Recruitment
+export interface EntryParams {
+  participantCode: string
 }
 
 export type DeviceOs = 'ios' | 'android' | 'other'
@@ -68,7 +62,7 @@ export interface TaskOutcome {
 
 export type TimestampField = 'consentAt' | 'completedAt'
 
-export interface ParticipantDoc extends ProlificParams {
+export interface ParticipantDoc extends EntryParams {
   appVersion: string
   consentVersion: string | null
   consentDeclined: boolean
@@ -110,7 +104,7 @@ export interface ParticipantDoc extends ProlificParams {
   completedAt?: unknown
 }
 
-export function newParticipant(params: ProlificParams, now = new Date()): ParticipantDoc {
+export function newParticipant(params: EntryParams, now = new Date()): ParticipantDoc {
   return {
     ...params,
     appVersion: __APP_VERSION__,

@@ -35,7 +35,7 @@ function browser() {
 /** A pilot Part 2 participant who has reached the chat. */
 async function atChat(pid: string, stage = 'chat') {
   const b = browser()
-  await b.store.start({ prolificPid: `${pid}_${run}`, studyId: 's', sessionId: 'x' })
+  await b.store.start({ participantCode: `${pid}_${run}` })
   b.store.update({ stage: stage as 'chat' })
   await b.store.flush()
   return { ...b, uid: b.auth.currentUser!.uid }

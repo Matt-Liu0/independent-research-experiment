@@ -13,7 +13,7 @@ import { newPart2Doc, type Part2Doc } from './types'
 import { ANAGRAMS } from './Wrapup'
 
 const PAGES = BATTERY.length + REPEATED_ITEMS.length + ATTENTION_ITEMS.length
-const PARAMS = { prolificPid: 'P1', studyId: 'S', sessionId: 'X', recruitment: 'prolific' as const }
+const PARAMS = { participantCode: 'P1' }
 
 const device = (passedCheck: boolean): DeviceInfo => ({
   os: 'other', screenW: 1440, screenH: 900, userAgent: 'test', touch: false, passedCheck, automated: false,
@@ -147,7 +147,7 @@ describe('Part 2', () => {
     await user.click(screen.getByRole('button', { name: 'Continue' }))
     expect(doc().withdrawRequested).toBe(true)
     expect(doc().stage).toBe('done')
-    expect(await screen.findByRole('link', { name: 'Back to Prolific' })).toHaveAttribute('href', expect.stringContaining('cc=TEST-PART2'))
+    expect(await screen.findByText('Your answers are saved. You can close this page.')).toBeInTheDocument()
   }, 60_000)
 
   it('counts changes and gives one more try after a wrong comprehension answer', async () => {
@@ -199,7 +199,7 @@ describe('Part 2', () => {
 
 describe('Part 2 links', () => {
   it('reads the mode, code and arm from the URL', () => {
-    expect(parsePart2Entry('?code=S12&pilot=1')).toMatchObject({ mode: 'pilot', params: { prolificPid: 'S12' } })
+    expect(parsePart2Entry('?code=S12&pilot=1')).toMatchObject({ mode: 'pilot', params: { participantCode: 'S12' } })
     expect(parsePart2Entry('?demo=1')).toMatchObject({ mode: 'demo' })
     // An arm can be picked on demo and pilot links only.
     expect(parsePart2Entry('?demo=1&arm=structured').arm).toBe('structured')

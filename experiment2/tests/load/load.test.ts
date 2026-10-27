@@ -1,4 +1,4 @@
-// Load test: about 100 participants arriving at once (a Prolific launch), against the
+// Load test: about 100 participants arriving at once (right after invitations go out), against the
 // emulators with the real rules (npm run test:load). Checks that every assignment succeeds,
 // that balance holds under contention, and that a session's writes all land.
 import { deleteApp, initializeApp, type FirebaseApp } from 'firebase/app'
@@ -41,7 +41,7 @@ describe(`${PEOPLE} participants starting at once`, () => {
 
     const results = await Promise.all(
       browsers.map(async (b, i) => {
-        await b.store.start({ prolificPid: `LOAD_${i}_${run}`, studyId: 'load', sessionId: `s${i}` })
+        await b.store.start({ participantCode: `LOAD_${i}_${run}` })
         const assignment = await b.store.assign()
         for (let w = 0; w < WRITES_PER_PERSON; w++) {
           if (w % 3 === 0) b.store.update({ taskIndex: w % 10 })

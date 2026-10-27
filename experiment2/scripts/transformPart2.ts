@@ -1,6 +1,6 @@
 // Part 2 records → analysis tables. Pure functions, like transform.ts.
 // Part 2 runs on a computer under a different anonymous uid from Part 1, so records are joined
-// to Part 1 by Prolific ID, and Part 1's study code is reused.
+// to Part 1 by participant code, and Part 1's study code is reused.
 import { ciColumns, toIso, type ExportResult, type RawParticipant, type Row } from './transform'
 import { heldOutDistance } from '../src/part2/distance'
 import { ATTENTION_ITEMS, BATTERY, REPEATED_ITEMS, SITE_ITEMS } from '../src/part2/items'
@@ -10,7 +10,7 @@ import type { ItemAnswer } from '../src/part2/types'
 export interface Part2ExportResult {
   participants: Row[]
   verdicts: Row[]
-  /** Part 2 study code → Prolific ID. Private, like id-map.csv. */
+  /** Part 2 study code → participant code. Private, like id-map.csv. */
   idMap: Row[]
 }
 
@@ -57,7 +57,7 @@ export function buildPart2Export(
   pilot: boolean,
   part1: Pick<ExportResult, 'idMap' | 'flows' | 'participants'> | null,
 ): Part2ExportResult {
-  const codeOfPid = new Map((part1?.idMap ?? []).map((r) => [r.prolificPid as string, r.studyCode as string]))
+  const codeOfPid = new Map((part1?.idMap ?? []).map((r) => [r.participantCode as string, r.studyCode as string]))
   const part1Row = new Map((part1?.participants ?? []).map((r) => [r.studyCode as string, r]))
   const siteRow = new Map((part1?.flows ?? []).map((r) => [`${r.studyCode}|${r.flowId}`, r]))
 
@@ -69,10 +69,10 @@ export function buildPart2Export(
   const result: Part2ExportResult = { participants: [], verdicts: [], idMap: [] }
   let unmatched = 0
   for (const p of kept) {
-    const pid = String(p.data.prolificPid ?? '')
+    const pid = String(p.data.participantCode ?? '')
     // People keep their Part 1 code; anyone without a Part 1 record gets their own.
     const code = codeOfPid.get(pid) ?? `${pilot ? 'P' : ''}X${String(++unmatched).padStart(3, '0')}`
-    result.idMap.push({ studyCode: code, prolificPid: pid, uid: p.uid })
+    result.idMap.push({ studyCode: code, participantCode: pid, uid: p.uid })
 
     const answers = (p.data.answers ?? {}) as Record<string, ItemAnswer>
     const all = Object.values(answers)

@@ -255,7 +255,7 @@ describe('friction by decision screen (within each participant)', () => {
   it('records each flow at its own level in the export', async () => {
     const { buildExport } = await import('../scripts/transform')
     const result = buildExport('participants', [
-      { uid: 'u1', data: { prolificPid: 'p1', pattern: 'U2U5U6', withdrawn: false, appState: { flows: {} } }, events: [] },
+      { uid: 'u1', data: { participantCode: 'p1', pattern: 'U2U5U6', withdrawn: false, appState: { flows: {} } }, events: [] },
     ])
     const level = Object.fromEntries(result.flows.map((r) => [r.flowId, [r.unit, r.friction, r.consentForm]]))
     expect(level.store_location).toEqual(['U1', 'neutral', 'active_choice'])

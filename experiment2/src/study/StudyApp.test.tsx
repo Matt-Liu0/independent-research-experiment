@@ -1,12 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { parseEntry } from './prolific'
+import { parseEntry } from './entry'
 import { MemoryStore } from './store'
 import { StudyApp } from './StudyApp'
 import { newParticipant, type DeviceInfo } from './types'
 
-const PARAMS = '?PROLIFIC_PID=pid123&STUDY_ID=study1&SESSION_ID=sess1'
+const PARAMS = '?code=pid123'
 const phone = (): DeviceInfo => ({
   os: 'ios',
   screenW: 390,
@@ -21,20 +21,20 @@ const computer = (): DeviceInfo => ({ ...phone(), os: 'other', touch: false, pas
 describe('StudyApp', () => {
   beforeEach(() => localStorage.clear())
 
-  it('asks people without Prolific parameters to start from Prolific, and saves nothing', () => {
+  it('asks people without a participant code to use their invitation link, and saves nothing', () => {
     const store = new MemoryStore()
     render(<StudyApp entry={parseEntry('')} store={store} detect={phone} />)
     expect(screen.getByRole('heading', { name: /use the link you were given/i })).toBeInTheDocument()
     expect(store.participant).toBeNull()
   })
 
-  it('runs a participant-code entry like a Prolific one, and records the recruitment', async () => {
+  it('runs a participant-code entry and records the code', async () => {
     const user = userEvent.setup()
     const store = new MemoryStore()
     render(<StudyApp entry={parseEntry('?code=S0123')} store={store} detect={phone} />)
     await user.click(await screen.findByRole('button', { name: /i agree/i }))
     expect(await screen.findByRole('heading', { name: 'Welcome' })).toBeInTheDocument()
-    expect(store.participant).toMatchObject({ prolificPid: 'S0123', recruitment: 'code' })
+    expect(store.participant).toMatchObject({ participantCode: 'S0123' })
   })
 
   it('lets local testing skip the phone check with &anydevice=1, and records the skip', async () => {
@@ -82,7 +82,7 @@ describe('StudyApp', () => {
     const store = new MemoryStore()
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} detect={phone} />)
     await user.click(await screen.findByRole('button', { name: /do not agree/i }))
-    expect(screen.getByText(/return this study on prolific/i)).toBeInTheDocument()
+    expect(screen.getByText(/chosen not to take part/i)).toBeInTheDocument()
     expect(store.participant?.consentDeclined).toBe(true)
     expect(store.participant?.pattern).toBeNull()
   })
@@ -111,7 +111,7 @@ describe('StudyApp', () => {
   })
 
   it('resumes at the saved stage and counts the resume', async () => {
-    const existing = { ...newParticipant({ prolificPid: 'pid123', studyId: 'study1', sessionId: 'sess1' }), stage: 'sus' as const }
+    const existing = { ...newParticipant({ participantCode: 'pid123' }), stage: 'sus' as const }
     const store = new MemoryStore({ existing })
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} detect={phone} />)
     expect(await screen.findByRole('heading', { name: /what did you think of bramble/i })).toBeInTheDocument()
@@ -119,8 +119,8 @@ describe('StudyApp', () => {
     expect(store.events.find((e) => e.type === 'resume')).toMatchObject({ stage: 'sus' })
   })
 
-  it('refuses a second Prolific ID on a browser that already has a record', async () => {
-    const existing = newParticipant({ prolificPid: 'someone_else', studyId: 's', sessionId: 'x' })
+  it('refuses a second participant code on a browser that already has a record', async () => {
+    const existing = newParticipant({ participantCode: 'someone_else' })
     render(<StudyApp entry={parseEntry(PARAMS)} store={new MemoryStore({ existing })} detect={phone} />)
     expect(await screen.findByRole('heading', { name: /already been used/i })).toBeInTheDocument()
   })

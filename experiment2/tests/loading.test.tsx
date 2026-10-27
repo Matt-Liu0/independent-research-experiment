@@ -2,7 +2,7 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TIMING, setTimingScale } from '../src/core/timing'
-import { parseEntry } from '../src/study/prolific'
+import { parseEntry } from '../src/study/entry'
 import { skipSetup } from '../src/study/setup'
 import { MemoryStore } from '../src/study/store'
 import { StudyApp } from '../src/study/StudyApp'
@@ -105,12 +105,12 @@ describe('task splash', () => {
 
   it('opens the app from the home screen, with a splash, only after the task card is closed', async () => {
     const existing = {
-      ...newParticipant({ prolificPid: 'p', studyId: 's', sessionId: 'x' }),
+      ...newParticipant({ participantCode: 'p' }),
       stage: 'tasks' as const,
       pattern: 'U1U2U3U4U5U6',
       taskOrder: [5, 1, 2, 4, 6] as (1 | 2 | 4 | 5 | 6)[],
     }
-    render(<StudyApp entry={parseEntry('?PROLIFIC_PID=p&STUDY_ID=s&SESSION_ID=x')} store={new MemoryStore({ existing })} />)
+    render(<StudyApp entry={parseEntry('?code=p')} store={new MemoryStore({ existing })} />)
     await act(async () => {})
 
     expect(screen.queryByRole('navigation', { name: 'Bramble' })).not.toBeInTheDocument()

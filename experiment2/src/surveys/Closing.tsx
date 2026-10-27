@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { START_POINTS } from '../bramble/data'
 import { totalBonus } from '../core/bonus'
 import { START_COINS } from '../stride/data'
-import { COMPLETION_CODE, completionUrl, fromProlific } from '../study/prolific'
 import type { StageProps } from '../study/stageProps'
 
 /** Give up waiting for the server after this long; the offline queue keeps trying in the background. */
@@ -45,13 +44,11 @@ export function Closing({ participant, store, mode }: StageProps) {
     <main className="page">
       <h1>Thanks, that's Part 1</h1>
       <p>
-        You kept {points} Bramble points and {coins} Stride coins, so your bonus is ${bonus.toFixed(2)}.{' '}
-        {fromProlific(participant.recruitment)
-          ? 'Your points bonus will be paid within 3 days.'
-          : 'Your points bonus will be paid as described in your invitation.'}
+        You kept {points} Bramble points and {coins} Stride coins, so your bonus is ${bonus.toFixed(2)}. Your points bonus
+        will be paid as described in your invitation.
       </p>
       <p>
-        Part 2 opens in 7 days, and we'll send you a message when it does. It takes about 45 minutes on a computer.
+        Part 2 opens in 7 days, and we'll send you a message when it does. It takes about 35 minutes on a computer.
       </p>
       <div className="page-spacer" />
       {saving === 'saving' && (
@@ -61,22 +58,13 @@ export function Closing({ participant, store, mode }: StageProps) {
       )}
       {saving === 'slow' && (
         <p className="notice notice-warn" role="status">
-          Your connection is slow. Please keep this page open for a moment, then tap below.
+          Your connection is slow. Please keep this page open for a moment while your answers save.
         </p>
       )}
       {mode === 'demo' ? (
-        <p className="notice">Demo: nothing was saved, and there is no Prolific code.</p>
-      ) : !fromProlific(participant.recruitment) ? (
-        <p role="status">{saving === 'saving' ? 'Saving your answers…' : "You're all done for today. You can close this page."}</p>
+        <p className="notice">Demo: nothing was saved.</p>
       ) : (
-        <a
-          className="btn btn-study"
-          href={completionUrl(COMPLETION_CODE)}
-          aria-disabled={saving === 'saving'}
-          onClick={(e) => saving === 'saving' && e.preventDefault()}
-        >
-          {saving === 'saving' ? 'Saving…' : 'Back to Prolific'}
-        </a>
+        saving === 'saved' && <p role="status">You're all done for today. You can close this page.</p>
       )}
     </main>
   )

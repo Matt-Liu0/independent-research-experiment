@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ComponentType } from 'react'
 import { logEvent, setEventSink } from '../log/logEvent'
 import { Message } from '../study/Message'
-import { completionUrl, fromProlific } from '../study/prolific'
-import { PART2_COMPLETION_CODE, detectPart2Device, type Part2Entry } from './entry'
+import { detectPart2Device, type Part2Entry } from './entry'
 import { Briefing, Chat } from './Interview'
 import type { Interviewer } from './interviewer'
 import { Comprehension, Intro, Items, Practice } from './Questionnaire'
@@ -87,7 +86,7 @@ export function Part2App({ entry, store, interviewer, detect = detectPart2Device
   if (boot.state === 'loading') return <Message title="Loading…" />
   if (boot.state === 'blocked') {
     const text = {
-      missing_params: 'This link is missing some information. Open the study again from Prolific, or from the invitation with your participant code.',
+      missing_params: 'This link is missing your participant code. Open Part 2 again from the link in your invitation.',
       taken: "You've already started this part in another browser. Please go back to that one to continue.",
       pid_mismatch: 'Someone has already taken part on this browser. Please contact the researchers.',
       error: "We couldn't connect. Check your connection, then reload the page.",
@@ -115,7 +114,6 @@ export function Part2App({ entry, store, interviewer, detect = detectPart2Device
 }
 
 function DeviceGate({
-  doc,
   update,
   advance,
   detect,
@@ -133,15 +131,12 @@ function DeviceGate({
   if (passed) return null
   return (
     <Message title="Please use a computer">
-      <p>
-        Part 2 needs a computer with a keyboard, because you'll type answers. Open this link on a computer to continue
-        {fromProlific(doc.recruitment) ? ' (it is also in your Prolific messages).' : '.'}
-      </p>
+      <p>Part 2 needs a computer with a keyboard, because you'll type answers. Open this link on a computer to continue.</p>
     </Message>
   )
 }
 
-function Done({ doc, store }: Part2StageProps) {
+function Done({ store }: Part2StageProps) {
   const [saved, setSaved] = useState(false)
   useEffect(() => {
     store.flush().then(() => setSaved(true), () => setSaved(true))
@@ -155,12 +150,7 @@ function Done({ doc, store }: Part2StageProps) {
           Saving your answers…
         </p>
       )}
-      {saved && fromProlific(doc.recruitment) && (
-        <a className="btn btn-study" href={completionUrl(PART2_COMPLETION_CODE)}>
-          Back to Prolific
-        </a>
-      )}
-      {saved && !fromProlific(doc.recruitment) && <p>Your answers are saved. You can close this page.</p>}
+      {saved && <p>Your answers are saved. You can close this page.</p>}
     </main>
   )
 }

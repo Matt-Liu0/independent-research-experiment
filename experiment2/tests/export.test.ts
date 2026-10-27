@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildExport, flowStatus, prolificBonusLines, susScore, toCsv, type RawParticipant } from '../scripts/transform'
+import { bonusPayments, buildExport, flowStatus, susScore, toCsv, type RawParticipant } from '../scripts/transform'
 import { ALL_FLOWS } from '../src/allFlows'
 import { getFlow } from '../src/bramble/flows'
 
@@ -11,7 +11,7 @@ const ev = (minute: number, clientT: number, fields: Record<string, unknown>) =>
 const alice: RawParticipant = {
   uid: 'uidA',
   data: {
-    prolificPid: 'PID_ALICE',
+    participantCode: 'PID_ALICE',
     createdAt: at(0),
     consentAt: at(1),
     completedAt: at(31),
@@ -56,28 +56,28 @@ const alice: RawParticipant = {
 
 const bob: RawParticipant = {
   uid: 'uidB',
-  data: { prolificPid: 'PID_BOB', createdAt: at(10), pattern: 'U3U4U5', withdrawn: true, stage: 'done' },
+  data: { participantCode: 'PID_BOB', createdAt: at(10), pattern: 'U3U4U5', withdrawn: true, stage: 'done' },
   events: [ev(11, 1, { type: 'stage' })],
 }
 
 const carol: RawParticipant = {
   uid: 'uidC',
-  data: { prolificPid: 'PID_CAROL', createdAt: at(5), pattern: null, consentDeclined: true, withdrawn: false, stage: 'consent' },
+  data: { participantCode: 'PID_CAROL', createdAt: at(5), pattern: null, consentDeclined: true, withdrawn: false, stage: 'consent' },
   events: [],
 }
 
 describe('buildExport', () => {
   const result = buildExport('participants', [bob, alice, carol])
 
-  it('lists Prolific bonuses only for people who finished, with both balances added', () => {
-    // Alice (Prolific, finished): 50 points + 250 coins = $3.00. Carol declined consent; Bob withdrew.
-    expect(prolificBonusLines(result)).toBe('PID_ALICE,3.00')
+  it('lists bonuses only for people who finished, with both balances added', () => {
+    // Alice (finished): 50 points + 250 coins = $3.00. Carol declined consent; Bob withdrew.
+    expect(bonusPayments(result)).toEqual([{ participantCode: 'PID_ALICE', bonusUSD: '3.00' }])
   })
 
   it('leaves out withdrawn participants and codes the rest in start order', () => {
     expect(result.idMap).toEqual([
-      { studyCode: 'P001', prolificPid: 'PID_ALICE', uid: 'uidA' },
-      { studyCode: 'P002', prolificPid: 'PID_CAROL', uid: 'uidC' },
+      { studyCode: 'P001', participantCode: 'PID_ALICE', uid: 'uidA' },
+      { studyCode: 'P002', participantCode: 'PID_CAROL', uid: 'uidC' },
     ])
     expect(JSON.stringify(result.participants)).not.toContain('PID_')
     expect(JSON.stringify(result.events)).not.toContain('PID_')

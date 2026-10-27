@@ -30,7 +30,7 @@ function browser() {
   return { app, auth, db, store: new FirestoreStore(db, auth, collectionNames(true)) }
 }
 
-const params = (pid: string) => ({ prolificPid: `${pid}_${run}`, studyId: 'study1', sessionId: 'sess1' })
+const params = (pid: string) => ({ participantCode: `${pid}_${run}` })
 
 let env: RulesTestEnvironment
 
@@ -61,7 +61,7 @@ describe('FirestoreStore with the real rules', () => {
 
     const uid = b.auth.currentUser!.uid
     const snap = await getDoc(doc(b.db, 'pilot_participants', uid))
-    expect(snap.data()).toMatchObject({ pattern, appOrder, stage: 'welcome', prolificPid: params('alice').prolificPid })
+    expect(snap.data()).toMatchObject({ pattern, appOrder, stage: 'welcome', participantCode: params('alice').participantCode })
     expect(snap.data()?.consentAt).toBeTruthy()
 
     // Assigning again returns the same pattern instead of re-randomizing.
@@ -75,14 +75,14 @@ describe('FirestoreStore with the real rules', () => {
     expect((await getDoc(doc(b.db, 'pilot_participants', uid))).data()?.resumeCount).toBe(1)
   })
 
-  it('refuses the same Prolific ID in a second browser', async () => {
+  it('refuses the same participant code in a second browser', async () => {
     const a = browser()
     expect((await a.store.start(params('carol'))).kind).toBe('new')
     const b = browser()
     expect((await b.store.start(params('carol'))).kind).toBe('taken')
   })
 
-  it('refuses a different Prolific ID in a browser that already has a record', async () => {
+  it('refuses a different participant code in a browser that already has a record', async () => {
     const a = browser()
     await a.store.start(params('dan'))
     const again = new FirestoreStore(a.db, a.auth, collectionNames(true))

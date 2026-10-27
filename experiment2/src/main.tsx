@@ -9,7 +9,7 @@ import { ErrorBoundary } from './study/ErrorBoundary'
 import { getFirebase } from './study/firebase'
 import { FirestoreStore, collectionNames } from './study/firestoreStore'
 import { setName } from './study/name'
-import { parseEntry } from './study/prolific'
+import { parseEntry } from './study/entry'
 import { MemoryStore, type StudyStore } from './study/store'
 import { StudyApp } from './study/StudyApp'
 

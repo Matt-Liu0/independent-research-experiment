@@ -9,7 +9,7 @@ const at = (day: number, minute = 0) => new Date(Date.UTC(2026, 10, day, 12, min
 const part1 = buildExport('participants', [
   {
     uid: 'phone',
-    data: { prolificPid: 'PID1', createdAt: at(1), completedAt: at(1, 30), pattern: 'U1U2U3', stage: 'done', withdrawn: false },
+    data: { participantCode: 'PID1', createdAt: at(1), completedAt: at(1, 30), pattern: 'U1U2U3', stage: 'done', withdrawn: false },
     events: [
       { type: 'settled', flowId: 'store_location', value: 'once', pageLoadAt: 1, seq: 1 },
       { type: 'settled', flowId: 'sam_share', value: 'arrival_only', pageLoadAt: 1, seq: 2 },
@@ -26,7 +26,7 @@ const part2Raw = [
     uid: 'laptop',
     events: [],
     data: {
-      prolificPid: 'PID1', stage: 'done', withdrawn: false, createdAt: at(8), startedItemsAt: at(9),
+      participantCode: 'PID1', stage: 'done', withdrawn: false, createdAt: at(8), startedItemsAt: at(9),
       arm: 'structured',
       interview: { done: true, turns: 14, participantTurns: 6, participantChars: 410, startedAt: 1, endedAt: 2, minutes: 12.5 },
       filler: { solved: 7, attempted: 9, ms: 180000 },
@@ -50,9 +50,9 @@ describe('Part 2 export', () => {
   const row = out.participants[0]
   const verdict = (id: string) => out.verdicts.find((v) => v.itemId === id)!
 
-  it("reuses the person's Part 1 study code, joined by Prolific ID", () => {
+  it("reuses the person's Part 1 study code, joined by participant code", () => {
     expect(row).toMatchObject({ studyCode: 'P001', matchedToPart1: true, daysSincePart1: 8 })
-    expect(out.idMap).toEqual([{ studyCode: 'P001', prolificPid: 'PID1', uid: 'laptop' }])
+    expect(out.idMap).toEqual([{ studyCode: 'P001', participantCode: 'PID1', uid: 'laptop' }])
   })
 
   it('scores attention, comprehension, recall and the IUIPC subscales', () => {

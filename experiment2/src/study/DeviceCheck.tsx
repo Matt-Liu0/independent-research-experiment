@@ -43,7 +43,7 @@ export function DeviceCheck({ detect, skipCheck = false, mode, update, advance }
       <h1>Please open this on your phone</h1>
       <p>This part of the study only works on a smartphone. Scan this code with your phone's camera to open the same link there.</p>
       {qr && <img src={qr} alt="QR code for this study link" width={220} height={220} style={{ alignSelf: 'center' }} />}
-      <p className="muted small">If you can't scan it, open Prolific on your phone and start the study from there.</p>
+      <p className="muted small">If you can't scan it, open the link from your invitation on your phone.</p>
     </main>
   )
 }

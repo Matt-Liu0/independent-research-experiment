@@ -6,13 +6,13 @@ import type { StudyEvent } from '../log/logEvent'
 import { patternKey } from '../core/units'
 import { appOrderOf } from './apps'
 import { detectDevice } from './device'
-import type { AgentEntry } from './prolific'
+import type { AgentEntry } from './entry'
 import { MemoryStore } from './store'
 import { newParticipant, type ParticipantDoc } from './types'
 
 export function agentParticipant(agent: AgentEntry, now = new Date()): ParticipantDoc {
   return {
-    ...newParticipant({ prolificPid: `AGENT-${agent.episodeId}`, studyId: 'AGENT', sessionId: agent.episodeId }, now),
+    ...newParticipant({ participantCode: `AGENT-${agent.episodeId}` }, now),
     stage: 'tasks',
     pattern: patternKey(agent.nudgedUnits),
     appOrder: appOrderOf(agent.taskOrder),

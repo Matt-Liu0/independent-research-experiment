@@ -22,22 +22,20 @@ service cloud.firestore {
 
     // Fields a participant can never change after creating the record.
     function lockedFields() {
-      return ['prolificPid', 'studyId', 'sessionId', 'appVersion', 'createdAt', 'withdrawn'];
+      return ['participantCode', 'appVersion', 'createdAt', 'withdrawn'];
     }
 
     function validNewParticipant(uid, pidCol) {
       let d = request.resource.data;
-      return d.prolificPid is string
-        && d.studyId is string
-        && d.sessionId is string
+      return d.participantCode is string
         && d.pattern == null
         && d.appOrder == null
         && d.taskOrder == null
         && d.withdrawn == false
         && d.stage == 'device'
         && d.createdAt == request.time
-        // The record must belong to the Prolific ID this user claimed.
-        && get(docPath(pidCol, d.prolificPid)).data.uid == uid;
+        // The record must belong to the participant code this user claimed.
+        && get(docPath(pidCol, d.participantCode)).data.uid == uid;
     }
 
     // A nudged-screen pattern: three of the decision screens U1–U6, e.g. "U1U3U5".
@@ -112,7 +110,7 @@ service cloud.firestore {
     }
 
     // ---- Part 2 ----
-    // Same pattern as Part 1: one record per Prolific ID (claimed in <col>_pids), owner-only,
+    // Same pattern as Part 1: one record per participant code (claimed in <col>_pids), owner-only,
     // with fields that can't change after creation. The interview arm and its summary are
     // written only by the interviewer function (Admin SDK, which bypasses these rules), so
     // participants can neither set nor change them. The transcripts (<col>_interviews) and the
@@ -125,20 +123,18 @@ service cloud.firestore {
 
     function validNewPart2(col, uid) {
       let d = request.resource.data;
-      return d.prolificPid is string
-        && d.studyId is string
-        && d.sessionId is string
+      return d.participantCode is string
         && d.withdrawn == false
         && d.stage == 'device'
         && d.get('arm', null) == null
         && d.get('interview', null) == null
         && d.createdAt == request.time
-        && get(docPath(col + '_pids', d.prolificPid)).data.uid == uid;
+        && get(docPath(col + '_pids', d.participantCode)).data.uid == uid;
     }
 
     function validPart2Update() {
       let changed = request.resource.data.diff(resource.data).affectedKeys();
-      return !changed.hasAny(['prolificPid', 'studyId', 'sessionId', 'appVersion', 'createdAt', 'withdrawn', 'arm', 'interview']);
+      return !changed.hasAny(['participantCode', 'appVersion', 'createdAt', 'withdrawn', 'arm', 'interview']);
     }
 
     match /{col}/{uid} {
@@ -157,7 +153,7 @@ service cloud.firestore {
       allow create: if pidCol in ['part2_pids', 'pilot_part2_pids'] && validPidClaim();
     }
 
-    // ---- One record per Prolific ID ----
+    // ---- One record per participant code ----
 
     function validPidClaim() {
       let d = request.resource.data;

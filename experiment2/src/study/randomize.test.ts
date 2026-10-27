@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { PATTERNS, UNITS, parsePattern, patternKey } from '../core/units'
 import { appOfTask, appOrderOf } from './apps'
-import { validTaskOrder } from './prolific'
+import { validTaskOrder } from './entry'
 import { CELLS, buildTaskOrder, cellKey, pickAssignment, shuffleStrideTasks, shuffleTasks } from './randomize'
 
 describe('shuffleTasks', () => {

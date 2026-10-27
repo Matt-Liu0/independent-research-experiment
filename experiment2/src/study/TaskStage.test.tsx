@@ -2,14 +2,14 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { initialAppState } from '../bramble/appState'
-import { parseEntry } from './prolific'
+import { parseEntry } from './entry'
 import { skipSetup } from './setup'
 import { MemoryStore } from './store'
 import { StudyApp } from './StudyApp'
 import { taskOutcome } from './tasks'
 import { newParticipant, type ParticipantDoc } from './types'
 
-const PARAMS = '?PROLIFIC_PID=pid1&STUDY_ID=s&SESSION_ID=x'
+const PARAMS = '?code=pid1'
 
 /** Task 4: saves two deals, which finishes it, and taps Next task. */
 async function saveTwoDeals(user: ReturnType<typeof userEvent.setup>) {
@@ -33,7 +33,7 @@ async function moveAddress(user: ReturnType<typeof userEvent.setup>, first?: str
 
 function atTasks(overrides: Partial<ParticipantDoc> = {}): MemoryStore {
   const existing: ParticipantDoc = {
-    ...newParticipant({ prolificPid: 'pid1', studyId: 's', sessionId: 'x' }),
+    ...newParticipant({ participantCode: 'pid1' }),
     stage: 'tasks',
     pattern: '',
     taskOrder: [4, 1, 2, 5, 6],
@@ -217,7 +217,7 @@ describe('unfinished-task check', () => {
 
   it('keeps the skip option on demo links, for testing', async () => {
     const user = userEvent.setup()
-    const existing = { ...atTasks().participant!, prolificPid: 'DEMO', studyId: 'DEMO', sessionId: 'DEMO' }
+    const existing = { ...atTasks().participant!, participantCode: 'DEMO' }
     render(<StudyApp entry={parseEntry('?demo=neutral')} store={new MemoryStore({ existing })} />)
     await user.click(await screen.findByRole('button', { name: 'Start task' }))
     await user.click(screen.getByRole('button', { name: 'Bramble' }))

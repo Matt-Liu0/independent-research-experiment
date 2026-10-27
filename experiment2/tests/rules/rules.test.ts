@@ -40,9 +40,7 @@ const db = (uid: string) => env.authenticatedContext(uid).firestore() as unknown
 
 function newRecord(pid: string) {
   return {
-    prolificPid: pid,
-    studyId: 'study1',
-    sessionId: 'sess1',
+    participantCode: pid,
     appVersion: '0.1.0',
     consentVersion: null,
     consentDeclined: false,
@@ -59,7 +57,7 @@ function newRecord(pid: string) {
   }
 }
 
-/** Claim a Prolific ID and create the record, as the app does on first entry. */
+/** Claim a participant code and create the record, as the app does on first entry. */
 async function enroll(uid: string, pid = `pid_${uid}`, prefix = '') {
   const d = db(uid)
   await setDoc(doc(d, `${prefix}pids`, pid), { uid, createdAt: serverTimestamp() })
@@ -100,7 +98,7 @@ async function seedCounts(counts: Counts, prefix = '') {
 }
 
 describe('participant records', () => {
-  it('lets a participant create their own record after claiming their Prolific ID', async () => {
+  it('lets a participant create their own record after claiming their participant code', async () => {
     await assertSucceeds(enroll('alice'))
   })
 
@@ -141,7 +139,7 @@ describe('participant records', () => {
     await assertFails(getDoc(doc(anon, 'participants', 'alice')))
   })
 
-  it.each(['prolificPid', 'studyId', 'sessionId', 'appVersion', 'withdrawn'])('locks %s after creation', async (field) => {
+  it.each(['participantCode', 'appVersion', 'withdrawn'])('locks %s after creation', async (field) => {
     const d = await enroll('alice')
     await assertFails(updateDoc(doc(d, 'participants', 'alice'), { [field]: field === 'withdrawn' ? true : 'changed' }))
   })
@@ -152,7 +150,7 @@ describe('participant records', () => {
   })
 })
 
-describe('Prolific ID claims', () => {
+describe('Participant code claims', () => {
   it('lets only one user claim an ID', async () => {
     await enroll('alice', 'pid_shared')
     await assertFails(setDoc(doc(db('bob'), 'pids', 'pid_shared'), { uid: 'bob', createdAt: serverTimestamp() }))
@@ -305,7 +303,7 @@ describe('pilot collections', () => {
 describe('Part 2 records', () => {
   function part2Record(pid: string) {
     return {
-      prolificPid: pid, studyId: 's', sessionId: 'x', appVersion: '0.16.0', stage: 'device', withdrawn: false,
+      participantCode: pid, appVersion: '0.16.0', stage: 'device', withdrawn: false,
       sequence: null, answers: {}, createdAt: serverTimestamp(),
     }
   }
@@ -342,7 +340,7 @@ describe('Part 2 records', () => {
 
   it('locks identity fields, hides records from others, and refuses deletes', async () => {
     const d = await enrollPart2('a', 'part2')
-    await assertFails(updateDoc(doc(d, 'part2', 'a'), { prolificPid: 'other' }))
+    await assertFails(updateDoc(doc(d, 'part2', 'a'), { participantCode: 'other' }))
     await assertFails(updateDoc(doc(d, 'part2', 'a'), { withdrawn: true }))
     await assertFails(getDoc(doc(db('b'), 'part2', 'a')))
     await assertFails(deleteDoc(doc(d, 'part2', 'a')))
@@ -371,7 +369,7 @@ describe('Part 2 records', () => {
     }
   })
 
-  it('lets only one user claim a Prolific ID for Part 2, separately from Part 1', async () => {
+  it('lets only one user claim a participant code for Part 2, separately from Part 1', async () => {
     await assertSucceeds(setDoc(doc(db('a'), 'part2_pids', 'P'), { uid: 'a', createdAt: serverTimestamp() }))
     await assertFails(setDoc(doc(db('b'), 'part2_pids', 'P'), { uid: 'b', createdAt: serverTimestamp() }))
     // The same person has a Part 1 record on their phone under a different uid.

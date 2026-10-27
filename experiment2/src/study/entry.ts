@@ -1,6 +1,6 @@
 import { UNITS, patternKey, uniformUnits, type UnitId } from '../core/units'
 import { appOfTask, type AppOrder, type TaskNumber } from './apps'
-import type { AgentMeta, Mode, ProlificParams } from './types'
+import type { AgentMeta, Mode, EntryParams } from './types'
 
 export interface AgentEntry extends AgentMeta {
   /** Nudged decision screens: the matched participant's, their mirror image, or all/none. */
@@ -12,8 +12,8 @@ export interface AgentEntry extends AgentMeta {
 
 export interface Entry {
   mode: Mode
-  /** null when the link is missing Prolific's parameters (or an agent link is invalid). */
-  params: ProlificParams | null
+  /** null when the link has no valid participant code (or an agent link is invalid). */
+  params: EntryParams | null
   /**
    * Demo links: the nudged-screen pattern to preview ("" = all neutral, "U1…U6" = all nudged),
    * or null for ?demo=mixed (a random 3-of-6 pattern, as participants get). Not used otherwise.
@@ -36,9 +36,9 @@ export interface Entry {
 export const DEVICE_SKIP_ALLOWED: boolean =
   import.meta.env.DEV || import.meta.env.VITE_USE_EMULATORS === 'true' || !import.meta.env.VITE_FIREBASE_PROJECT_ID
 
-const DEMO_PARAMS: ProlificParams = { prolificPid: 'DEMO', studyId: 'DEMO', sessionId: 'DEMO' }
+const DEMO_PARAMS: EntryParams = { participantCode: 'DEMO' }
 
-// Used as Firestore document IDs, so no slashes; Prolific IDs are 24 hex characters.
+// Used as Firestore document IDs, so no slashes.
 const SAFE_ID = /^[A-Za-z0-9_-]{1,64}$/
 
 /** Bramble's rules: all five tasks, 1 before 2 (a store is set before ordering), 6 last. */
@@ -109,7 +109,7 @@ function parseAgent(q: URLSearchParams): Entry {
   const run = Number(q.get('RUN'))
   return {
     mode: 'agent',
-    params: { prolificPid: `AGENT-${episodeId}`, studyId: 'AGENT', sessionId: episodeId },
+    params: { participantCode: `AGENT-${episodeId}` },
     agent: {
       episodeId,
       nudgedUnits,
@@ -134,35 +134,7 @@ export function parseEntry(search: string, allowDeviceSkip: boolean = DEVICE_SKI
   }
   if (demo === 'mixed') return { mode: 'demo', params: DEMO_PARAMS, demoPattern: null, demoAppOrder: demoFirst(q) }
   const mode: Mode = q.get('pilot') === '1' ? 'pilot' : 'study'
-  // Participant codes handed out directly (e.g. to students), instead of a Prolific link.
-  const code = q.get('code')
-  if (code !== null) {
-    const valid = SAFE_ID.test(code)
-    return withSkip({
-      mode,
-      params: valid ? { prolificPid: code, studyId: 'CODE', sessionId: 'CODE', recruitment: 'code' } : null,
-    })
-  }
-  const prolificPid = q.get('PROLIFIC_PID') ?? ''
-  const studyId = q.get('STUDY_ID') ?? ''
-  const sessionId = q.get('SESSION_ID') ?? ''
-  const valid = [prolificPid, studyId, sessionId].every((v) => SAFE_ID.test(v))
-  return withSkip({
-    mode,
-    params: valid ? { prolificPid, studyId, sessionId, recruitment: 'prolific' } : null,
-  })
-}
-
-const env = import.meta.env
-export const COMPLETION_CODE: string = env.VITE_PROLIFIC_COMPLETION_CODE || 'TEST-COMPLETE'
-/** For participants who can't continue because of a technical problem. */
-export const RETURN_CODE: string = env.VITE_PROLIFIC_RETURN_CODE || 'TEST-RETURN'
-
-/** True when the participant came from Prolific (so endings send them back there). */
-export function fromProlific(recruitment: string | undefined): boolean {
-  return recruitment !== 'code'
-}
-
-export function completionUrl(code: string): string {
-  return `https://app.prolific.com/submissions/complete?cc=${encodeURIComponent(code)}`
+  // The participant code from the invitation link (?code=S0123), handed out to each student.
+  const code = q.get('code') ?? ''
+  return withSkip({ mode, params: SAFE_ID.test(code) ? { participantCode: code } : null })
 }

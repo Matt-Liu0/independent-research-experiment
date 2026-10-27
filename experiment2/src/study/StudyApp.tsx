@@ -8,7 +8,7 @@ import { Consent } from './Consent'
 import { detectDevice } from './device'
 import { DeviceCheck } from './DeviceCheck'
 import { Message } from './Message'
-import type { Entry } from './prolific'
+import type { Entry } from './entry'
 import type { StageProps } from './stageProps'
 import type { StudyStore } from './store'
 import { TaskStage } from './TaskStage'
@@ -106,8 +106,7 @@ export function StudyApp({ entry, store, detect = detectDevice }: Props) {
         return (
           <Message title="Please use the link you were given">
             <p>
-              This link is missing some information. Open the study again from Prolific, or from the invitation with your
-              participant code.
+              This link is missing your participant code. Open the study again from the link in your invitation.
             </p>
           </Message>
         )

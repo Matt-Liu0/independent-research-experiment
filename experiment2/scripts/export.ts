@@ -11,7 +11,7 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { initializeApp } from 'firebase-admin/app'
 import { getFirestore, type Firestore } from 'firebase-admin/firestore'
-import { buildExport, flowCodebook, prolificBonusLines, toCsv, type ExportResult, type RawParticipant } from './transform'
+import { bonusPayments, buildExport, flowCodebook, toCsv, type ExportResult, type RawParticipant } from './transform'
 import { batteryCodebook, buildPart2Export, buildTranscripts, type RawInterview } from './transformPart2'
 
 export async function loadParticipants(db: Firestore, collection: string): Promise<RawParticipant[]> {
@@ -32,10 +32,10 @@ export function writeExport(outDir: string, collection: string, raw: RawParticip
   writeFileSync(join(outDir, 'flows.csv'), toCsv(result.flows))
   // GKC-CI description of every flow in both apps, for matching with Part 2 questionnaire items.
   writeFileSync(join(outDir, 'flow-codebook.csv'), toCsv(flowCodebook()))
-  // Links study codes back to Prolific IDs (for paying bonuses). Keep it off shared drives.
+  // Links study codes back to participant codes (for paying bonuses). Keep it off shared drives.
   writeFileSync(join(outDir, 'id-map.csv'), toCsv(result.idMap))
-  // Bonuses to paste into Prolific (contains Prolific IDs, so it's as private as id-map.csv).
-  writeFileSync(join(outDir, 'prolific-bonuses.txt'), prolificBonusLines(result) + '\n')
+  // Gift-card bonuses by participant code (as private as id-map.csv).
+  writeFileSync(join(outDir, 'bonus-payments.csv'), toCsv(bonusPayments(result)))
   return result
 }
 
@@ -76,8 +76,8 @@ async function main() {
   const prefix = pilot ? 'pilot_' : ''
   const part2 = await loadParticipants(getFirestore(), `${prefix}part2`)
   // Asked on the Part 2 debrief to have their data removed: left out of Part 1 too.
-  const removePids = new Set(part2.filter((p) => p.data.withdrawRequested === true).map((p) => String(p.data.prolificPid)))
-  const raw = (await loadParticipants(getFirestore(), collection)).filter((p) => !removePids.has(String(p.data.prolificPid)))
+  const removePids = new Set(part2.filter((p) => p.data.withdrawRequested === true).map((p) => String(p.data.participantCode)))
+  const raw = (await loadParticipants(getFirestore(), collection)).filter((p) => !removePids.has(String(p.data.participantCode)))
   const result = writeExport(outDir, collection, raw)
   const withdrawn = raw.length - result.participants.length
   console.log(

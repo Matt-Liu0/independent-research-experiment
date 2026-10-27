@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { mirrorUnits } from '../src/core/units'
 import { createAgentStore, exposeAgentApi, type AgentApi } from '../src/study/agentMode'
 import { setName } from '../src/study/name'
-import { parseEntry, validTaskOrder } from '../src/study/prolific'
+import { parseEntry, validTaskOrder } from '../src/study/entry'
 import { StudyApp } from '../src/study/StudyApp'
 
 const LINK = '?agent=1&EPISODE_ID=ep_0007&nudged=U1-U5-U6&taskOrder=4-1-2-5-6-7-9-8-10&NAME=Riley&MODEL=model-x&CONDITION=transcript_only&RUN=2&PARTICIPANT=P012'

@@ -22,7 +22,7 @@ beforeAll(async () => {
     const db = ctx.firestore() as unknown as Firestore
     const t = (m: number) => Timestamp.fromDate(new Date(Date.UTC(2026, 10, 1, 12, m)))
     await setDoc(doc(db, COLLECTION, `exp_a_${run}`), {
-      prolificPid: `EXPORT_A_${run}`,
+      participantCode: `EXPORT_A_${run}`,
       createdAt: t(0),
       pattern: 'U1U2U6',
       withdrawn: false,
@@ -37,7 +37,7 @@ beforeAll(async () => {
       type: 'settled', flowId: 'reward_university', value: 'accept', msSincePrompt: 1500, clientT: 20, t: t(2),
     })
     await setDoc(doc(db, COLLECTION, `exp_w_${run}`), {
-      prolificPid: `EXPORT_W_${run}`, createdAt: t(3), pattern: 'U3U4U5', withdrawn: true, stage: 'done',
+      participantCode: `EXPORT_W_${run}`, createdAt: t(3), pattern: 'U3U4U5', withdrawn: true, stage: 'done',
     })
   })
   if (!getApps().length) initializeApp({ projectId: 'demo-bramble' })

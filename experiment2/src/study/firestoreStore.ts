@@ -14,7 +14,7 @@ import {
 import type { EventSink, StudyEvent } from '../log/logEvent'
 import { buildTaskOrder, cellKey, pickAssignment, type CellCounts } from './randomize'
 import type { Assignment, StudyStore } from './store'
-import type { ParticipantDoc, ProlificParams, StartResult, TimestampField } from './types'
+import type { ParticipantDoc, EntryParams, StartResult, TimestampField } from './types'
 import { newParticipant } from './types'
 
 export interface CollectionNames {
@@ -70,7 +70,7 @@ export class FirestoreStore implements StudyStore {
     return doc(this.db, this.names.participants, this.uid)
   }
 
-  async start(params: ProlificParams): Promise<StartResult> {
+  async start(params: EntryParams): Promise<StartResult> {
     // Anonymous auth persists in this browser, so a reload keeps the same uid.
     const user = (await currentUser(this.auth)) ?? (await signInAnonymously(this.auth)).user
     this.uid = user.uid
@@ -79,14 +79,14 @@ export class FirestoreStore implements StudyStore {
     const existing = await getDoc(ref)
     if (existing.exists()) {
       const participant = existing.data() as ParticipantDoc
-      if (participant.prolificPid !== params.prolificPid) return { kind: 'pid_mismatch' }
+      if (participant.participantCode !== params.participantCode) return { kind: 'pid_mismatch' }
       this.flushPending()
       this.update({ resumeCount: increment(1) as unknown as number })
       return { kind: 'resumed', participant: { ...participant, resumeCount: participant.resumeCount + 1 } }
     }
 
-    // One record per Prolific ID: claiming an ID someone else holds is refused by the rules.
-    const pidRef = doc(this.db, this.names.pids, params.prolificPid)
+    // One record per participant code: claiming a code someone else holds is refused by the rules.
+    const pidRef = doc(this.db, this.names.pids, params.participantCode)
     try {
       await setDoc(pidRef, { uid: user.uid, createdAt: serverTimestamp() })
     } catch (err) {
@@ -115,7 +115,7 @@ export class FirestoreStore implements StudyStore {
   }
 
   /**
-   * Many people starting at once (a Prolific launch) can read the same counts and pick the
+   * Many people starting at once (e.g. right after invitations go out) can read the same counts and pick the
    * same cell. The rules then refuse the second write, because its counter is no longer +1, so
    * the assignment is retried with fresh counts after a short random wait.
    */

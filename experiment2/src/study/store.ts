@@ -1,13 +1,13 @@
 import type { EventSink, StudyEvent } from '../log/logEvent'
 import type { AppOrder, TaskNumber } from './apps'
 import { buildTaskOrder, cellKey, pickAssignment, type CellCounts } from './randomize'
-import type { ParticipantDoc, ProlificParams, StartResult, TimestampField } from './types'
+import type { ParticipantDoc, EntryParams, StartResult, TimestampField } from './types'
 import { newParticipant } from './types'
 
 /** Everything the study shell needs from storage. Firestore in the study; memory in tests and demo mode. */
 export interface StudyStore {
   /** Sign in, then load this browser's record or create a new one. */
-  start(params: ProlificParams): Promise<StartResult>
+  start(params: EntryParams): Promise<StartResult>
   /** Merge fields into the participant record. Fire-and-forget: writes queue while offline. */
   update(fields: Partial<ParticipantDoc>, stamp?: TimestampField[]): void
   /** Balanced assignment of the nudged-screen pattern, app order and task order (once per participant). */
@@ -49,19 +49,19 @@ export class MemoryStore implements StudyStore {
     this.preset = options.preset ?? null
   }
 
-  async start(params: ProlificParams): Promise<StartResult> {
+  async start(params: EntryParams): Promise<StartResult> {
     if (this.preset && !this.participant) {
       this.participant = { ...this.preset, createdAt: Date.now() }
       this.preset = null
       return { kind: 'new', participant: this.participant }
     }
     if (this.participant) {
-      if (this.participant.prolificPid !== params.prolificPid) return { kind: 'pid_mismatch' }
+      if (this.participant.participantCode !== params.participantCode) return { kind: 'pid_mismatch' }
       this.participant = { ...this.participant, resumeCount: this.participant.resumeCount + 1 }
       return { kind: 'resumed', participant: this.participant }
     }
-    if (this.takenPids.has(params.prolificPid)) return { kind: 'taken' }
-    this.takenPids.add(params.prolificPid)
+    if (this.takenPids.has(params.participantCode)) return { kind: 'taken' }
+    this.takenPids.add(params.participantCode)
     this.participant = { ...newParticipant(params), createdAt: Date.now() }
     return { kind: 'new', participant: this.participant }
   }

@@ -1,7 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { logEvent } from '../log/logEvent'
 import { Message } from './Message'
-import { RETURN_CODE, completionUrl, parseEntry } from './prolific'
 
 const FAILURES_KEY = 'bramble.failures'
 
@@ -40,21 +39,11 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
 
   render() {
     if (!this.state.error) return this.props.children
-    // After repeated crashes, let the participant leave with the return code so they can be paid.
+    // After repeated crashes, tell the participant to stop here; they are still paid for their time.
     if (failureCount() >= 3) {
-      const prolific = parseEntry(window.location.search).params?.recruitment === 'prolific'
       return (
         <Message title="Sorry, something isn't working">
-          {prolific ? (
-            <>
-              <p>This seems to be a problem on our side. Tap below to go back to Prolific. You'll be paid for your time.</p>
-              <a className="btn btn-study" href={completionUrl(RETURN_CODE)}>
-                Back to Prolific
-              </a>
-            </>
-          ) : (
-            <p>This seems to be a problem on our side. Please contact the researchers. You'll be paid for your time.</p>
-          )}
+          <p>This seems to be a problem on our side. Please contact the researchers. You'll be paid for your time.</p>
         </Message>
       )
     }
