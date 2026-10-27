@@ -335,6 +335,7 @@ Pilot runs use `pilot_pids` and `pilot_meta`.
 |---|---|
 | Simulated location | A residential street in Clintonville, Columbus, Ohio, the same for everyone (`src/bramble/mapConfig.ts`). Nothing comes from the participant's phone |
 | Stores (nearby, with location on, nearest first) | `cedar-plaza` (0.3 mi, no oat milk) · `riverside` (0.6 mi, no) · `elm` (0.9 mi, in stock) · `north-gate` (1.4 mi, no) · `harbor-point` (2.1 mi, in stock). With general area only, distances show as "about 1 mi" / "about 2 mi" |
+| Stores in the participant's own area (from 0.19.0, when the US map is set up) | `r1` … `r24`: the 1st … 24th nearest real supermarket to their ZIP. Nearby list: `r1`–`r5`; ZIP list: all of them, A to Z. Oat milk is in stock at `r3`, `r5` and `r12` only. **The store names and the ZIP are never stored**, so `r3` says nothing about where the person lives. The `area` stage event says which applied (`kind`: `participant` or `default`) |
 | Stores (ZIP list, 24 A–Z) | `alder-road`, `bay-street`, `cedar-plaza`, `dover-avenue`, `elm`, `fenwick-commons`, `garden-row`, `harbor-point`, `ivy-lane`, `juniper-court`, `kestrel-way`, `linden-square`, `maple-crossing`, `north-gate`, `orchard-hill`, `pine-street`, `quarry-road`, `riverside`, `spruce-avenue`, `tanner-mill`, `union-place`, `vale-street`, `willow-park`, `york-commons`. Oat milk is in stock only at `elm`, `harbor-point` and `maple-crossing` |
 | Products | `oat_milk` · `sourdough` · `apples` · `yogurt` · `eggs` · `bananas` |
 | Deals | `oat_milk` · `apples` · `sourdough` · `yogurt` |

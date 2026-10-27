@@ -1,5 +1,5 @@
 import { addressMatches, type AppState } from '../bramble/appState'
-import { findStore } from '../bramble/data'
+import { storeById } from '../bramble/area'
 import type { BrambleTask } from '../bramble/types'
 import { STRIDE_TASKS } from '../stride/tasks'
 import type { TaskNumber } from './apps'
@@ -24,7 +24,7 @@ export const TASKS: Record<TaskNumber, { short: string; text: string }> = { ...B
 export function taskOutcome(task: BrambleTask, state: AppState): TaskOutcome {
   switch (task) {
     case 1: {
-      const store = findStore(state.storeId)
+      const store = storeById(state.storeId)
       return {
         done: store?.hasOatMilk === true,
         storeId: state.storeId,

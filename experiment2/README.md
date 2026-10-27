@@ -46,7 +46,14 @@ Open `http://<that address>/?PROLIFIC_PID=phone1&STUDY_ID=s&SESSION_ID=x` on the
 
 The map is a real OpenStreetMap street map of one neighborhood (Clintonville, Columbus, Ohio), the same for every participant. Its tiles and fonts are files in `public/map/`, served from our own site, so **participants' phones never contact a map company**, and it costs nothing. Business labels, house numbers and place names are hidden, so the only stores shown are Bramble's. Participants can drag it with one finger and pinch-zoom within that neighborhood, and recenter with the button. Phones that can't run WebGL get the simpler drawn map instead (`map_shown` records which).
 
-To change the area, edit `src/bramble/mapConfig.ts` (location, store pins, `MAP_BOUNDS`) and run `npm run build:map`. The attribution (© OpenStreetMap, required by its license) appears in the map's corner, and the details are in `public/map/ATTRIBUTION.txt`.
+**The participant's own area (from 0.19.0).** The welcome page asks for a ZIP code. If the US map file is set up, the store finder centers on that ZIP and lists the **real supermarkets nearest to it** (names and places from OpenStreetMap), with the same oat-milk pattern as the default (the 3rd and 5th nearest have it). Everything is looked up on the phone: the ZIP's location from our own table (`public/map/zips/`, `npm run build:zips`), and the stores and streets from one US map file in our Cloud Storage bucket (`scripts/us-map/build.sh`). The ZIP, the area and the store names never leave the phone; the record only stores IDs like `r3` ("third nearest"). Without the map file, an unknown ZIP, or fewer than 5 supermarkets within about 6 km, everyone gets the default neighborhood above. Code: `src/bramble/area.ts`.
+
+To set it up (once, about an hour, mostly download time):
+1. `npm run build:zips` (Census ZIP table, about 1 MB), then commit `public/map/zips/`.
+2. `brew install pmtiles`, sign in to gcloud, then `sh scripts/us-map/build.sh <BUILD> <BUCKET>` (it shows the download size and asks before downloading).
+3. Put the `VITE_MAP_ARCHIVE_URL=…` line it prints in `.env.local`, rebuild and deploy.
+
+To change the default area, edit `src/bramble/mapConfig.ts` (location, store pins, `MAP_BOUNDS`) and run `npm run build:map`. The attribution (© OpenStreetMap, required by its license) appears in the map's corner, and the details are in `public/map/ATTRIBUTION.txt`.
 
 ## Where things are
 
@@ -75,8 +82,9 @@ Step by step with Prolific (settings, pilot, bonuses, Part 2): `PROLIFIC.md`.
 3. Set the Prolific completion and return codes in `.env.local`.
 4. Store the Anthropic API key for the interviewer as a secret (it prompts for the key; it never goes in a file): `npx firebase functions:secrets:set ANTHROPIC_API_KEY --project <project-id>`.
 5. Approve the interviewer wording (`functions/src/prompts.ts`, `PROMPTS_ARE_DRAFT`), the briefing and debrief (`src/part2/sessionText.ts`), and fill in the case set T if the case arm runs.
-6. `npm test && npm run test:rules && npm run test:functions && npm run build`, then `npx firebase deploy --only hosting,firestore:rules,functions --project <project-id>`.
-7. Bump `version` in `package.json` for every change made during data collection and note it in `CHANGELOG.md`.
+6. Set up the participant-area map (see "Store-finder map"), or decide to use the default neighborhood for everyone.
+7. `npm test && npm run test:rules && npm run test:functions && npm run build`, then `npx firebase deploy --only hosting,firestore:rules,functions --project <project-id>`.
+8. Bump `version` in `package.json` for every change made during data collection and note it in `CHANGELOG.md`.
 
 ## Export
 

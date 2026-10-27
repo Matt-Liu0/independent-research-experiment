@@ -1,15 +1,8 @@
 import { lazy, Suspense, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { visibleMs } from '../../log/clock'
 import { useBramble } from '../BrambleContext'
-import {
-  NEARBY_STORES,
-  YOU_ARE_HERE,
-  ZIP_PAGE_SIZE,
-  ZIP_STORES,
-  distanceLabel,
-  searchStores,
-  type Store,
-} from '../data'
+import { getArea } from '../area'
+import { YOU_ARE_HERE, ZIP_PAGE_SIZE, distanceLabel, searchStores, type Store } from '../data'
 import { FlowChoice } from '../../core/FlowChoice'
 import { getFlow } from '../flows'
 import { PinIcon, SearchIcon } from '../../core/icons'
@@ -76,7 +69,7 @@ function NearbyStores() {
   return (
     <>
       <StoreMap precise={precise} selected={selected} onSelect={setSelected} />
-      <StoreFinder stores={NEARBY_STORES} precise={precise} selected={selected} onSelect={setSelected} heading="Stores near you" />
+      <StoreFinder stores={getArea().nearby} precise={precise} selected={selected} onSelect={setSelected} heading="Stores near you" />
     </>
   )
 }
@@ -125,6 +118,7 @@ function DrawnStoreMap({
 }) {
   const { act } = useBramble()
   const [hx, hy] = YOU_ARE_HERE
+  const pins = drawnPins()
   return (
     <svg className="store-map" viewBox="0 0 340 190" role="group" aria-label="Map of stores near you">
       <rect width="340" height="190" rx="18" fill="#e4ebe2" />
@@ -140,8 +134,8 @@ function DrawnStoreMap({
       ) : (
         <circle cx={hx + 12} cy={hy - 6} r="46" fill="#3b7dd8" opacity="0.16" stroke="#3b7dd8" strokeOpacity="0.4" aria-label="Your general area" />
       )}
-      {NEARBY_STORES.map((store) => {
-        const [x, y] = store.pin!
+      {getArea().nearby.map((store) => {
+        const [x, y] = pins[store.id]
         const isSelected = store.id === selected
         return (
           <g
@@ -170,6 +164,22 @@ function DrawnStoreMap({
       })}
     </svg>
   )
+}
+
+/**
+ * Pin positions on the drawn map: the default stores' own, or the participant's real stores
+ * placed around "you are here" by their real direction and distance.
+ */
+function drawnPins(): Record<string, [number, number]> {
+  const area = getArea()
+  if (area.kind === 'default') return Object.fromEntries(area.nearby.map((s) => [s.id, s.pin!]))
+  const [hx, hy] = YOU_ARE_HERE
+  const offsets = area.nearby.map((s) => {
+    const [lng, lat] = area.lnglat[s.id]
+    return [(lng - area.center[0]) * Math.cos((area.center[1] * Math.PI) / 180), lat - area.center[1]] as const
+  })
+  const reach = Math.max(1e-6, ...offsets.flatMap(([dx, dy]) => [Math.abs(dx) / 150, Math.abs(dy) / 80]))
+  return Object.fromEntries(area.nearby.map((s, i) => [s.id, [hx + offsets[i][0] / reach, hy - offsets[i][1] / reach]]))
 }
 
 /** Search box, store card and list. Shared by both paths, so declining costs no extra taps. */
@@ -333,6 +343,7 @@ function ZipSearch() {
   const [showAll, setShowAll] = useState(state.storeSearch.storesViewed > ZIP_PAGE_SIZE)
   const [selected, setSelected] = useState<string | null>(null)
   const valid = /^\d{5}$/.test(zip)
+  const stores = getArea().zipList
 
   const search = (event: FormEvent) => {
     event.preventDefault()
@@ -346,7 +357,7 @@ function ZipSearch() {
   }
 
   const showMore = () => {
-    dispatch({ type: 'viewStores', storesViewed: ZIP_STORES.length })
+    dispatch({ type: 'viewStores', storesViewed: stores.length })
     act('zip_show_more')
     setShowAll(true)
   }
@@ -372,16 +383,16 @@ function ZipSearch() {
       {busy === 'zipSearch' && <LoadingBlock label="Searching…" />}
       {searched && busy === null && (
         <StoreFinder
-          stores={ZIP_STORES}
+          stores={stores}
           limit={showAll ? undefined : ZIP_PAGE_SIZE}
           precise={null}
           selected={selected}
           onSelect={setSelected}
-          heading={`${ZIP_STORES.length} stores in this ZIP code · A to Z`}
+          heading={`${stores.length} stores in this ZIP code · A to Z`}
           footer={
             !showAll && (
               <button type="button" className="btn btn-outline" onClick={showMore}>
-                Show {ZIP_STORES.length - ZIP_PAGE_SIZE} more
+                Show {stores.length - ZIP_PAGE_SIZE} more
               </button>
             )
           }

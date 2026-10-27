@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { displayAddress } from '../appState'
 import { useBramble } from '../BrambleContext'
-import { DELIVERY_FEE, findProduct, findStore } from '../data'
+import { storeById } from '../area'
+import { DELIVERY_FEE, findProduct } from '../data'
 import { FlowChoice } from '../../core/FlowChoice'
 import { FLOWS } from '../flows'
 import { Spinner } from '../../core/Loading'
@@ -16,7 +17,7 @@ export function Checkout() {
   const [busy, run] = useBusy()
   // The delivery window is worked out once, when checkout opens.
   const [openedAt] = useState(() => Date.now())
-  const store = findStore(state.storeId)
+  const store = storeById(state.storeId)
   const items = state.cart.map((id) => findProduct(id)).filter((p) => p !== undefined)
   const subtotal = items.reduce((sum, p) => sum + p.price, 0)
   const delivery = state.deliveryRedeemed ? 0 : DELIVERY_FEE

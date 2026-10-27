@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from 'react'
+import { prepareArea } from '../bramble/area'
 import { START_POINTS } from '../bramble/data'
+import { Spinner } from '../core/Loading'
+import { logEvent } from '../log/logEvent'
 import { START_COINS } from '../stride/data'
 import { APP_NAMES, appsInOrder } from './apps'
 import { getName, setName } from './name'
@@ -8,12 +11,20 @@ import type { StageProps } from './stageProps'
 export function Welcome({ participant, advance }: StageProps) {
   const [first, second] = appsInOrder(participant.appOrder ?? 'bramble_first').map((a) => APP_NAMES[a])
   const [name, setNameInput] = useState(getName())
+  const [zip, setZip] = useState('')
+  const [preparing, setPreparing] = useState(false)
   const trimmed = name.trim()
+  const zipValid = /^\d{5}$/.test(zip)
 
-  function start(event: FormEvent) {
+  async function start(event: FormEvent) {
     event.preventDefault()
-    if (!trimmed) return
+    if (!trimmed || !zipValid || preparing) return
     setName(trimmed)
+    // The store finder's map and stores come from this ZIP. The ZIP itself is never saved or
+    // sent anywhere: it is looked up in our own table on this phone (bramble/area.ts).
+    setPreparing(true)
+    const kind = await prepareArea(zip)
+    logEvent('stage', { name: 'area', kind })
     advance()
   }
 
@@ -47,9 +58,27 @@ export function Welcome({ participant, advance }: StageProps) {
           maxLength={40}
         />
       </div>
+      <div className="field">
+        <label htmlFor="zip">Your ZIP code</label>
+        <input
+          id="zip"
+          className="input"
+          inputMode="numeric"
+          autoComplete="postal-code"
+          maxLength={5}
+          value={zip}
+          onChange={(e) => setZip(e.target.value.replace(/\D/g, ''))}
+          placeholder="5 digits"
+          aria-describedby="zip-note"
+        />
+        <p id="zip-note" className="muted small">
+          So the apps can show places near you. Your ZIP code stays on this phone: it isn't stored with your answers or
+          shared outside the study.
+        </p>
+      </div>
       <div className="page-spacer" />
-      <button className="btn btn-study" type="submit" disabled={!trimmed}>
-        Start
+      <button className="btn btn-study" type="submit" disabled={!trimmed || !zipValid || preparing}>
+        {preparing ? <Spinner label="Setting up…" /> : 'Start'}
       </button>
     </form>
   )

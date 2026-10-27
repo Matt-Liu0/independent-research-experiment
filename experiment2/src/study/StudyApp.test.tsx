@@ -87,17 +87,26 @@ describe('StudyApp', () => {
     expect(store.participant?.pattern).toBeNull()
   })
 
-  it('keeps the name on the phone and out of the participant record', async () => {
+  it('keeps the name and ZIP code on the phone and out of the participant record', async () => {
     const user = userEvent.setup()
     const store = new MemoryStore()
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} detect={phone} />)
     await user.click(await screen.findByRole('button', { name: /i agree/i }))
     await user.type(await screen.findByLabelText(/what should the apps call you/i), 'Riley')
+    expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled()
+    await user.type(screen.getByLabelText('Your ZIP code'), '1346a5')
+    expect(screen.getByLabelText('Your ZIP code')).toHaveValue('13465')
     await user.click(screen.getByRole('button', { name: 'Start' }))
 
+    expect(await screen.findByRole('button', { name: 'Start task' })).toBeInTheDocument()
     expect(localStorage.getItem('bramble.name')).toBe('Riley')
-    expect(JSON.stringify(store.participant)).not.toContain('Riley')
-    expect(JSON.stringify(store.events)).not.toContain('Riley')
+    for (const secret of ['Riley', '13465']) {
+      expect(JSON.stringify(store.participant)).not.toContain(secret)
+      expect(JSON.stringify(store.events)).not.toContain(secret)
+      expect(JSON.stringify({ ...localStorage })).not.toContain('13465')
+    }
+    // No US map in tests, so the default neighborhood is used, and only that is logged.
+    expect(store.events.find((e) => e.type === 'stage' && e.name === 'area')).toMatchObject({ kind: 'default' })
     expect(store.participant?.stage).toBe('tasks')
   })
 

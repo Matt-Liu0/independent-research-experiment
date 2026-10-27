@@ -18,10 +18,12 @@
     "dev:phone": "vite --host",
     "emulators:phone": "firebase emulators:start --only auth,firestore --project demo-bramble --config firebase.phone.json",
     "build:map": "tsx scripts/build-map.ts",
+    "build:zips": "tsx scripts/build-zips.ts",
     "test:functions": "npm --prefix functions run build && firebase emulators:exec --only auth,firestore,functions --project demo-bramble --config firebase.functions-test.json \"vitest run --config vitest.functions.config.ts\"",
     "test:load": "firebase emulators:exec --only firestore,auth --project demo-bramble --config firebase.test.json \"vitest run --config vitest.load.config.ts\""
   },
   "dependencies": {
+    "@mapbox/vector-tile": "^2.0.5",
     "@protomaps/basemaps": "^5.7.2",
     "firebase": "^12.19.0",
     "maplibre-gl": "^6.12.0",

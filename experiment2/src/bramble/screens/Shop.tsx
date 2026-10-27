@@ -1,11 +1,12 @@
 import { getName } from '../../study/name'
 import { getSetup } from '../../study/setup'
 import { useBramble } from '../BrambleContext'
-import { PRODUCTS, PRODUCT_CATEGORY, findStore } from '../data'
+import { storeById } from '../area'
+import { PRODUCTS, PRODUCT_CATEGORY } from '../data'
 
 export function Shop() {
   const { state, dispatch, navigate, act } = useBramble()
-  const store = findStore(state.storeId)
+  const store = storeById(state.storeId)
   const name = getName()
   // What the participant said they usually buy (first-run setup) comes first.
   const usuals = getSetup().bramble?.usuals ?? []
