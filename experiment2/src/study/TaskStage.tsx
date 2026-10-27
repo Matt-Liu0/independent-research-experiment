@@ -20,11 +20,12 @@ import type { ParticipantDoc, TaskOutcome } from './types'
 const SAVE_DELAY_MS = 300
 
 /** Runs the tasks of both apps: task bar + practice app, then an ease rating after each. */
-export function TaskStage({ participant, mode, update, advance }: StageProps) {
+export function TaskStage({ participant, mode, allowTaskSkip = false, update, advance }: StageProps) {
   // Agent episodes: the harness gives each task's text, and there are no ease ratings.
   const agent = mode === 'agent'
-  // "I'm done with this task" lets a task be skipped; only demo links keep it, for testing.
-  const allowSkip = mode === 'demo'
+  // "I'm done with this task" lets a task be skipped: only on demo links with &skip=1, for
+  // testing. Plain demo links behave as participants see it.
+  const allowSkip = mode === 'demo' && allowTaskSkip
   const order = participant.taskOrder ?? ALL_TASKS
   const { taskIndex, taskPhase } = participant
   const task = order[taskIndex]

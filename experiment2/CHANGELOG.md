@@ -15,6 +15,8 @@ Matches the study budget (Matt, Oct 27): only Colgate students, paid directly by
 - **Export:** `bonus-payments.csv` (participant code, bonus) replaces `prolific-bonuses.txt`.
 - **Part 1 closing page:** says Part 2 takes about 35 minutes (it said 45, from before 0.19.0).
 
+- **Demo links match what participants see:** "I'm done with this task" (skipping an unfinished task) appears only with `&skip=1` added to a demo link, for testing. It was already off for participants and pilots.
+
 ## 0.19.0 (2026-10-27)
 
 Shorter sessions (Matt and Noah: the study was too long). Proposals and estimates: `../docs/superpowers/specs/2026-10-27-realism-and-length-proposals.md`.

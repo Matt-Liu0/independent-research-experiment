@@ -215,14 +215,18 @@ describe('unfinished-task check', () => {
     expect(store.events.filter((e) => e.type === 'task' && e.event === 'goal_met')).toHaveLength(1)
   })
 
-  it('keeps the skip option on demo links, for testing', async () => {
+  it('offers the skip option only on demo links with &skip=1, for testing', async () => {
     const user = userEvent.setup()
-    const existing = { ...atTasks().participant!, participantCode: 'DEMO' }
-    render(<StudyApp entry={parseEntry('?demo=neutral')} store={new MemoryStore({ existing })} />)
-    await user.click(await screen.findByRole('button', { name: 'Start task' }))
-    await user.click(screen.getByRole('button', { name: 'Bramble' }))
-    await user.click(screen.getByRole('button', { name: 'Done' }))
-    expect(screen.getByRole('button', { name: "I'm done with this task" })).toBeInTheDocument()
+    for (const [link, offered] of [['?demo=neutral', false], ['?demo=neutral&skip=1', true]] as const) {
+      const existing = { ...atTasks().participant!, participantCode: 'DEMO' }
+      const { unmount } = render(<StudyApp entry={parseEntry(link)} store={new MemoryStore({ existing })} />)
+      await user.click(await screen.findByRole('button', { name: 'Start task' }))
+      await user.click(screen.getByRole('button', { name: 'Bramble' }))
+      await user.click(screen.getByRole('button', { name: 'Done' }))
+      expect(screen.getByText("This task doesn't look finished yet.")).toBeInTheDocument()
+      expect(Boolean(screen.queryByRole('button', { name: "I'm done with this task" }))).toBe(offered)
+      unmount()
+    }
   })
 })
 

@@ -137,7 +137,7 @@ export function StudyApp({ entry, store, detect = detectDevice }: Props) {
   }
 
   if (!participant) return null
-  const props: StageProps = { participant, mode: entry.mode, store, update, advance }
+  const props: StageProps = { participant, mode: entry.mode, allowTaskSkip: entry.mode === 'demo' && entry.allowTaskSkip === true, store, update, advance }
   const Stage = participant.stage === 'device' ? null : STAGE_COMPONENTS[participant.stage]
 
   return (

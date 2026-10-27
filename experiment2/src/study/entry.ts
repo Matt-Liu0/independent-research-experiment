@@ -27,6 +27,8 @@ export interface Entry {
   invalid?: string
   /** &anydevice=1 on a local or emulator run: skip the phone check for testing on a computer. */
   skipDeviceCheck?: boolean
+  /** Demo links with &skip=1: unfinished tasks can be skipped, for testing. Never for participants. */
+  allowTaskSkip?: boolean
 }
 
 /**
@@ -129,10 +131,11 @@ export function parseEntry(search: string, allowDeviceSkip: boolean = DEVICE_SKI
   const skipDeviceCheck = allowDeviceSkip && q.get('anydevice') === '1'
   const withSkip = (entry: Entry): Entry => (skipDeviceCheck ? { ...entry, skipDeviceCheck } : entry)
   const demo = q.get('demo')
+  const allowTaskSkip = q.get('skip') === '1'
   if (demo === 'nudged' || demo === 'neutral') {
-    return { mode: 'demo', params: DEMO_PARAMS, demoPattern: patternKey(uniformUnits(demo)), demoAppOrder: demoFirst(q) }
+    return { mode: 'demo', params: DEMO_PARAMS, demoPattern: patternKey(uniformUnits(demo)), demoAppOrder: demoFirst(q), allowTaskSkip }
   }
-  if (demo === 'mixed') return { mode: 'demo', params: DEMO_PARAMS, demoPattern: null, demoAppOrder: demoFirst(q) }
+  if (demo === 'mixed') return { mode: 'demo', params: DEMO_PARAMS, demoPattern: null, demoAppOrder: demoFirst(q), allowTaskSkip }
   const mode: Mode = q.get('pilot') === '1' ? 'pilot' : 'study'
   // The participant code from the invitation link (?code=S0123), handed out to each student.
   const code = q.get('code') ?? ''
