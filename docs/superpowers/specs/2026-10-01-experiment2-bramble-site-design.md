@@ -2,6 +2,8 @@
 
 Oct 1, 2026 · Design spec
 
+> **Out of date in part (Oct 27, 2026):** the norming survey and Prolific recruitment were dropped. Participants are Colgate students with participant codes, paid by gift card; RQ1.2 compares the interview arms. Current state: `Research Methodology Pipeline.md` and `experiment2/RECRUITMENT.md`. This record is kept as written.
+
 This spec covers the Part 1 phone web app from `Human study protocol and participant instructions.md`: the Bramble grocery app, the surveys around it, and the data it collects. Part 2 (Experiment 1), the norming survey and the analysis scripts are out of scope.
 
 ## Decisions

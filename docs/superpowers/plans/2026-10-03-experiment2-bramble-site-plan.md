@@ -2,6 +2,8 @@
 
 Oct 3, 2026 · Implements `docs/superpowers/specs/2026-10-01-experiment2-bramble-site-design.md`
 
+> **Out of date in part (Oct 27, 2026):** the norming survey and Prolific recruitment were dropped. Participants are Colgate students with participant codes, paid by gift card; RQ1.2 compares the interview arms. Current state: `Research Methodology Pipeline.md` and `experiment2/RECRUITMENT.md`. This record is kept as written.
+
 This plan has 13 phases, done in order. Each phase ends with passing tests and one commit. Code lives in `experiment2/`.
 
 Environment: Node 22, npm 10, Java 25 (needed by the Firestore emulator), git 2.15. The Firebase CLI is installed as a dev dependency (`npx firebase`), not globally.

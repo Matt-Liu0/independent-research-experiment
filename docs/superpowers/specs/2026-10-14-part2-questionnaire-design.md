@@ -2,6 +2,8 @@
 
 Oct 14, 2026 · First piece of Part 2 · Decisions by Matt (Oct 14): questionnaire first, all 29 site flows plus 12 repeats, built on our own site.
 
+> **Out of date in part (Oct 27, 2026):** the norming survey and Prolific recruitment were dropped. Participants are Colgate students with participant codes, paid by gift card; RQ1.2 compares the interview arms. Current state: `Research Methodology Pipeline.md` and `experiment2/RECRUITMENT.md`. This record is kept as written.
+
 ## What it's for
 
 The questionnaire gives each person's **stated verdict S(f)** (allow / ask me / block, with confidence) on a fixed battery of flows. Every later comparison depends on it:

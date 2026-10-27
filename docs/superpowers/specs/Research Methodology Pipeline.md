@@ -98,7 +98,7 @@ The cost is that participants may answer the questionnaire in line with what the
 * *Confidence shift* (proposed Oct 18, 2026, for review). Confidence ratings (1–5) on S(H) compared between the structured and case-based arms and the open-ended arm, with random effects for participant and flow. Talking a preference through may make people surer of it even when the verdict doesn't change.  
 * *Cost.* Elicitation time and number of turns.
 
-**Participants.** Recruited through Prolific, or as students with participant codes; the site supports both (decided Oct 5, 2026). The final sample size will come from a power analysis on RQ1.2 after piloting. The planning figure is 40 per arm. One IRB protocol covers this experiment and Experiment 2\.
+**Participants.** Colgate students, each given a participant code in a personal link and paid directly by gift card at $15/hour (decided Oct 27, 2026; Prolific recruitment was dropped to fit the budget). The final sample size will come from a power analysis on RQ1.2 after piloting. The planning figure is 30 per arm (90 analyzable, about 129 recruited), from the study budget's Target $5k scenario. One IRB protocol covers this experiment and Experiment 2\.
 
 **Outputs passed on.**
 

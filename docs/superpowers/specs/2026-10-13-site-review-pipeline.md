@@ -2,6 +2,8 @@
 
 Oct 13, 2026 · From Matt's review of both apps
 
+> **Out of date in part (Oct 27, 2026):** the norming survey and Prolific recruitment were dropped. Participants are Colgate students with participant codes, paid by gift card; RQ1.2 compares the interview arms. Current state: `Research Methodology Pipeline.md` and `experiment2/RECRUITMENT.md`. This record is kept as written.
+
 ## Matt's concerns
 
 **Bramble**

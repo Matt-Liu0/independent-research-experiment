@@ -2,6 +2,8 @@
 
 Oct 13, 2026 · Stage 1 of the review pipeline (`2026-10-13-site-review-pipeline.md`)
 
+> **Out of date in part (Oct 27, 2026):** the norming survey and Prolific recruitment were dropped. Participants are Colgate students with participant codes, paid by gift card; RQ1.2 compares the interview arms. Current state: `Research Methodology Pipeline.md` and `experiment2/RECRUITMENT.md`. This record is kept as written.
+
 One row per design decision: what we chose, why, the supporting source, and what else was considered.
 
 - **How sources are marked:** a source in **bold brackets** was checked against the paper or page itself (references at the end). "Our choice" means no published source decides it, and the reason is given instead.
