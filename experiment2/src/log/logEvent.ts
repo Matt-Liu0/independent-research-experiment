@@ -12,7 +12,7 @@ export type EventType =
   | 'visibility'
   | 'resume'
   | 'error'
-  // Part 2 and the norming survey
+  // Part 2
   | 'item'
   | 'survey'
   | 'chat'

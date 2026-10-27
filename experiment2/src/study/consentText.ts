@@ -16,19 +16,3 @@ export const CONSENT = {
   agree: 'I agree to take part',
   decline: 'I do not agree',
 }
-
-/** The norming survey's consent (protocol, "Norming survey instructions"). DRAFT, like CONSENT. */
-export const NORMING_CONSENT = {
-  version: 'norming-v1-draft',
-  isDraft: true,
-  title: 'Before you start',
-  intro: 'Please read these points about the survey.',
-  points: [
-    'This survey asks about your preferences for how apps, companies and people use your information.',
-    "We don't collect your location, your health data or any contact details.",
-    'Taking part is voluntary, and you can stop at any time.',
-  ],
-  contact: 'Questions: [researcher name and email]',
-  agree: 'I agree to take part',
-  decline: 'I do not agree',
-}

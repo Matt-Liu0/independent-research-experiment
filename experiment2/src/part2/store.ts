@@ -2,9 +2,9 @@ import { onAuthStateChanged, signInAnonymously, type Auth, type User } from 'fir
 import { addDoc, collection, doc, getDoc, increment, serverTimestamp, setDoc, waitForPendingWrites, type Firestore } from 'firebase/firestore'
 import type { EventSink, StudyEvent } from '../log/logEvent'
 import type { ProlificParams } from '../study/types'
-import { newPart2Doc, type Part2Doc, type Part2StartResult, type Part2TimestampField, type Variant } from './types'
+import { newPart2Doc, type Part2Doc, type Part2StartResult, type Part2TimestampField } from './types'
 
-/** Storage for Part 2 and the norming survey. Firestore in the study; memory in tests and demo links. */
+/** Storage for Part 2. Firestore in the study; memory in tests and demo links. */
 export interface Part2Store {
   start(params: ProlificParams): Promise<Part2StartResult>
   update(fields: Partial<Part2Doc>, stamp?: Part2TimestampField[]): void
@@ -12,9 +12,9 @@ export interface Part2Store {
   flush(): Promise<void>
 }
 
-/** Collections: part2 / norming, their one-per-Prolific-ID claims, and pilot_ copies. */
-export function part2Collections(variant: Variant, pilot: boolean) {
-  const name = `${pilot ? 'pilot_' : ''}${variant}`
+/** Collections: part2, its one-per-Prolific-ID claims, and pilot_ copies. */
+export function part2Collections(pilot: boolean) {
+  const name = `${pilot ? 'pilot_' : ''}part2`
   return { records: name, pids: `${name}_pids` }
 }
 
@@ -22,10 +22,8 @@ export class MemoryPart2Store implements Part2Store {
   doc: Part2Doc | null = null
   events: StudyEvent[] = []
   readonly sink: EventSink = { write: (e) => this.events.push(e) }
-  private readonly variant: Variant
 
-  constructor(variant: Variant, existing?: Part2Doc) {
-    this.variant = variant
+  constructor(existing?: Part2Doc) {
     this.doc = existing ?? null
   }
 
@@ -35,7 +33,7 @@ export class MemoryPart2Store implements Part2Store {
       this.doc = { ...this.doc, resumeCount: this.doc.resumeCount + 1 }
       return { kind: 'resumed', doc: this.doc }
     }
-    this.doc = { ...newPart2Doc(this.variant, params), createdAt: Date.now() }
+    this.doc = { ...newPart2Doc(params), createdAt: Date.now() }
     return { kind: 'new', doc: this.doc }
   }
 
@@ -66,14 +64,12 @@ export class FirestorePart2Store implements Part2Store {
   readonly sink: EventSink
   private readonly db: Firestore
   private readonly auth: Auth
-  private readonly variant: Variant
   private readonly names: { records: string; pids: string }
 
-  constructor(db: Firestore, auth: Auth, variant: Variant, pilot: boolean) {
+  constructor(db: Firestore, auth: Auth, pilot: boolean) {
     this.db = db
     this.auth = auth
-    this.variant = variant
-    this.names = part2Collections(variant, pilot)
+    this.names = part2Collections(pilot)
     this.sink = { write: (event) => this.writeEvent(event) }
   }
 
@@ -106,7 +102,7 @@ export class FirestorePart2Store implements Part2Store {
         throw readErr
       }
     }
-    const record = newPart2Doc(this.variant, params)
+    const record = newPart2Doc(params)
     await setDoc(this.ref(), { ...record, createdAt: serverTimestamp() })
     this.flushPending()
     return { kind: 'new', doc: record }

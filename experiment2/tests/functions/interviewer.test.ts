@@ -29,7 +29,7 @@ function browser() {
   connectFirestoreEmulator(db, host, Number(port))
   const functions = getFunctions(app, 'us-central1')
   connectFunctionsEmulator(functions, '127.0.0.1', functionsPort)
-  return { auth, db, functions, store: new FirestorePart2Store(db, auth, 'part2', true) }
+  return { auth, db, functions, store: new FirestorePart2Store(db, auth, true) }
 }
 
 /** A pilot Part 2 participant who has reached the chat. */

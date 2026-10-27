@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type ComponentType } from 'react'
 import { logEvent, setEventSink } from '../log/logEvent'
-import { NORMING_CONSENT } from '../study/consentText'
 import { Message } from '../study/Message'
 import { completionUrl, fromProlific } from '../study/prolific'
-import { NORMING_COMPLETION_CODE, PART2_COMPLETION_CODE, detectPart2Device, type Part2Entry } from './entry'
+import { PART2_COMPLETION_CODE, detectPart2Device, type Part2Entry } from './entry'
 import { Briefing, Chat } from './Interview'
 import type { Interviewer } from './interviewer'
 import { Comprehension, Intro, Items, Practice } from './Questionnaire'
@@ -11,12 +10,11 @@ import type { Part2StageProps } from './stageProps'
 import type { Part2Store } from './store'
 import { BackgroundSurvey, Recall } from './Surveys'
 import { Debrief, Filler } from './Wrapup'
-import { nextPart2Stage, type Part2Doc, type Part2Stage, type Part2TimestampField, type Variant } from './types'
+import { nextPart2Stage, type Part2Doc, type Part2Stage, type Part2TimestampField } from './types'
 
 type Boot = { state: 'loading' } | { state: 'ready' } | { state: 'blocked'; reason: 'missing_params' | 'taken' | 'pid_mismatch' | 'error' }
 
 const STAGES: Record<Exclude<Part2Stage, 'device'>, ComponentType<Part2StageProps>> = {
-  consent: NormingConsent,
   briefing: Briefing,
   chat: Chat,
   filler: Filler,
@@ -34,10 +32,10 @@ interface Props {
   entry: Part2Entry
   store: Part2Store
   interviewer: Interviewer
-  detect?: (variant: Variant) => ReturnType<typeof detectPart2Device>
+  detect?: () => ReturnType<typeof detectPart2Device>
 }
 
-/** Part 2 (Day 8, computer) and the norming survey: the same shell, different stages (types.ts). */
+/** Part 2 (Day 8, computer): the stages in types.ts, one after another. */
 export function Part2App({ entry, store, interviewer, detect = detectPart2Device }: Props) {
   const [boot, setBoot] = useState<Boot>(entry.params ? { state: 'loading' } : { state: 'blocked', reason: 'missing_params' })
   const [doc, setDoc] = useState<Part2Doc | null>(null)
@@ -55,7 +53,7 @@ export function Part2App({ entry, store, interviewer, detect = detectPart2Device
           setBoot({ state: 'blocked', reason: result.kind })
           return
         }
-        logEvent(result.kind === 'resumed' ? 'resume' : 'stage', { name: 'entry', variant: entry.variant, mode: entry.mode, stage: result.doc.stage })
+        logEvent(result.kind === 'resumed' ? 'resume' : 'stage', { name: 'entry', mode: entry.mode, stage: result.doc.stage })
         docRef.current = result.doc
         setDoc(result.doc)
         setBoot({ state: 'ready' })
@@ -79,7 +77,7 @@ export function Part2App({ entry, store, interviewer, detect = detectPart2Device
     (fields: Partial<Part2Doc> = {}, stamp: Part2TimestampField[] = []) => {
       const current = docRef.current
       if (!current) return
-      const stage = nextPart2Stage(current.variant, current.stage)
+      const stage = nextPart2Stage(current.stage)
       logEvent('stage', { from: current.stage, to: stage })
       update({ ...fields, stage }, stamp)
     },
@@ -108,10 +106,10 @@ export function Part2App({ entry, store, interviewer, detect = detectPart2Device
     <>
       {entry.mode !== 'study' && (
         <div className="demo-tag" aria-hidden="true">
-          {entry.mode === 'demo' ? 'Demo · nothing saved' : 'Pilot'} · {entry.variant === 'part2' ? 'Part 2' : 'Norming survey'}
+          {entry.mode === 'demo' ? 'Demo · nothing saved' : 'Pilot'} · Part 2
         </div>
       )}
-      {Stage ? <Stage key={doc.stage} {...props} /> : <DeviceGate {...props} variant={entry.variant} detect={detect} skip={entry.skipDeviceCheck === true} />}
+      {Stage ? <Stage key={doc.stage} {...props} /> : <DeviceGate {...props} detect={detect} skip={entry.skipDeviceCheck === true} />}
     </>
   )
 }
@@ -120,11 +118,10 @@ function DeviceGate({
   doc,
   update,
   advance,
-  variant,
   detect,
   skip,
-}: Part2StageProps & { variant: Variant; detect: Props['detect'] & {}; skip: boolean }) {
-  const [device] = useState(() => detect(variant))
+}: Part2StageProps & { detect: Props['detect'] & {}; skip: boolean }) {
+  const [device] = useState(() => detect())
   const passed = device.passedCheck || skip
   useEffect(() => {
     logEvent('stage', { name: 'device_check', passed, os: device.os, skipped: skip && !device.passedCheck })
@@ -144,77 +141,22 @@ function DeviceGate({
   )
 }
 
-function NormingConsent({ doc, update, advance }: Part2StageProps) {
-  const [declined, setDeclined] = useState(false)
-  if (declined) {
-    return (
-      <Message title="Thank you">
-        <p>
-          {fromProlific(doc.recruitment)
-            ? "You've chosen not to take part. Please return this study on Prolific. You won't be penalized."
-            : "You've chosen not to take part. You can close this page."}
-        </p>
-      </Message>
-    )
-  }
-  return (
-    <main className="page page-wide">
-      {NORMING_CONSENT.isDraft && <p className="notice notice-warn small">DRAFT consent text. Replace before launch.</p>}
-      <h1>{NORMING_CONSENT.title}</h1>
-      <p>{NORMING_CONSENT.intro}</p>
-      <ul className="stack" style={{ margin: 0, paddingLeft: 20 }}>
-        {NORMING_CONSENT.points.map((point) => (
-          <li key={point}>{point}</li>
-        ))}
-      </ul>
-      <p className="muted small">{NORMING_CONSENT.contact}</p>
-      <div className="page-spacer" />
-      <button
-        type="button"
-        className="btn btn-study"
-        onClick={() => {
-          logEvent('stage', { name: 'consent', agreed: true, version: NORMING_CONSENT.version })
-          advance({ consentVersion: NORMING_CONSENT.version }, ['consentAt'])
-        }}
-      >
-        {NORMING_CONSENT.agree}
-      </button>
-      <button
-        type="button"
-        className="btn btn-outline"
-        onClick={() => {
-          logEvent('stage', { name: 'consent', agreed: false, version: NORMING_CONSENT.version })
-          update({ consentDeclined: true })
-          setDeclined(true)
-        }}
-      >
-        {NORMING_CONSENT.decline}
-      </button>
-    </main>
-  )
-}
-
 function Done({ doc, store }: Part2StageProps) {
   const [saved, setSaved] = useState(false)
   useEffect(() => {
     store.flush().then(() => setSaved(true), () => setSaved(true))
   }, [store])
-  const code = doc.variant === 'part2' ? PART2_COMPLETION_CODE : NORMING_COMPLETION_CODE
   return (
     <main className="page page-wide">
       <h1>Thank you</h1>
-      <p>
-        {doc.variant === 'part2'
-          ? "That's the end of Part 2. Thank you for taking part in both parts of the study."
-          : 'Your payment will arrive within 3 days.'}
-      </p>
+      <p>That's the end of Part 2. Thank you for taking part in both parts of the study.</p>
       {!saved && (
         <p className="muted" role="status">
           Saving your answers…
         </p>
       )}
       {saved && fromProlific(doc.recruitment) && (
-        <a className="btn btn-study" href={completionUrl(code)}>
+        <a className="btn btn-study" href={completionUrl(PART2_COMPLETION_CODE)}>
           Back to Prolific
         </a>
       )}

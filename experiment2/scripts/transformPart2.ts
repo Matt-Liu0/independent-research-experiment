@@ -1,4 +1,4 @@
-// Part 2 and norming-survey records → analysis tables. Pure functions, like transform.ts.
+// Part 2 records → analysis tables. Pure functions, like transform.ts.
 // Part 2 runs on a computer under a different anonymous uid from Part 1, so records are joined
 // to Part 1 by Prolific ID, and Part 1's study code is reused.
 import { ciColumns, toIso, type ExportResult, type RawParticipant, type Row } from './transform'
@@ -10,7 +10,7 @@ import type { ItemAnswer } from '../src/part2/types'
 export interface Part2ExportResult {
   participants: Row[]
   verdicts: Row[]
-  /** Part 2 / norming study code → Prolific ID. Private, like id-map.csv. */
+  /** Part 2 study code → Prolific ID. Private, like id-map.csv. */
   idMap: Row[]
 }
 
@@ -54,7 +54,6 @@ function answersFor(answers: Record<string, ItemAnswer>, itemId: string): ItemAn
  */
 export function buildPart2Export(
   raw: RawParticipant[],
-  variant: 'part2' | 'norming',
   pilot: boolean,
   part1: Pick<ExportResult, 'idMap' | 'flows' | 'participants'> | null,
 ): Part2ExportResult {
@@ -69,17 +68,11 @@ export function buildPart2Export(
 
   const result: Part2ExportResult = { participants: [], verdicts: [], idMap: [] }
   let unmatched = 0
-  for (const [i, p] of kept.entries()) {
+  for (const p of kept) {
     const pid = String(p.data.prolificPid ?? '')
-    const prefix = pilot ? 'P' : ''
-    // Part 2 people keep their Part 1 code; norming people (and anyone without Part 1) get their own.
-    const code =
-      variant === 'part2' && codeOfPid.has(pid)
-        ? codeOfPid.get(pid)!
-        : variant === 'norming'
-          ? `${prefix}N${String(i + 1).padStart(3, '0')}`
-          : `${prefix}X${String(++unmatched).padStart(3, '0')}`
-    result.idMap.push({ studyCode: code, prolificPid: pid, uid: p.uid, sample: variant })
+    // People keep their Part 1 code; anyone without a Part 1 record gets their own.
+    const code = codeOfPid.get(pid) ?? `${pilot ? 'P' : ''}X${String(++unmatched).padStart(3, '0')}`
+    result.idMap.push({ studyCode: code, prolificPid: pid, uid: p.uid })
 
     const answers = (p.data.answers ?? {}) as Record<string, ItemAnswer>
     const all = Object.values(answers)
@@ -92,12 +85,10 @@ export function buildPart2Export(
 
     const row: Row = {
       studyCode: code,
-      sample: variant,
       pilot,
-      matchedToPart1: variant === 'part2' ? p1 !== undefined : null,
+      matchedToPart1: p1 !== undefined,
       daysSincePart1: startedAt !== null && part1Done !== null ? Math.round(((startedAt - part1Done) / 86_400_000) * 10) / 10 : null,
       appVersion: (p.data.appVersion as string) ?? null,
-      consentVersion: (p.data.consentVersion as string) ?? null,
       stage: (p.data.stage as string) ?? null,
       completed: p.data.stage === 'done',
       arm: (p.data.arm as string) ?? null,
@@ -149,9 +140,8 @@ export function buildPart2Export(
       const siteFirst = (site?.firstVerdict as string | null | undefined) ?? null
       result.verdicts.push({
         studyCode: code,
-        sample: variant,
-        // The comparison group for the elicitation effect: the person's arm, or the norming sample.
-        group: variant === 'norming' ? 'norming' : ((p.data.arm as string) ?? null),
+        // The elicitation effect compares arms (RQ1.2, open-ended as the reference).
+        arm: (p.data.arm as string) ?? null,
         itemId: item.id,
         kind: item.kind,
         domain: item.domain,
@@ -168,7 +158,7 @@ export function buildPart2Export(
         // Protocol flags, repeated items only: unstable = the two answers differ; uncertain = both rated 1 or 2.
         unstable: second ? first.verdict !== second.verdict : null,
         uncertain: second ? first.confidence <= 2 && second.confidence <= 2 : null,
-        // Say–do: the same person's verdict on the site (Part 2 only, site flows only).
+        // Say–do: the same person's verdict on the site (site flows only).
         siteFriction: (site?.friction as string | null | undefined) ?? null,
         siteStatus: (site?.status as string | null | undefined) ?? null,
         siteFirstVerdict: siteFirst,

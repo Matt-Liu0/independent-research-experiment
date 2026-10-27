@@ -111,7 +111,7 @@ service cloud.firestore {
       }
     }
 
-    // ---- Part 2 and the norming survey ----
+    // ---- Part 2 ----
     // Same pattern as Part 1: one record per Prolific ID (claimed in <col>_pids), owner-only,
     // with fields that can't change after creation. The interview arm and its summary are
     // written only by the interviewer function (Admin SDK, which bypasses these rules), so
@@ -120,11 +120,7 @@ service cloud.firestore {
     // write them.
 
     function part2Collection(col) {
-      return col in ['part2', 'pilot_part2', 'norming', 'pilot_norming'];
-    }
-
-    function part2Variant(col) {
-      return col.matches('.*norming$') ? 'norming' : 'part2';
+      return col in ['part2', 'pilot_part2'];
     }
 
     function validNewPart2(col, uid) {
@@ -132,7 +128,6 @@ service cloud.firestore {
       return d.prolificPid is string
         && d.studyId is string
         && d.sessionId is string
-        && d.variant == part2Variant(col)
         && d.withdrawn == false
         && d.stage == 'device'
         && d.get('arm', null) == null
@@ -143,7 +138,7 @@ service cloud.firestore {
 
     function validPart2Update() {
       let changed = request.resource.data.diff(resource.data).affectedKeys();
-      return !changed.hasAny(['prolificPid', 'studyId', 'sessionId', 'variant', 'appVersion', 'createdAt', 'withdrawn', 'arm', 'interview']);
+      return !changed.hasAny(['prolificPid', 'studyId', 'sessionId', 'appVersion', 'createdAt', 'withdrawn', 'arm', 'interview']);
     }
 
     match /{col}/{uid} {
@@ -157,9 +152,9 @@ service cloud.firestore {
     }
 
     match /{pidCol}/{pid} {
-      allow get: if pidCol in ['part2_pids', 'pilot_part2_pids', 'norming_pids', 'pilot_norming_pids']
+      allow get: if pidCol in ['part2_pids', 'pilot_part2_pids']
         && signedIn() && resource.data.uid == request.auth.uid;
-      allow create: if pidCol in ['part2_pids', 'pilot_part2_pids', 'norming_pids', 'pilot_norming_pids'] && validPidClaim();
+      allow create: if pidCol in ['part2_pids', 'pilot_part2_pids'] && validPidClaim();
     }
 
     // ---- One record per Prolific ID ----

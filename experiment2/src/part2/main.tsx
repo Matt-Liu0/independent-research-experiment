@@ -11,12 +11,12 @@ import { CallableInterviewer, ScriptedInterviewer, type Interviewer } from './in
 import { Part2App } from './Part2App'
 import { FirestorePart2Store, MemoryPart2Store, type Part2Store } from './store'
 
-const entry = parsePart2Entry(window.location.search, window.location.pathname)
+const entry = parsePart2Entry(window.location.search)
 
 function createStore(): Part2Store {
-  if (entry.mode === 'demo') return new MemoryPart2Store(entry.variant)
+  if (entry.mode === 'demo') return new MemoryPart2Store()
   const { db, auth } = getFirebase()
-  return new FirestorePart2Store(db, auth, entry.variant, entry.mode === 'pilot')
+  return new FirestorePart2Store(db, auth, entry.mode === 'pilot')
 }
 
 function createInterviewer(): Interviewer {

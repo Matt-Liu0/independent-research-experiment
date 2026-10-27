@@ -12,17 +12,13 @@
         "destination": "/part2.html"
       },
       {
-        "source": "/norming",
-        "destination": "/norming.html"
-      },
-      {
         "source": "**",
         "destination": "/index.html"
       }
     ],
     "headers": [
       {
-        "source": "/@(index|part2|norming).html",
+        "source": "/@(index|part2).html",
         "headers": [
           {
             "key": "Cache-Control",

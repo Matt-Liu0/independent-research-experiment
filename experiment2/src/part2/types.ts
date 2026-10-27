@@ -2,9 +2,6 @@ import type { DeviceInfo, ProlificParams } from '../study/types'
 import type { VerdictValue, Wording } from './items'
 import type { Slot } from './order'
 
-/** part2: Part 2 of the main study (Day 8, computer). norming: the separate norming survey. */
-export type Variant = 'part2' | 'norming'
-
 /** Part 2 (pipeline, Experiment 1 "Procedure"): briefing, the interview, a filler, the questionnaire, recall, background, debrief. */
 const PART2_STAGES = [
   'device',
@@ -20,17 +17,11 @@ const PART2_STAGES = [
   'debrief',
   'done',
 ] as const
-const NORMING_STAGES = ['device', 'consent', 'intro', 'practice', 'comprehension', 'items', 'background', 'done'] as const
-export type Part2Stage = (typeof PART2_STAGES)[number] | (typeof NORMING_STAGES)[number]
+export type Part2Stage = (typeof PART2_STAGES)[number]
 
-export function stagesOf(variant: Variant): readonly Part2Stage[] {
-  return variant === 'part2' ? PART2_STAGES : NORMING_STAGES
-}
-
-export function nextPart2Stage(variant: Variant, stage: Part2Stage): Part2Stage {
-  const stages = stagesOf(variant)
-  const i = stages.indexOf(stage)
-  return stages[Math.min(i + 1, stages.length - 1)]
+export function nextPart2Stage(stage: Part2Stage): Part2Stage {
+  const i = PART2_STAGES.indexOf(stage)
+  return PART2_STAGES[Math.min(i + 1, PART2_STAGES.length - 1)]
 }
 
 /** One answered page of the questionnaire. */
@@ -76,11 +67,8 @@ export interface FillerResult {
 }
 
 export interface Part2Doc extends ProlificParams {
-  variant: Variant
   appVersion: string
   stage: Part2Stage
-  consentVersion: string | null
-  consentDeclined: boolean
   withdrawn: boolean
   device: DeviceInfo | null
   tzOffset: number
@@ -93,10 +81,10 @@ export interface Part2Doc extends ProlificParams {
   practice: { verdict: VerdictValue; confidence: number } | null
   /** Each answer given to the comprehension question, in order. */
   comprehension: { attempts: string[]; passed: boolean } | null
-  /** Part 2 only: recall question ID → answer. */
+  /** Recall question ID → answer. */
   recall: Record<string, string> | null
   background: Background | null
-  /** Part 2 only. Set by the server; null until the chat starts. */
+  /** Set by the server; null until the chat starts. */
   arm: Arm | null
   interview: InterviewSummary | null
   filler: FillerResult | null
@@ -107,16 +95,13 @@ export interface Part2Doc extends ProlificParams {
   completedAt?: unknown
 }
 
-export type Part2TimestampField = 'consentAt' | 'startedItemsAt' | 'completedAt' | 'chatStartedAt' | 'debriefAt'
+export type Part2TimestampField = 'startedItemsAt' | 'completedAt' | 'chatStartedAt' | 'debriefAt'
 
-export function newPart2Doc(variant: Variant, params: ProlificParams, now = new Date()): Part2Doc {
+export function newPart2Doc(params: ProlificParams, now = new Date()): Part2Doc {
   return {
     ...params,
-    variant,
     appVersion: __APP_VERSION__,
     stage: 'device',
-    consentVersion: null,
-    consentDeclined: false,
     withdrawn: false,
     device: null,
     tzOffset: now.getTimezoneOffset(),

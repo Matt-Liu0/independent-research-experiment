@@ -26,7 +26,7 @@ const part2Raw = [
     uid: 'laptop',
     events: [],
     data: {
-      prolificPid: 'PID1', variant: 'part2', stage: 'done', withdrawn: false, createdAt: at(8), startedItemsAt: at(9),
+      prolificPid: 'PID1', stage: 'done', withdrawn: false, createdAt: at(8), startedItemsAt: at(9),
       arm: 'structured',
       interview: { done: true, turns: 14, participantTurns: 6, participantChars: 410, startedAt: 1, endedAt: 2, minutes: 12.5 },
       filler: { solved: 7, attempted: 9, ms: 180000 },
@@ -46,13 +46,13 @@ const part2Raw = [
 ]
 
 describe('Part 2 export', () => {
-  const out = buildPart2Export(part2Raw, 'part2', false, part1)
+  const out = buildPart2Export(part2Raw, false, part1)
   const row = out.participants[0]
   const verdict = (id: string) => out.verdicts.find((v) => v.itemId === id)!
 
   it("reuses the person's Part 1 study code, joined by Prolific ID", () => {
     expect(row).toMatchObject({ studyCode: 'P001', matchedToPart1: true, daysSincePart1: 8 })
-    expect(out.idMap).toEqual([{ studyCode: 'P001', prolificPid: 'PID1', uid: 'laptop', sample: 'part2' }])
+    expect(out.idMap).toEqual([{ studyCode: 'P001', prolificPid: 'PID1', uid: 'laptop' }])
   })
 
   it('scores attention, comprehension, recall and the IUIPC subscales', () => {
@@ -71,30 +71,22 @@ describe('Part 2 export', () => {
     expect(verdict('ho_loc_named_research')).toMatchObject({ kind: 'held_out', verdict: null, siteFirstVerdict: null })
   })
 
-  it('gives norming people their own codes, with no site columns', () => {
-    const norming = buildPart2Export([{ ...part2Raw[0], uid: 'n1', data: { ...part2Raw[0].data, variant: 'norming' } }], 'norming', false, null)
-    expect(norming.participants[0]).toMatchObject({ studyCode: 'N001', matchedToPart1: null, daysSincePart1: null })
-    expect(norming.verdicts.find((v) => v.itemId === 'store_location')!.siteFirstVerdict).toBeNull()
-  })
-
   it('marks Part 2 records with no Part 1 match', () => {
-    const lone = buildPart2Export(part2Raw, 'part2', true, null)
+    const lone = buildPart2Export(part2Raw, true, null)
     expect(lone.participants[0]).toMatchObject({ studyCode: 'PX001', matchedToPart1: false })
   })
 })
 
 describe('interview data', () => {
-  const out = buildPart2Export(part2Raw, 'part2', false, part1)
+  const out = buildPart2Export(part2Raw, false, part1)
 
-  it('adds the arm and interview summary per person, and the arm as each verdict row\'s group', () => {
+  it('adds the arm and interview summary per person, and the arm on each verdict row', () => {
     expect(out.participants[0]).toMatchObject({ arm: 'structured', interviewDone: true, interviewMinutes: 12.5, interviewParticipantTurns: 6, fillerSolved: 7 })
-    expect(out.verdicts.every((v) => v.group === 'structured')).toBe(true)
-    const norming = buildPart2Export([{ ...part2Raw[0], uid: 'n1', data: { ...part2Raw[0].data, variant: 'norming', arm: null } }], 'norming', false, null)
-    expect(norming.verdicts[0].group).toBe('norming')
+    expect(out.verdicts.every((v) => v.arm === 'structured')).toBe(true)
   })
 
   it('leaves out people who asked on the debrief for their data to be removed', () => {
-    const asked = buildPart2Export([{ ...part2Raw[0], data: { ...part2Raw[0].data, withdrawRequested: true } }], 'part2', false, part1)
+    const asked = buildPart2Export([{ ...part2Raw[0], data: { ...part2Raw[0].data, withdrawRequested: true } }], false, part1)
     expect(asked.participants).toHaveLength(0)
     expect(asked.verdicts).toHaveLength(0)
   })

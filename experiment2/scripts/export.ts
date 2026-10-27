@@ -1,6 +1,6 @@
 // Exports study data to CSV.
 //
-//   npm run export                 # study data (Part 1, Part 2 and the norming survey)
+//   npm run export                 # study data (Part 1 and Part 2)
 //   npm run export -- --pilot      # pilot data instead
 //   npm run export -- --out dir    # output folder (default exports/<date>)
 //
@@ -40,31 +40,27 @@ export function writeExport(outDir: string, collection: string, raw: RawParticip
 }
 
 /**
- * Part 2 and the norming survey. verdicts.csv is the main Part 2 table: one row per person ×
+ * Part 2. verdicts.csv is the main Part 2 table: one row per person ×
  * battery item, with the stated verdict, its repeat, and the same person's verdict on the site.
  */
 export function writePart2Export(
   outDir: string,
   pilot: boolean,
   part2: RawParticipant[],
-  norming: RawParticipant[],
   part1: ExportResult | null,
   interviews: RawInterview[] = [],
 ) {
-  const p2 = buildPart2Export(part2, 'part2', pilot, part1)
-  const nm = buildPart2Export(norming, 'norming', pilot, null)
+  const p2 = buildPart2Export(part2, pilot, part1)
   mkdirSync(outDir, { recursive: true })
   writeFileSync(join(outDir, 'part2-participants.csv'), toCsv(p2.participants))
   writeFileSync(join(outDir, 'verdicts.csv'), toCsv(p2.verdicts))
-  writeFileSync(join(outDir, 'norming-participants.csv'), toCsv(nm.participants))
-  writeFileSync(join(outDir, 'norming-verdicts.csv'), toCsv(nm.verdicts))
   writeFileSync(join(outDir, 'battery-codebook.csv'), toCsv(batteryCodebook()))
   // The interview transcripts D (one JSON object per line). Free text: participants were asked
   // not to type identifying details, but read them before sharing.
   writeFileSync(join(outDir, 'transcripts.jsonl'), buildTranscripts(interviews, p2.idMap) + '\n')
   // Private, like id-map.csv.
-  writeFileSync(join(outDir, 'part2-id-map.csv'), toCsv([...p2.idMap, ...nm.idMap]))
-  return { part2: p2, norming: nm }
+  writeFileSync(join(outDir, 'part2-id-map.csv'), toCsv(p2.idMap))
+  return p2
 }
 
 async function main() {
@@ -88,11 +84,10 @@ async function main() {
     `Exported ${result.participants.length} participants (${withdrawn} withdrawn and ${removePids.size} who asked on the debrief, left out), ` +
       `${result.events.length} events, ${result.flows.length} flow rows → ${outDir}`,
   )
-  const norming = await loadParticipants(getFirestore(), `${prefix}norming`)
   const interviews = (await getFirestore().collection(`${prefix}part2_interviews`).get()).docs.map((d) => ({ uid: d.id, data: d.data() }))
-  const p2 = writePart2Export(outDir, pilot, part2, norming, result, interviews)
+  const p2 = writePart2Export(outDir, pilot, part2, result, interviews)
   console.log(
-    `Exported Part 2 for ${p2.part2.participants.length} (${interviews.length} interviews) and the norming survey for ${p2.norming.participants.length} → ${outDir}`,
+    `Exported Part 2 for ${p2.participants.length} (${interviews.length} interviews) → ${outDir}`,
   )
 }
 

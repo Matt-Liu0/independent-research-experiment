@@ -11,13 +11,12 @@ export default defineConfig({
   plugins: [react()],
   // MapLibre's tile worker is an ES module.
   worker: { format: 'es' },
-  // Part 1 (index.html), Part 2 and the norming survey are separate pages of one site.
+  // Part 1 (index.html) and Part 2 are separate pages of one site.
   build: {
     rollupOptions: {
       input: {
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
         part2: fileURLToPath(new URL('./part2.html', import.meta.url)),
-        norming: fileURLToPath(new URL('./norming.html', import.meta.url)),
       },
     },
   },
