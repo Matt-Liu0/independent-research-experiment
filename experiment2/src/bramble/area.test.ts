@@ -3,6 +3,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
+import { MAP_REGIONS, regionFor } from './mapRegions'
 import { DEFAULT_AREA, areaFromPois, getArea, milesBetween, prepareArea, resetArea, storeById, tileOf, zipCenter, type TileReader } from './area'
 
 const TILES = join(process.cwd(), 'public/map/tiles')
@@ -47,6 +48,8 @@ describe('participant area', () => {
       expect(lat).toBeLessThan(area.bounds[3])
     }
     expect(storeById('r3')?.hasOatMilk).toBe(true)
+    // Drawn from the regional map file that covers Columbus.
+    expect(area.archive).toMatch(/\/northeast\.pmtiles$/)
   })
 
   it('keeps the default neighborhood when the ZIP is unknown, the map file is missing, or too few stores are found', async () => {
@@ -72,5 +75,21 @@ describe('participant area', () => {
     expect(milesBetween([-83, 40], [-83, 41])).toBeCloseTo(69.1, 0)
     expect(tileOf([-83.0175, 40.0405], 14)).toEqual([4413, 6200])
     expect(existsSync(join(TILES, "14/4413/6200.mvt"))).toBe(true)
+  })
+
+  it('picks the regional map file that covers each place, with room around it', () => {
+    expect(regionFor([-83.013, 40.0216])).toBe('northeast') // Columbus
+    expect(regionFor([-75.53, 42.83])).toBe('northeast') // Hamilton, NY
+    expect(regionFor([-118.24, 34.05])).toBe('pacific') // Los Angeles
+    expect(regionFor([-87.63, 41.88])).toBe('midwest') // Chicago
+    expect(regionFor([-95.37, 29.76])).toBe('plains') // Houston
+    expect(regionFor([-80.19, 25.76])).toBe('southeast') // Miami
+    expect(regionFor([-149.9, 61.22])).toBe('alaska')
+    expect(regionFor([0, 51.5])).toBeNull() // London
+    // Every state capital-ish point in the lower 48 is at least 0.15° inside its file.
+    for (const p of [[-104.99, 39.74], [-112.07, 33.45], [-90.07, 29.95], [-84.39, 33.75], [-71.06, 42.36], [-93.27, 44.98], [-122.33, 47.61], [-97.74, 30.27], [-86.78, 36.16], [-77.04, 38.91]] as [number, number][]) {
+      const [w, s2, e, n] = MAP_REGIONS[regionFor(p)!]
+      expect(Math.min(p[0] - w, e - p[0], p[1] - s2, n - p[1])).toBeGreaterThan(0.15)
+    }
   })
 })

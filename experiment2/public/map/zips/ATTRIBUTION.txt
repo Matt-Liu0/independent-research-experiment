@@ -1,0 +1,1 @@
+ZIP Code Tabulation Area internal points from the US Census Bureau 2024 Gazetteer (public domain): https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2024_Gazetteer/2024_Gaz_zcta_national.zip

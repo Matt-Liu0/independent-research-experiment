@@ -3,14 +3,15 @@
 // isn't found, or the US map isn't set up. Agents and tests always get the default.
 //
 // The participant's area uses real supermarkets at their real places, read from the same map
-// file the phone draws the map from (OpenStreetMap via Protomaps, in our own Cloud Storage
-// bucket), so no outside service ever sees the ZIP. The ZIP, the area and the store names stay
+// files the phone draws the map from (OpenStreetMap via Protomaps, regional files in our own
+// Cloud Storage bucket), so no outside service ever sees the ZIP. The ZIP, the area and the store names stay
 // on the phone (localStorage); the participant record only gets store IDs like "r3" (the third
 // nearest), which say nothing about where the person is.
 import { VectorTile } from '@mapbox/vector-tile'
 import { PbfReader } from 'pbf'
 import { NEARBY_STORES, ZIP_STORES, type Store } from './data'
 import { MAP_BOUNDS, STORE_LNGLAT, YOU_ARE_HERE_LNGLAT } from './mapConfig'
+import { regionFor } from './mapRegions'
 
 export type LngLat = [number, number]
 
@@ -26,6 +27,8 @@ export interface Area {
   zipList: Store[]
   /** Map position of every store with a pin. */
   lnglat: Record<string, LngLat>
+  /** The regional map file the participant's area is drawn from. */
+  archive?: string
 }
 
 export const DEFAULT_AREA: Area = {
@@ -37,8 +40,8 @@ export const DEFAULT_AREA: Area = {
   lnglat: STORE_LNGLAT,
 }
 
-/** The US map file (PMTiles), e.g. https://storage.googleapis.com/<bucket>/us.pmtiles. Unset: default area only. */
-export const MAP_ARCHIVE_URL: string = import.meta.env.VITE_MAP_ARCHIVE_URL ?? ''
+/** Where the regional map files are (PMTiles), e.g. https://storage.googleapis.com/<bucket>. Unset: default area only. */
+export const MAP_BASE_URL: string = (import.meta.env.VITE_MAP_BASE_URL ?? '').replace(/\/$/, '')
 
 /** Zoom of the tiles read for supermarkets (they are all present from zoom 14). */
 const POI_ZOOM = 14
@@ -223,12 +226,16 @@ export async function prepareArea(
   zip: string,
   { timeoutMs = 10_000, readTile, fetcher }: { timeoutMs?: number; readTile?: TileReader; fetcher?: typeof fetch } = {},
 ): Promise<Area['kind']> {
-  if (!readTile && !MAP_ARCHIVE_URL) return 'default'
+  if (!readTile && !MAP_BASE_URL) return 'default'
   const work = (async () => {
     const center = await zipCenter(zip, fetcher)
     if (!center) return null
-    const reader = readTile ?? (await archiveReader(MAP_ARCHIVE_URL))
-    return areaFromPois(center, await findPois(center, reader))
+    const region = regionFor(center)
+    if (!region) return null
+    const archive = `${MAP_BASE_URL}/${region}.pmtiles`
+    const reader = readTile ?? (await archiveReader(archive))
+    const area = areaFromPois(center, await findPois(center, reader))
+    return area && { ...area, archive }
   })().catch(() => null)
   const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs))
   const area = await Promise.race([work, timeout])

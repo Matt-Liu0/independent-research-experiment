@@ -1,6 +1,6 @@
 // Real street map for the store finder. Loaded lazily (MapLibre is large). The default
 // neighborhood's tiles and all fonts live in public/map (npm run build:map); a participant's own
-// area reads tiles from our US map file in Cloud Storage (bramble/area.ts). No map provider is
+// area reads tiles from our regional US map files in Cloud Storage (bramble/area.ts). No map provider is
 // ever contacted.
 import { layers, namedFlavor } from '@protomaps/basemaps'
 import { Map as MapLibreMap, Marker, addProtocol, setWorkerUrl, type GeoJSONSource, type LayerSpecification, type StyleSpecification } from 'maplibre-gl'
@@ -10,7 +10,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import type { Feature, Polygon } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useEffect, useRef } from 'react'
-import { MAP_ARCHIVE_URL, getArea, type Area, type LngLat } from '../area'
+import { getArea, type Area, type LngLat } from '../area'
 import { GENERAL_AREA_RADIUS_M, MAP_MAX_ZOOM, MAP_MIN_ZOOM } from '../mapConfig'
 
 setWorkerUrl(workerUrl)
@@ -30,8 +30,8 @@ function mapStyle(area: Area): StyleSpecification {
     glyphs: `${origin}/map/fonts/{fontstack}/{range}.pbf`,
     sources: {
       protomaps:
-        area.kind === 'participant'
-          ? { type: 'vector', url: `pmtiles://${MAP_ARCHIVE_URL}`, attribution: '© OpenStreetMap' }
+        area.kind === 'participant' && area.archive
+          ? { type: 'vector', url: `pmtiles://${area.archive}`, attribution: '© OpenStreetMap' }
           : {
               type: 'vector',
               tiles: [`${origin}/map/tiles/{z}/{x}/{y}.mvt`],
