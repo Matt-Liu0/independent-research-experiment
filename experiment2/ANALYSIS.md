@@ -1,6 +1,6 @@
 # Analyzing the data
 
-How to go from the Firestore database to the Experiment 1 and 2 results in the pipeline (`../docs/superpowers/specs/Research Methodology Pipeline.md`). What every column means is in `DATA.md` section 7 (Part 1) and section 9 (Part 2 and norming); this guide says which files and columns to use for each question, and in what order.
+How to go from the Firestore database to the Experiment 1 and 2 results in the pipeline (`../docs/superpowers/specs/Research Methodology Pipeline.md`). What every column means is in `DATA.md` section 7 (Part 1) and section 9 (Part 2); this guide says which files and columns to use for each question, and in what order.
 
 The case arm is only assigned once the case set T is filled in (`functions/src/prompts.ts`); until then Part 2 people are in the open-ended or structured arm.
 
@@ -23,10 +23,9 @@ The case arm is only assigned once the case set T is filled in (`functions/src/p
 | `events.csv` | event | anything not summarized elsewhere (timing, back-and-forth) |
 | `verdicts.csv` | Part 2 participant × battery item (41 each) | **Experiment 1**: what people said, joined to what they did |
 | `part2-participants.csv` | Part 2 participant | attention, comprehension, recall, IUIPC |
-| `norming-verdicts.csv`, `norming-participants.csv` | the same, norming sample | the no-elicitation baseline |
 | `flow-codebook.csv`, `battery-codebook.csv` | flow / item | GKC-CI parameters for tracing gaps to parameters |
 | `transcripts.jsonl` | Part 2 interview | the transcripts D: coverage coding (RQ1.1) and the agents' input in Experiments 3 and 4 |
-| `id-map.csv`, `part2-id-map.csv`, `prolific-bonuses.txt` | person | **payment only**. Contain Prolific IDs: never share or analyze these |
+| `id-map.csv`, `part2-id-map.csv`, `bonus-payments.csv` | person | **payment only**. Contain participant codes: never share or analyze these |
 
 Analyze only files keyed by `studyCode`. `exports/` is git-ignored; keep it that way.
 
@@ -46,8 +45,6 @@ Write the rules down, ideally in the preregistration, before opening the outcome
 - `interviewDone` = `false` (left the chat early or it failed): report separately; they have no complete transcript.
 - `matchedToPart1` = `false` (no Part 1 record, so no say–do comparison).
 - Very fast answering: `medianItemMs` far below the rest (decide the cutoff from the pilot).
-
-**Norming** (`norming-participants.csv`): the same attention and comprehension rules.
 
 ## 3. Experiment 2: what people did
 
@@ -74,7 +71,7 @@ Main table: `flows.csv`, filtered to included participants.
 
 ## 4. Experiment 1: what people said
 
-Main table: `verdicts.csv` (Part 2), plus `norming-verdicts.csv`.
+Main table: `verdicts.csv` (Part 2).
 
 - **Stated verdict:** `verdict` with `confidence` (1–5); `kind` says whether the item is a site flow (`site`) or held-out (`held_out`).
 - **Consistency (RQ1.3):** the 12 rows with `repeated` = `true` have `verdict2`. Report each person's agreement rate, and Cohen's κ pooled over people:
@@ -84,15 +81,14 @@ Main table: `verdicts.csv` (Part 2), plus `norming-verdicts.csv`.
   kappa2(rep[, c("verdict", "verdict2")])
   ```
   `unstable` (the two answers differ) and `uncertain` (both confidences 1–2) are the flags later experiments use.
-- **Elicitation effect (RQ1.2):** stack `verdicts.csv` and `norming-verdicts.csv`; their `group` column is the arm, or `norming`. Then
+- **Elicitation effect (RQ1.2):** compare the arms, with the open-ended arm as the reference (there is no no-interview group):
   ```r
-  both <- rbind(verdicts, norming)
-  both$group <- relevel(factor(both$group), ref = "norming")
-  clmm(verdict ~ group + (1 | studyCode) + (1 | itemId), data = both)
+  verdicts$arm <- relevel(factor(verdicts$arm), ref = "open")
+  clmm(verdict ~ arm + (1 | studyCode) + (1 | itemId), data = verdicts)
   ```
 - **Coverage and cost (RQ1.1):** code `transcripts.jsonl` for which flow coordinates and values each transcript addresses. Cost is in `part2-participants.csv`: `interviewMinutes`, `interviewParticipantTurns`, `interviewParticipantChars`, by `arm`. Turns with `source: fixed` are scripted (openers, cases, closing); only `source: model` turns were written by the interviewer.
 - **Confidence shift (proposed):** the same model with `confidence` as the outcome.
-- **Norms per flow:** from `norming-verdicts.csv`, each item's majority verdict and its agreement rate.
+- **Sample norm per flow (for Experiment 3):** from `verdicts.csv`, each item's majority verdict and its agreement rate over all Part 2 participants; for a given participant, leave their own answer out.
 
 ## 5. The say–do gap (Experiments 1 + 2 together)
 

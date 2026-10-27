@@ -15,16 +15,13 @@ Each participant uses **two practice apps** in one session, in a balanced random
 
 ## 1. `participants/{uid}`: one document per participant
 
-`{uid}` is the browser's anonymous login ID, not the Prolific ID. Pilot runs (`&pilot=1`) use `pilot_participants` with the same fields.
+`{uid}` is the browser's anonymous login ID, not the participant code. Pilot runs (`&pilot=1`) use `pilot_participants` with the same fields.
 
 ### Identity and assignment
 
 | Field | Meaning | Values |
 |---|---|---|
-| `prolificPid` | Prolific participant ID from the link, or the **participant code** for code entries (`?code=…`); one record per value either way | text |
-| `recruitment` | How the participant arrived | `prolific` (Prolific link) · `code` (a code handed out, e.g. to students; then `studyId` and `sessionId` are `CODE`) |
-| `studyId` | Prolific study ID | text |
-| `sessionId` | Prolific session ID | text |
+| `participantCode` | The **participant code** from the invitation link (`?code=…`); one record per code. `DEMO` on demo links, `AGENT-<episode>` on agent links. (Before 0.20.0 the field was `prolificPid`, with `studyId`, `sessionId` and `recruitment` beside it, from when Prolific links were also accepted.) | text |
 | `appVersion` | App build the person saw | e.g. `0.12.0` (see `CHANGELOG.md`) |
 | `consentVersion` | Version of the consent text agreed to | e.g. `v1-draft`; `null` before consent |
 | `consentDeclined` | Tapped "I do not agree" | `true` / `false` |
@@ -55,7 +52,7 @@ Each participant uses **two practice apps** in one session, in a balanced random
 | `stage` | Furthest stage reached | `device` → `consent` → `welcome` → `tasks` (both apps) → `sus` (one per app) → `suspicion` → `settings` → `done` |
 | `taskIndex` | Position in `taskOrder` currently on | `0`–`9` (0 = first task shown) |
 | `taskPhase` | Within that task | `doing` (using the app) · `rating` (ease question showing) · `intro` (the "Now try …" page before the second app's first task) |
-| `createdAt` | Arrived from Prolific | server time |
+| `createdAt` | First opened the link | server time |
 | `consentAt` | Agreed to consent | server time; missing if never agreed |
 | `completedAt` | Submitted the settings check, the last question | server time; missing if unfinished |
 
@@ -308,7 +305,7 @@ None of them is needed to finish its task: declining or not answering never trig
 
 | Document | Fields | Meaning |
 |---|---|---|
-| `pids/{prolificPid}` | `uid`, `createdAt` | Which browser login claimed this Prolific ID. Stops a second attempt from another browser |
+| `pids/{participantCode}` | `uid`, `createdAt` | Which browser login claimed this participant code. Stops a second attempt from another browser |
 | `meta/assignment` | one count per **cell** (pattern × app order), e.g. `U1U3U5B: 4` (Bramble first) or `U1U3U5S: 3` (Stride first) | How many people have each cell (including people who later dropped out). New participants get the least-used of the 40 cells, which balances the screens nudged, the app order, and their crossing |
 
 Pilot runs use `pilot_pids` and `pilot_meta`.
@@ -344,7 +341,7 @@ Pilot runs use `pilot_pids` and `pilot_meta`.
 
 ## 7. Export CSVs (`npm run export`)
 
-Every row uses a **study code** (`P001`, `P002`, … or `PL001`, … for pilots) instead of the Prolific ID. Codes go in order of arrival. Withdrawn participants are left out.
+Every row uses a **study code** (`P001`, `P002`, … or `PL001`, … for pilots) instead of the participant code. Codes go in order of arrival. Withdrawn participants are left out.
 
 ### `flows.csv`: one row per participant × flow (29 rows each: 14 Bramble, 15 Stride). The main Experiment 2 table
 
@@ -378,7 +375,7 @@ Includes everyone who arrived, also people who declined consent or failed the de
 
 | Columns | Meaning |
 |---|---|
-| `studyCode`, `pilot`, `recruitment`, `appVersion`, `consentVersion`, `consentDeclined`, `pattern` (e.g. `U1U3U5`), `appOrder`, `nudgedUnits` (e.g. `U1;U3;U5`), `taskOrder` (e.g. `4-1-2-3-5-6-7-9-8-10`), `stage`, `completed` (`stage` = `done`) | Identity, assignment and progress |
+| `studyCode`, `pilot`, `appVersion`, `consentVersion`, `consentDeclined`, `pattern` (e.g. `U1U3U5`), `appOrder`, `nudgedUnits` (e.g. `U1;U3;U5`), `taskOrder` (e.g. `4-1-2-3-5-6-7-9-8-10`), `stage`, `completed` (`stage` = `done`) | Identity, assignment and progress |
 | `os`, `screenW`, `screenH`, `passedDeviceCheck`, `deviceCheckSkipped`, `automated`, `userAgent`, `tzOffset`, `localStartHour`, `resumeCount` | Device and context |
 | `createdAt`, `consentAt`, `completedAt`, `minutesToComplete` (consent → completion) | Timing |
 | `ease_t1` … `ease_t10` | Ease ratings by task number |
@@ -397,13 +394,13 @@ Includes everyone who arrived, also people who declined consent or failed the de
 
 `flowId`, `app`, `counterpart`, `nudgeType`, `unit`, `unitScreen`, `expectedTask`, `screen`, `options`, `privacyOption`, `dependsOn`, `consentForm_nudged`, `consentForm_neutral`, `verdictMap` (e.g. `while_using=allow;once=ask;dont_allow=block`), the `ci_*` columns and `ci_statement`. Use it to match the site flows with the Part 2 questionnaire items.
 
-### `prolific-bonuses.txt`: bonuses to paste into Prolific
+### `bonus-payments.csv`: points bonuses for the gift cards
 
-One `<Prolific ID>,<amount>` line per Prolific participant who finished Part 1 with a bonus above $0 (both balances added). See `PROLIFIC.md`. Contains Prolific IDs: keep it as private as `id-map.csv`.
+`participantCode`, `bonusUSD`: one row per participant who finished Part 1 with a bonus above $0 (both balances added). See `RECRUITMENT.md`. Contains participant codes: keep it as private as `id-map.csv`.
 
-### `id-map.csv`: study code → Prolific ID
+### `id-map.csv`: study code → participant code
 
-`studyCode`, `prolificPid`, `uid`. Use it to pay bonuses and link Part 1 with Part 2. **Keep it separate from the other files and off shared drives.**
+`studyCode`, `participantCode`, `uid`. Use it to pay bonuses and link Part 1 with Part 2. **Keep it separate from the other files and off shared drives.**
 
 ---
 
@@ -441,30 +438,28 @@ An agent link starts a fresh episode with the same app, flows, defaults, emphasi
 
 ---
 
-## 9. Part 2 questionnaire and norming survey (`part2/{uid}`, `norming/{uid}`)
+## 9. Part 2 questionnaire (`part2/{uid}`)
 
-Design and item wording: `docs/superpowers/specs/2026-10-14-part2-questionnaire-design.md`; the wording itself is in `src/part2/items.ts`. Part 2 runs on a computer under a different anonymous uid from Part 1, so the export joins the two by Prolific ID. Pilot data goes to `pilot_part2` and `pilot_norming`; one record per Prolific ID is claimed in `part2_pids` / `norming_pids`.
+Design and item wording: `docs/superpowers/specs/2026-10-14-part2-questionnaire-design.md`; the wording itself is in `src/part2/items.ts`. Part 2 runs on a computer under a different anonymous uid from Part 1, so the export joins the two by participant code. Pilot data goes to `pilot_part2`; one record per participant code is claimed in `part2_pids`. (Until 0.20.0 a separate norming survey wrote to `norming` / `pilot_norming` with the same fields plus `variant` and `consentVersion`; it was dropped with the norming sample.)
 
 ### Record fields
 
 | Field | Meaning | Values |
 |---|---|---|
-| `prolificPid`, `studyId`, `sessionId`, `recruitment` | As in Part 1 | |
-| `variant` | Which survey | `part2` · `norming` |
-| `stage` | Where they are | Part 2: `device` → `briefing` → `chat` → `filler` → `intro` → `practice` → `comprehension` → `items` → `recall` → `background` → `debrief` → `done` (from 0.18.0; before, `device` went straight to `intro` and `background` to `done`). Norming: `device` → `consent` → `intro` → … → `items` → `background` → `done` |
-| `device` | As in Part 1; `passedCheck` means a computer (Part 2) or any device (norming) | |
+| `participantCode` | As in Part 1 | |
+| `stage` | Where they are | `device` → `briefing` → `chat` → `filler` → `intro` → `practice` → `comprehension` → `items` → `recall` → `background` → `debrief` → `done` (from 0.18.0; before, `device` went straight to `intro` and `background` to `done`) |
+| `device` | As in Part 1; `passedCheck` means a computer | |
 | `sequence` | The page order, saved before the first item | list of `{kind: 'item', itemId, wording: 'A'/'B'}` or `{kind: 'attention', itemId}` (55 pages) |
 | `answers.<slot>` | One answer per page, keyed `itemId:A`, `itemId:B` or `attention_1` / `attention_2` | `{itemId, wording, position, verdict: allow/ask/block, confidence: 1–5, ms, changes}` |
 | `practice` | The unscored practice item | `{verdict, confidence}` |
 | `comprehension` | "Which option means the app should check with you every time?" (correct: `ask`) | `{attempts: [...], passed}`; at most two attempts |
-| `recall.<question>` | Part 2 only: what they remember choosing | the flow's own value (e.g. `once`, `arrival_only`, `accept`) or `dont_remember` |
+| `recall.<question>` | What they remember choosing | the flow's own value (e.g. `once`, `arrival_only`, `accept`) or `dont_remember` |
 | `background` | IUIPC (10 items, 1–7), age range, gender (optional), AI assistant use | `{iuipc: [..10], ageRange, gender, aiUse}` |
-| `consentVersion` | Norming only | `norming-v1-draft` |
-| `arm` | Part 2 only: the interview arm. **Written by the interviewer function only** (the rules refuse it from the browser), balanced across arms | `open` · `structured` · `case` (the case arm is assigned only once the case set T is filled in), or `null` before the chat |
-| `interview` | Part 2 only: summary of the interview, also written only by the function. The transcript itself is in `part2_interviews` (below) | `{done, turns, participantTurns, participantChars, startedAt, endedAt, minutes}` (times in ms) |
-| `filler` | Part 2 only: the word puzzle between the chat and the questionnaire | `{solved, attempted, ms}` (0–10 words) |
-| `withdrawRequested` | Part 2 only: ticked "Please remove my data from the study" on the debrief. The export leaves the person out of every file, Part 1 included | `true` / `false` |
-| `createdAt`, `chatStartedAt`, `startedItemsAt`, `debriefAt`, `completedAt` | Server timestamps (`chatStartedAt`, `debriefAt`: Part 2 only) | |
+| `arm` | The interview arm. **Written by the interviewer function only** (the rules refuse it from the browser), balanced across arms | `open` · `structured` · `case` (the case arm is assigned only once the case set T is filled in), or `null` before the chat |
+| `interview` | Summary of the interview, also written only by the function. The transcript itself is in `part2_interviews` (below) | `{done, turns, participantTurns, participantChars, startedAt, endedAt, minutes}` (times in ms) |
+| `filler` | The word puzzle between the chat and the questionnaire | `{solved, attempted, ms}` (0–10 words) |
+| `withdrawRequested` | Ticked "Please remove my data from the study" on the debrief. The export leaves the person out of every file, Part 1 included | `true` / `false` |
+| `createdAt`, `chatStartedAt`, `startedItemsAt`, `debriefAt`, `completedAt` | Server timestamps | |
 
 Events (`part2/{uid}/events`) use the same fields as Part 1, with types `stage`, `item` (`shown`, `answered`), `survey` (`comprehension`, `recall_submitted`, `background_submitted`, `filler_start`, `filler_done`, `debrief`), `chat` (`sent` with `chars` and `turn`; `reply` with `ms` and `done`; `error`; `continue`), `visibility`, `resume` and `error`. Chat events never contain what was typed: the text is only in the transcript.
 
@@ -483,11 +478,10 @@ How the interview runs (all in `functions/src/interview.ts`, wording in `functio
   - **Stated verdict:** `verdict`, `confidence`, `wording`, `position`, `ms` and `changes` are the first time the item was asked.
   - **Repeat:** `verdict2`, `confidence2` and `position2` are the repeat. `unstable` means the two verdicts differ; `uncertain` means both confidences were 1 or 2 (repeated items only).
   - **Site:** `siteFriction`, `siteStatus`, `siteFirstVerdict`, `siteFinalVerdict` and `sayDoAgree` come from the same person's row in `flows.csv` (site flows only).
-- **`verdicts.csv`** also has `group`: the person's `arm`, or `norming` in `norming-verdicts.csv`. Stack the two files and use `group` for the elicitation-effect model.
+- **`verdicts.csv`** also has `arm`, the person's interview arm, for the elicitation-effect model (from 0.20.0; before, this column was `group` and could also be `norming`).
 - **`part2-participants.csv`:** one row per person. `studyCode` is their Part 1 code, or `X…` if no Part 1 record matches. It also has `arm`, `interviewDone`, `interviewMinutes`, `interviewParticipantTurns`, `interviewParticipantChars`, `fillerSolved`, `chatStartedAt`, `debriefAt`, `matchedToPart1`, `daysSincePart1`, `comprehensionPassed`, `attention_1_passed`, `attention_2_passed`, `attentionPassed`, `itemsAnswered`, `medianItemMs` and `minutesOnItems`. Each recall answer comes with `<question>_correct`, compared with the first choice on the site (empty for "I don't remember"). The background survey gives `iuipc_1`…`iuipc_10`, `iuipc_control`, `iuipc_awareness`, `iuipc_collection`, `ageRange`, `gender` and `aiUse`.
-- **`norming-verdicts.csv`, `norming-participants.csv`:** the same tables for the norming sample. Study codes are `N001`…, and the site and recall columns are empty.
 - **`battery-codebook.csv`:** one row per battery item, with `kind` (`site` / `held_out`), `domain`, `repeated`, both wordings, the `ci_*` columns, and for held-out items `nearestSiteFlow`, `distance` and `differsOn`.
 - **`transcripts.jsonl`:** one interview per line, `{studyCode, arm, done, model, promptsVersion, turns: [{role, text, domain, at, source, model, caseId}]}`. The agents' input in Experiments 3 and 4. It's free text: participants are asked not to type identifying details, but read it before sharing.
-- **`part2-id-map.csv`:** study code → Prolific ID for both samples. Private, like `id-map.csv`.
+- **`part2-id-map.csv`:** study code → participant code. Private, like `id-map.csv`.
 
-People who ticked `withdrawRequested` are left out of every file, Part 1's included (matched by Prolific ID).
+People who ticked `withdrawRequested` are left out of every file, Part 1's included (matched by participant code).

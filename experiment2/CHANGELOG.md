@@ -5,6 +5,16 @@ Every build participants see has a version (`appVersion` on each record). Bump `
 
 
 
+## 0.20.0 (2026-10-27)
+
+Matches the study budget (Matt, Oct 27): only Colgate students, paid directly by gift card, and no norming sample (RQ1.2 now compares the interview arms, with the open-ended arm as the reference). Guide: `RECRUITMENT.md` (replaces `PROLIFIC.md`).
+
+- **Norming survey removed:** no `norming.html` page, consent text or completion code; Part 2 records no longer have `variant`; the rules refuse the `norming` collections; the export no longer writes `norming-*.csv`, and `verdicts.csv` has `arm` instead of `group`.
+- **Student links only:** the site reads only `?code=` (plus demo and agent links). Old Prolific links show "Please use the link you were given". The record field `prolificPid` is now `participantCode`; `studyId`, `sessionId` and `recruitment` are gone.
+- **Endings:** no "Back to Prolific" links or completion/return codes. Part 1 ends with "You're all done for today", once the answers are saved; Part 2 with "Your answers are saved". Declining consent, the phone and computer checks and the repeated-crash page no longer mention Prolific.
+- **Export:** `bonus-payments.csv` (participant code, bonus) replaces `prolific-bonuses.txt`.
+- **Part 1 closing page:** says Part 2 takes about 35 minutes (it said 45, from before 0.19.0).
+
 ## 0.19.0 (2026-10-27)
 
 Shorter sessions (Matt and Noah: the study was too long). Proposals and estimates: `../docs/superpowers/specs/2026-10-27-realism-and-length-proposals.md`.
