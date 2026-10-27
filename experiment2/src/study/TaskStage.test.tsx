@@ -35,7 +35,7 @@ function atTasks(overrides: Partial<ParticipantDoc> = {}): MemoryStore {
     ...newParticipant({ prolificPid: 'pid1', studyId: 's', sessionId: 'x' }),
     stage: 'tasks',
     pattern: '',
-    taskOrder: [4, 1, 2, 3, 5, 6],
+    taskOrder: [4, 1, 2, 5, 6],
     ...overrides,
   }
   return new MemoryStore({ existing })
@@ -49,7 +49,7 @@ describe('task stage', () => {
     render(<StudyApp entry={parseEntry(PARAMS)} store={atTasks()} />)
     expect(await screen.findByText("Browse this week's deals and save two you'd buy.")).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Start task' }))
-    expect(screen.getByText('Task 1 of 6')).toBeInTheDocument()
+    expect(screen.getByText('Task 1 of 5')).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Bramble' })).toBeInTheDocument()
   })
 
@@ -100,7 +100,7 @@ describe('task stage', () => {
 
   it('never saves a typed address to the participant record', async () => {
     const user = userEvent.setup()
-    const store = atTasks({ taskOrder: [6, 1, 2, 3, 4, 5] })
+    const store = atTasks({ taskOrder: [6, 1, 2, 4, 5] })
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} />)
     await user.click(await screen.findByRole('button', { name: 'Start task' }))
     await moveAddress(user, '221B Baker Street')
@@ -224,11 +224,11 @@ describe('two apps', () => {
 
   it('starts with Stride for Stride-first participants, with no introduction screen', async () => {
     const user = userEvent.setup()
-    const store = atTasks({ taskOrder: [7, 8, 9, 10, 1, 2, 3, 4, 5, 6], appOrder: 'stride_first' })
+    const store = atTasks({ taskOrder: [7, 8, 9, 10, 1, 2, 4, 5, 6], appOrder: 'stride_first' })
     render(<StudyApp entry={parseEntry(PARAMS)} store={store} />)
     await user.click(await screen.findByRole('button', { name: 'Start task' }))
     expect(screen.getByRole('navigation', { name: 'Stride' })).toBeInTheDocument()
-    expect(screen.getByText('Task 1 of 10')).toBeInTheDocument()
+    expect(screen.getByText('Task 1 of 9')).toBeInTheDocument()
   })
 })
 
@@ -237,9 +237,9 @@ describe('taskOutcome', () => {
     const s = initialAppState()
     expect(taskOutcome(1, { ...s, storeId: 'riverside' }).done).toBe(false)
     expect(taskOutcome(1, { ...s, storeId: 'elm' }).done).toBe(true)
-    expect(taskOutcome(2, { ...s, order: 'on_the_way', orderItems: ['oat_milk'] }).done).toBe(false)
-    expect(taskOutcome(2, { ...s, order: 'on_the_way', orderItems: ['sourdough', 'oat_milk', 'eggs'] }).done).toBe(true)
-    expect(taskOutcome(3, { ...s, settled: ['sam_share'] })).toEqual({ done: true, samNotified: true })
+    expect(taskOutcome(2, { ...s, order: 'on_the_way', orderItems: ['oat_milk'], settled: ['sam_share'] }).done).toBe(false)
+    expect(taskOutcome(2, { ...s, order: 'on_the_way', orderItems: ['sourdough', 'oat_milk', 'eggs'] })).toEqual({ done: false, ordered: true, samNotified: false })
+    expect(taskOutcome(2, { ...s, order: 'on_the_way', orderItems: ['sourdough', 'oat_milk'], settled: ['sam_share'] })).toEqual({ done: true, ordered: true, samNotified: true })
     expect(taskOutcome(4, { ...s, savedDeals: ['apples', 'yogurt'] })).toEqual({ done: true, dealsSaved: 2 })
     expect(taskOutcome(5, { ...s, deliveryRedeemed: true }).done).toBe(true)
     expect(taskOutcome(6, { ...s, address: '40 oak st' })).toEqual({ done: true, addressMatches: true })

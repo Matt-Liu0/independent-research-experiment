@@ -131,11 +131,10 @@ Nothing before the suspicion question mentions privacy, so the site measures how
 >
 > What should Bramble call you? (first name or nickname)
 
-**Tasks**, one at a time, in random order (Task 3 always follows Task 2; Task 6 is always last):
+**Tasks**, one at a time, in random order (Task 1 always comes before Task 2; Task 6 is always last). Task 3 was merged into Task 2 on Oct 27, 2026, to shorten the session; the numbers are kept so the data stay comparable:
 
 1. Find a store near you that has oat milk in stock, and set it as your store.
-2. Order oat milk and a sourdough loaf for delivery.
-3. Track your order, and let your housemate Sam know when it will arrive.
+2. Order oat milk and a sourdough loaf for delivery, then let your housemate Sam know when it will arrive.
 4. Browse this week's deals and save two you'd buy.
 5. Use your points to get free delivery on your next order.
 6. You're moving: change your delivery address to 40 Oak Street and save it.

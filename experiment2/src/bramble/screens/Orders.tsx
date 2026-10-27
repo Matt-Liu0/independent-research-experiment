@@ -23,7 +23,7 @@ const STATUS_TEXT: Partial<Record<AppState['order'], string>> = {
 export function Orders() {
   const { state, dispatch, navigate } = useBramble()
 
-  // Opening Orders starts tracking, so the timeline runs in the task about tracking (Task 3).
+  // Opening Orders starts tracking, so the timeline counts from when the participant first looks at the order.
   useEffect(() => {
     if (state.order !== 'none' && !state.orderTrackingStarted) dispatch({ type: 'startTracking' })
   }, [state.order, state.orderTrackingStarted, dispatch])

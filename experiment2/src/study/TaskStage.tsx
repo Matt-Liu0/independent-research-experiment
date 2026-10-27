@@ -198,7 +198,7 @@ function AppIntro({ app, onStart }: { app: SessionApp; onStart: () => void }) {
         </p>
       ) : (
         <p>
-          Bramble is a new grocery delivery app. You'll do six short tasks. It uses a practice address and a simulated
+          Bramble is a new grocery delivery app. You'll do five short tasks. It uses a practice address and a simulated
           location, so you never need to give your real ones.
         </p>
       )}

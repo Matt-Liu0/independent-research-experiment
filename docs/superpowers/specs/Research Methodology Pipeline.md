@@ -166,7 +166,7 @@ Task order is randomized. Otherwise, consent fatigue late in the session would a
 
 1. Consent. The form describes trying two new apps, with a second session a week later. The deception is IRB-approved and disclosed at the Day 8 debrief.  
 2. A short onboarding in the app.  
-3. The tasks of both apps: each app's tasks as one block, the app order balanced across participants and crossed with the nudge pattern. Within Bramble the six tasks are randomized with Task 1 before Task 2 and Task 3 straight after it; within Stride, Task 7 comes first.  
+3. The tasks of both apps: each app's tasks as one block, the app order balanced across participants and crossed with the nudge pattern. Within Bramble the five tasks are randomized with Task 1 before Task 2 (ordering and telling Sam are one task since Oct 27, 2026); within Stride, Task 7 comes first.  
 4. The System Usability Scale, once per app, which fits the cover story without calling the session a usability test.  
 5. A suspicion probe: *"In one sentence, what do you think this study was about?"*
 

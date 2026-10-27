@@ -21,7 +21,8 @@ export const FLOW_IDS = [
 
 export type FlowId = (typeof FLOW_IDS)[number]
 
-export type BrambleTask = 1 | 2 | 3 | 4 | 5 | 6
+/** Bramble's tasks. There is no Task 3: tracking the order and telling Sam became part of Task 2 (Oct 27). */
+export type BrambleTask = 1 | 2 | 4 | 5 | 6
 
 export type ScreenId = 'shop' | 'find_store' | 'checkout' | 'orders' | 'deals' | 'rewards' | 'account'
 

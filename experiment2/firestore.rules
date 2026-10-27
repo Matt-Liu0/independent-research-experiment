@@ -65,7 +65,7 @@ service cloud.firestore {
         && validPattern(after.pattern)
         && validAppOrder(after.appOrder)
         && after.taskOrder is list
-        && after.taskOrder.size() == 10
+        && after.taskOrder.size() == 9
         && (
           (exists(meta) && k in get(meta).data && getAfter(meta).data[k] == get(meta).data[k] + 1)
           || ((!exists(meta) || !(k in get(meta).data)) && getAfter(meta).data[k] == 1)

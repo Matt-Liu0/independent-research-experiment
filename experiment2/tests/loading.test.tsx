@@ -105,7 +105,7 @@ describe('task splash', () => {
       ...newParticipant({ prolificPid: 'p', studyId: 's', sessionId: 'x' }),
       stage: 'tasks' as const,
       pattern: 'U1U2U3U4U5U6',
-      taskOrder: [5, 1, 2, 3, 4, 6] as (1 | 2 | 3 | 4 | 5 | 6)[],
+      taskOrder: [5, 1, 2, 4, 6] as (1 | 2 | 4 | 5 | 6)[],
     }
     render(<StudyApp entry={parseEntry('?PROLIFIC_PID=p&STUDY_ID=s&SESSION_ID=x')} store={new MemoryStore({ existing })} />)
     await act(async () => {})

@@ -70,7 +70,7 @@ Main table: `flows.csv`, filtered to included participants.
 - **Matched pairs:** `counterpart` links each Stride flow to its Bramble twin (same screen, recipient and wording, health data instead of location). Compare verdicts within pairs to see the effect of information type.
 - **Gamified flows:** rows with `nudgeType` (`streak`, `social_proof`, `status`) have no twin; report each on its own.
 - **Order effects:** `appOrder` and the task's position (from `taskOrder`) as covariates, as a check.
-- **Usability, for the cover story:** `susScore_bramble`, `susScore_stride`, `ease_t1`–`ease_t10`.
+- **Usability, for the cover story:** `susScore_bramble`, `susScore_stride`, `ease_t1`–`ease_t10` (no `ease_t3` from 0.19.0 on: Task 3 was merged into Task 2).
 
 ## 4. Experiment 1: what people said
 

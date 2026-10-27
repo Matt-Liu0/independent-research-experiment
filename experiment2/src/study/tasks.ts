@@ -8,14 +8,16 @@ import type { TaskOutcome } from './types'
 /** Bramble's task wording, from the protocol. */
 export const BRAMBLE_TASKS: Record<BrambleTask, { short: string; text: string }> = {
   1: { short: 'Set a store with oat milk', text: 'Find a store near you that has oat milk in stock, and set it as your store.' },
-  2: { short: 'Order oat milk and sourdough', text: 'Order oat milk and a sourdough loaf for delivery.' },
-  3: { short: 'Track your order, tell Sam', text: 'Track your order, and let your housemate Sam know when it will arrive.' },
+  2: {
+    short: 'Order, then tell Sam when it arrives',
+    text: 'Order oat milk and a sourdough loaf for delivery, then let your housemate Sam know when it will arrive.',
+  },
   4: { short: "Save two deals you'd buy", text: "Browse this week's deals and save two you'd buy." },
   5: { short: 'Get free delivery with points', text: 'Use your points to get free delivery on your next order.' },
   6: { short: 'Change your address', text: "You're moving: change your delivery address to 40 Oak Street and save it." },
 }
 
-/** Every task in the session (Bramble 1–6, Stride 7–10). */
+/** Every task in the session (Bramble 1, 2, 4, 5, 6; Stride 7–10). */
 export const TASKS: Record<TaskNumber, { short: string; text: string }> = { ...BRAMBLE_TASKS, ...STRIDE_TASKS }
 
 /** Whether a Bramble task was actually done, from the app's state when "I've finished" was tapped. */
@@ -31,13 +33,10 @@ export function taskOutcome(task: BrambleTask, state: AppState): TaskOutcome {
         msToFind: state.storeSearch.msToFind,
       }
     }
-    case 2:
-      return {
-        done: state.order !== 'none' && state.orderItems.includes('oat_milk') && state.orderItems.includes('sourdough'),
-      }
-    case 3: {
+    case 2: {
+      const ordered = state.order !== 'none' && state.orderItems.includes('oat_milk') && state.orderItems.includes('sourdough')
       const samNotified = state.settled.includes('sam_share')
-      return { done: samNotified, samNotified }
+      return { done: ordered && samNotified, ordered, samNotified }
     }
     case 4:
       return { done: state.savedDeals.length >= 2, dealsSaved: state.savedDeals.length }

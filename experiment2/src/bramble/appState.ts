@@ -13,7 +13,7 @@ export interface AppState extends CoreState<FlowId, ScreenId> {
   orderItems: string[]
   /** Phone clock (epoch ms) when the order was placed; delivery times are shown from it. */
   orderPlacedAt: number | null
-  /** Tracking starts the first time Orders is opened after ordering (normally in Task 3). */
+  /** Tracking starts the first time Orders is opened after ordering (normally straight after ordering, in Task 2). */
   orderTrackingStarted: boolean
   /** Visible ms of tracking so far. Drives Placed → Packed → On the way. */
   orderElapsedMs: number

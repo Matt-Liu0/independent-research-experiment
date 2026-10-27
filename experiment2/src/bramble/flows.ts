@@ -155,7 +155,7 @@ export const FLOWS: readonly FlowDef[] = [
   {
     id: 'bg_during_order',
     app: 'bramble',
-    task: 3,
+    task: 2,
     screen: 'orders',
     unit: 'U3',
     kind: 'prompt',
@@ -187,7 +187,7 @@ export const FLOWS: readonly FlowDef[] = [
   {
     id: 'sam_share',
     app: 'bramble',
-    task: 3,
+    task: 2,
     screen: 'orders',
     unit: 'U3',
     kind: 'prompt',
@@ -219,7 +219,7 @@ export const FLOWS: readonly FlowDef[] = [
   {
     id: 'bg_between_orders',
     app: 'bramble',
-    task: 3,
+    task: 2,
     screen: 'orders',
     unit: 'U4',
     kind: 'prompt',

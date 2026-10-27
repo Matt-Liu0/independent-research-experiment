@@ -79,7 +79,7 @@ export interface ParticipantDoc extends ProlificParams {
   pattern: string | null
   /** Which app comes first. Set at consent, balanced and crossed with the pattern. */
   appOrder: AppOrder | null
-  /** All 10 tasks: each app's tasks as one block, in the app order. */
+  /** All 9 tasks: each app's tasks as one block, in the app order. */
   taskOrder: TaskNumber[] | null
   withdrawn: boolean
   device: DeviceInfo | null
@@ -88,7 +88,7 @@ export interface ParticipantDoc extends ProlificParams {
   resumeCount: number
   stage: Stage
   /**
-   * Position in taskOrder (0–9), and what is showing: the task, its ease rating, or the
+   * Position in taskOrder (0–8), and what is showing: the task, its ease rating, or the
    * introduction to the second app (before its first task).
    */
   taskIndex: number

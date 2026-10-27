@@ -71,7 +71,7 @@ describe('StudyApp', () => {
     expect(await screen.findByRole('heading', { name: 'Welcome' })).toBeInTheDocument()
     expect(store.participant?.pattern).toMatch(/^(U[1-6]){3}$/)
     expect(['bramble_first', 'stride_first']).toContain(store.participant?.appOrder)
-    expect(store.participant?.taskOrder).toHaveLength(10)
+    expect(store.participant?.taskOrder).toHaveLength(9)
     expect(store.participant?.consentVersion).toBeTruthy()
     expect(store.participant?.consentAt).toBeTypeOf('number')
     expect(store.events.some((e) => e.type === 'stage' && e.to === 'welcome')).toBe(true)

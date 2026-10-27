@@ -11,13 +11,12 @@ export function cryptoRandom(): number {
 }
 
 /**
- * Random task order with Task 1 (set a store) before Task 2 (order from it), Task 3 straight
- * after Task 2, and Task 6 last. Shuffles the units {1, [2,3], 4, 5}, then swaps 1 and [2,3]
- * if they came out the wrong way round. Each of the 12 valid orders comes from exactly two
- * shuffles, so all are equally likely.
+ * Random task order with Task 1 (set a store) before Task 2 (order from it, then tell Sam), and
+ * Task 6 last. Shuffles {1, 2, 4, 5}, then swaps 1 and 2 if they came out the wrong way round.
+ * Each of the 12 valid orders comes from exactly two shuffles, so all are equally likely.
  */
 export function shuffleTasks(random: () => number = cryptoRandom): BrambleTask[] {
-  const units: BrambleTask[][] = [[1], [2, 3], [4], [5]]
+  const units: BrambleTask[][] = [[1], [2], [4], [5]]
   for (let i = units.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1))
     ;[units[i], units[j]] = [units[j], units[i]]
@@ -38,7 +37,7 @@ export function shuffleStrideTasks(random: () => number = cryptoRandom): StrideT
   return [7, ...rest]
 }
 
-/** The session's 10 tasks: each app's tasks as one block, in the app order. */
+/** The session's 9 tasks: each app's tasks as one block, in the app order. */
 export function buildTaskOrder(appOrder: AppOrder, random: () => number = cryptoRandom): TaskNumber[] {
   const bramble = shuffleTasks(random)
   const stride = shuffleStrideTasks(random)

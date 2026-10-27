@@ -53,7 +53,7 @@ describe('FirestoreStore with the real rules', () => {
     const { pattern, appOrder, taskOrder } = await b.store.assign()
     expect(pattern).toMatch(/^(U[1-6]){3}$/)
     expect(['bramble_first', 'stride_first']).toContain(appOrder)
-    expect(taskOrder).toHaveLength(10)
+    expect(taskOrder).toHaveLength(9)
 
     b.store.update({ stage: 'welcome' }, ['consentAt'])
     b.store.sink.write({ type: 'stage', pageLoadAt: 1, seq: 1, clientTime: 1, clientT: 10, taskId: null, app: null, screen: null, to: 'welcome' })

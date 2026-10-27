@@ -41,14 +41,13 @@ const DEMO_PARAMS: ProlificParams = { prolificPid: 'DEMO', studyId: 'DEMO', sess
 // Used as Firestore document IDs, so no slashes; Prolific IDs are 24 hex characters.
 const SAFE_ID = /^[A-Za-z0-9_-]{1,64}$/
 
-/** Bramble's rules: all six tasks, 1 before 2 (a store is set before ordering), 3 straight after 2, 6 last. */
+/** Bramble's rules: all five tasks, 1 before 2 (a store is set before ordering), 6 last. */
 export function validBrambleOrder(order: readonly number[]): boolean {
   return (
-    order.length === 6 &&
-    [...order].sort().join('') === '123456' &&
-    order[5] === 6 &&
-    order.indexOf(1) < order.indexOf(2) &&
-    order[order.indexOf(2) + 1] === 3
+    order.length === 5 &&
+    [...order].sort().join('') === '12456' &&
+    order[4] === 6 &&
+    order.indexOf(1) < order.indexOf(2)
   )
 }
 
@@ -59,9 +58,9 @@ export function validStrideOrder(order: readonly number[]): boolean {
 
 /** The session's rules: each app's tasks as one block (either app first), each block valid. */
 export function validTaskOrder(order: number[]): order is TaskNumber[] {
-  if (order.length !== 10 || !order.every((t) => Number.isInteger(t) && t >= 1 && t <= 10)) return false
+  if (order.length !== 9 || !order.every((t) => Number.isInteger(t) && t >= 1 && t <= 10 && t !== 3)) return false
   const firstApp = appOfTask(order[0] as TaskNumber)
-  const split = firstApp === 'bramble' ? 6 : 4
+  const split = firstApp === 'bramble' ? 5 : 4
   const [first, second] = [order.slice(0, split), order.slice(split)]
   return firstApp === 'bramble'
     ? validBrambleOrder(first) && validStrideOrder(second)

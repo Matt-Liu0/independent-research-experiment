@@ -3,6 +3,7 @@
 import { totalBonus } from '../src/core/bonus'
 import { consentForm, verdictOf } from '../src/core/ci'
 import { ALL_FLOWS } from '../src/allFlows'
+import { ALL_TASKS } from '../src/study/apps'
 import type { FlowDef, FlowStatus } from '../src/core/flowTypes'
 import { UNIT_SCREENS, frictionOf, parsePattern } from '../src/core/units'
 
@@ -197,7 +198,7 @@ function participantRow(code: string, collection: string, data: Record<string, u
   const end = toMs(data.completedAt)
   if (start !== null && end !== null) row.minutesToComplete = Math.round((end - start) / 600) / 100
 
-  for (let t = 1; t <= 10; t++) row[`ease_t${t}`] = scalar(get(data, `ease.t${t}`))
+  for (const t of ALL_TASKS) row[`ease_t${t}`] = scalar(get(data, `ease.t${t}`))
   // One SUS per app. Records from before Stride stored a single list (Bramble's).
   const susByApp = (Array.isArray(data.sus) ? { bramble: data.sus } : (data.sus ?? {})) as Record<string, unknown>
   for (const app of ['bramble', 'stride']) {
@@ -209,7 +210,7 @@ function participantRow(code: string, collection: string, data: Record<string, u
   for (let q = 1; q <= 7; q++) row[`settings_q${q}`] = scalar(get(data, `settingsCheck.q${q}`))
 
   const outcomes = (data.taskOutcome ?? {}) as Record<string, Record<string, unknown>>
-  for (let t = 1; t <= 10; t++) {
+  for (const t of ALL_TASKS) {
     for (const [key, value] of Object.entries(outcomes[`t${t}`] ?? { done: null })) row[`t${t}_${key}`] = scalar(value)
   }
 

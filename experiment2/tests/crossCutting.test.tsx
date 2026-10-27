@@ -73,12 +73,12 @@ describe('parity between friction levels', () => {
   })
 })
 
-/** Completes all six tasks choosing the option that shares least at every flow. */
+/** Completes all five tasks choosing the option that shares least at every flow. */
 async function declineEverything(friction: Friction) {
   const user = userEvent.setup()
   const app = renderApp(friction)
   const outcomes: Record<number, boolean> = {}
-  const finish = (task: 1 | 2 | 3 | 4 | 5 | 6) => {
+  const finish = (task: 1 | 2 | 4 | 5 | 6) => {
     app.bramble().leaveScreen()
     outcomes[task] = taskOutcome(task, app.state()).done
   }
@@ -103,15 +103,14 @@ async function declineEverything(friction: Friction) {
     for (const box of screen.getAllByRole('checkbox')) await user.click(box)
   }
   await user.click(screen.getByRole('button', { name: /place order/i }))
-  finish(2)
 
-  // Task 3: no background location; arrival time only.
+  // Still Task 2: no background location; arrival time only.
   await user.click(tab('Orders'))
   await user.click(screen.getByRole('button', { name: "Don't Allow" }))
   await user.click(screen.getByRole('button', { name: 'Send arrival time only' }))
   await screen.findByRole('heading', { name: /^Delivered at / }, { timeout: 3000 })
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-  finish(3)
+  finish(2)
 
   // Task 4: both deal settings off, save two deals.
   await user.click(tab('Deals'))
@@ -142,7 +141,7 @@ async function declineEverything(friction: Friction) {
 describe('decline everything', () => {
   it.each(LEVELS)('%s: every task can be finished while declining every flow', async (friction) => {
     const { app, outcomes } = await declineEverything(friction)
-    expect(outcomes).toEqual({ 1: true, 2: true, 3: true, 4: true, 5: true, 6: true })
+    expect(outcomes).toEqual({ 1: true, 2: true, 4: true, 5: true, 6: true })
 
     const s = app.state()
     for (const flow of FLOWS) {

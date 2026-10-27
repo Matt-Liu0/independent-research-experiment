@@ -30,7 +30,7 @@ Each participant uses **two practice apps** in one session, in a balanced random
 | `consentDeclined` | Tapped "I do not agree" | `true` / `false` |
 | `pattern` | Which **decision screens are nudged** for this person, set right after consent: three of the six units joined, e.g. `U1U3U5` (see section 3); the other three screens are neutral | e.g. `U2U4U6`; `null` before consent. Balanced: each of the 20 possible patterns is used equally often, so each screen is nudged for half the sample |
 | `appOrder` | Which app came first, set with `pattern` | `bramble_first` · `stride_first`; `null` before consent. Balanced and crossed with the pattern (section 4) |
-| `taskOrder` | Order the ten tasks were shown in: each app's tasks as one block, in `appOrder` | list of 10 task numbers, e.g. `[4, 1, 2, 3, 5, 6, 7, 9, 8, 10]`. **Bramble block:** 1 before 2 (a store is set before ordering), 3 straight after 2, 6 last (12 orders). **Stride block:** 7 first, then 8–10 in any order (6 orders). `null` before consent |
+| `taskOrder` | Order the nine tasks were shown in: each app's tasks as one block, in `appOrder` | list of 9 task numbers, e.g. `[4, 1, 2, 5, 6, 7, 9, 8, 10]`. There is no Task 3: since 0.19.0, tracking the order and telling Sam are part of Task 2. **Bramble block:** 1 before 2 (a store is set before ordering), 6 last (12 orders). **Stride block:** 7 first, then 8–10 in any order (6 orders). `null` before consent |
 | `withdrawn` | Asked to withdraw their Part 1 data (set by the Part 2 debrief) | `true` / `false`; withdrawn people are left out of every export |
 
 ### Device and context
@@ -79,8 +79,8 @@ Computed when the participant taps **Done** on a task. They show whether the tas
 | `t1.usedZipSearch` | Searched by ZIP (happens after refusing location) | `true` / `false` |
 | `t1.storesViewed` | Most ZIP results shown | `0`, `6`, or `24` (after "Show 18 more") |
 | `t1.msToFind` | Visible ms from first opening Find a store to setting a store | number; `null` if no store set. Unreliable if the page reloaded in between |
-| `t2.done` | Ordered both oat milk and sourdough | `true` / `false` |
-| `t3.done`, `t3.samNotified` | Answered the "Let Sam know" prompt | `true` / `false` |
+| `t2.done` | Ordered both items **and** answered the "Let Sam know" prompt | `true` / `false` |
+| `t2.ordered`, `t2.samNotified` | Each half of Task 2 (before 0.19.0, `t2.done` was the order alone and `t3.samNotified` the Sam prompt) | `true` / `false` |
 | `t4.done` | Saved at least two deals | `true` / `false` |
 | `t4.dealsSaved` | Deals saved at that moment | `0`–`4` |
 | `t5.done`, `t5.deliveryRedeemed` | Redeemed free delivery with points | `true` / `false` |
@@ -426,7 +426,7 @@ An agent link starts a fresh episode with the same app, flows, defaults, emphasi
    &NAME=Riley&MODEL=…&CONDITION=transcript_only&RUN=2&PARTICIPANT=P012
 ```
 
-- **Required:** `EPISODE_ID` (letters, digits, `_` or `-`); `nudged` (the nudged units, joined by `-`, e.g. `U1-U5-U6`, or `none` / `all`: normally the matched participant's pattern, or its mirror image to measure the agent's own nudge effect); `taskOrder` (all 10 tasks in their order, as two app blocks: Bramble 1–6 with 1 before 2, 3 straight after 2 and 6 last; Stride 7–10 with 7 first; either app first).
+- **Required:** `EPISODE_ID` (letters, digits, `_` or `-`); `nudged` (the nudged units, joined by `-`, e.g. `U1-U5-U6`, or `none` / `all`: normally the matched participant's pattern, or its mirror image to measure the agent's own nudge effect); `taskOrder` (all 9 tasks in their order, as two app blocks: Bramble 1, 2, 4, 5, 6 with 1 before 2 and 6 last; Stride 7–10 with 7 first; either app first).
 - **Optional:** `NAME` (shown in the app greeting, the pipeline's "[name]"), `MODEL`, `CONDITION`, `RUN` and `PARTICIPANT` (the matched participant's study code).
 - **What's skipped:** consent, the phone check, the name screen, task cards, ease ratings and all surveys. The harness gives each task's text; **Done** in the task bar is `finish_task`. After the tenth task the page shows "All tasks finished." The agent moves straight from the first app to the second, with no introduction page; the app order is the one `taskOrder` implies.
 - **Nothing on screen** shows the pattern, the episode or that this is an agent run.

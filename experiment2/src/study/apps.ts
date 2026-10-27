@@ -3,11 +3,11 @@ import type { BrambleTask } from '../bramble/types'
 import type { AppId } from '../core/flowTypes'
 import type { StrideTask } from '../stride/types'
 
-/** Task numbers are unique across the session: Bramble 1–6, Stride 7–10. */
+/** Task numbers are unique across the session: Bramble 1, 2, 4, 5, 6 (3 was merged into 2), Stride 7–10. */
 export type TaskNumber = BrambleTask | StrideTask
 
 export const APP_TASKS: { bramble: BrambleTask[]; stride: StrideTask[] } = {
-  bramble: [1, 2, 3, 4, 5, 6],
+  bramble: [1, 2, 4, 5, 6],
   stride: [7, 8, 9, 10],
 }
 

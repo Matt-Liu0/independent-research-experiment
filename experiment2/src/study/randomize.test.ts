@@ -5,17 +5,16 @@ import { validTaskOrder } from './prolific'
 import { CELLS, buildTaskOrder, cellKey, pickAssignment, shuffleStrideTasks, shuffleTasks } from './randomize'
 
 describe('shuffleTasks', () => {
-  it('keeps 1 before 2, 3 straight after 2 and 6 last, over 10,000 runs', () => {
+  it('keeps 1 before 2 and 6 last, over 10,000 runs', () => {
     const seen = new Set<string>()
     for (let i = 0; i < 10_000; i++) {
       const order = shuffleTasks()
-      expect([...order].sort()).toEqual([1, 2, 3, 4, 5, 6])
-      expect(order[5]).toBe(6)
-      expect(order[order.indexOf(2) + 1]).toBe(3)
+      expect([...order].sort()).toEqual([1, 2, 4, 5, 6])
+      expect(order[4]).toBe(6)
       expect(order.indexOf(1)).toBeLessThan(order.indexOf(2))
       seen.add(order.join(''))
     }
-    // 4 units → 24 orders, half with 1 before [2,3] → 12 valid orders, and all should appear.
+    // 4 tasks before 6 → 24 orders, half with 1 before 2 → 12 valid orders, and all should appear.
     expect(seen.size).toBe(12)
   })
 
@@ -54,13 +53,13 @@ describe('Stride and session task orders', () => {
     expect(seen.size).toBe(6)
   })
 
-  it('builds 10-task orders with each app as one block, in the app order, always valid', () => {
+  it('builds 9-task orders with each app as one block, in the app order, always valid', () => {
     for (let i = 0; i < 2000; i++) {
       const appOrder = i % 2 === 0 ? 'bramble_first' : 'stride_first'
       const order = buildTaskOrder(appOrder)
       expect(validTaskOrder(order), order.join('-')).toBe(true)
       expect(appOrderOf(order)).toBe(appOrder)
-      const blockSize = appOrder === 'bramble_first' ? 6 : 4
+      const blockSize = appOrder === 'bramble_first' ? 5 : 4
       expect(order.slice(0, blockSize).every((t) => appOfTask(t) === appOfTask(order[0]))).toBe(true)
     }
   })
