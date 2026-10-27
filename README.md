@@ -2,7 +2,7 @@
 
 Research software for an independent study at Colgate University, which compares what people **say** about sharing their personal data with what they **do** when an app asks. Later experiments compare both with what AI agents do on a person's behalf.
 
-This repository holds the website for the human study: **Part 1** (Experiment 2), a phone web app where participants try two practice apps; the **Part 2 questionnaire** of stated verdicts (Experiment 1), which is also the norming survey; and the design documents behind them.
+This repository holds the website for the human study: **Part 1** (Experiment 2), a phone web app where participants try two practice apps; **Part 2** (Experiment 1), on a computer, with the interview and the questionnaire of stated verdicts; and the design documents behind them. Participants are Colgate students, each with a participant code in a personal link, paid directly by gift card.
 
 ## What the site does
 
@@ -46,11 +46,10 @@ npm run test:rules   # security rules and export, against local emulators (needs
 
 ## Status
 
-- **Built and tested:** Part 1 and the Part 2 questionnaire are built and tested locally (`/part2.html?demo=1`, `/norming.html?demo=1`). Neither has been deployed or piloted yet.
-- **Next:** the rest of Part 2 (scenario briefing, chat with the interviewer, filler, debrief).
+- **Built and tested:** Part 1 and Part 2 (briefing, interviewer chat, filler, questionnaire, debrief) are built and tested locally (`/?demo=mixed`, `/part2.html?demo=1`). Neither has been deployed or piloted yet. The case set T for the case-based arm is still empty.
 - **Before launch:**
   - the IRB-approved consent text
   - a Firebase project
-  - Prolific completion codes
+  - the participant codes and roster (`experiment2/RECRUITMENT.md`)
 
   See "Before launch" in `experiment2/README.md`.

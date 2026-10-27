@@ -1,22 +1,21 @@
 # Human study protocol and participant instructions
 
-Sep 30, 2026 · @Matt
+Sep 30, 2026 · @Matt · updated Oct 27, 2026: Colgate students only, paid by gift card at $15/hour; no norming survey (study budget, Target $5k scenario)
 
-Run the human side as two sessions a week apart: not in one sitting, and without a third round. Recruit about 145 people to end with about 100 analyzable, plus about 110 for the norming survey. The site comes first to protect the cover story, built-in checks measure whatever order bias remains, and stability comes from repeated items inside Part 2.
+Run the human side as two sessions a week apart: not in one sitting, and without a third round. Recruit about 129 Colgate students to end with about 90 analyzable (30 per interview arm). The site comes first to protect the cover story, built-in checks measure whatever order bias remains, and stability comes from repeated items inside Part 2.
 
 ## Session plan
 
 Each participant in the main sample does two parts, a week apart. Everything the analyses need is collected by the end of Part 2.
 
-| Part | When | Device | Length | What happens | Produces | Pay ($16/hour) |
+| Part | When | Device | Length | What happens | Produces | Pay ($15/hour, gift card) |
 | --- | --- | --- | --- | --- | --- | --- |
-| Part 1 | Day 1 | Own smartphone | \~30 min | Consent, six Bramble tasks with an ease rating after each, usability survey, suspicion question, settings check | A (Exp 2), H (everyday settings) | $8 + points bonus ($0.12–$0.57) |
-| Part 2 | Day 8 | Computer | \~45–50 min | Scenario briefing, chat with the assistant, filler, 48-item questionnaire, recall check, background survey, debrief | D and S (Exp 1), stability flags | $13 + $3 completion bonus |
-| Norming survey | Any time, separate people | Any | \~17 min | The same questionnaire and background survey, nothing else | Social-norm reference, no-site comparison | $4.50 |
+| Part 1 | Day 1 | Own smartphone | \~50 min | Consent, six Bramble tasks with an ease rating after each, usability survey, suspicion question, settings check | A (Exp 2), H (everyday settings) | $12.50 + points bonus ($1.00–$12.00) |
+| Part 2 | Day 8 | Computer | \~35 min (budgeted at 45) | Scenario briefing, chat with the assistant, filler, 48-item questionnaire, recall check, background survey, debrief | D and S (Exp 1), stability flags | $15/hour (budgeted $11.25) + $3 completion bonus |
 
 - **Why these devices.** Part 1 runs on the participant's own phone, so Bramble feels like a real app and the settings check reads that same phone. Part 2 runs on a computer, because answers typed on a phone are shorter, and that would change the transcripts.
 - **One sitting per part.** Each part is done in one sitting. Part 2 closes 90 minutes after it starts, and a gap of more than 10 minutes during the chat is flagged.
-- **Eligibility.** Adults with a smartphone and a computer, at least a 95% approval rate and 50 prior studies (experienced participants return more reliably). People from the pilot or the norming survey are excluded.
+- **Eligibility.** Colgate students aged 18 or older with a smartphone and a computer. Each gets a personal link with a participant code (`?code=S0123`); the same code opens Part 2. People from the pilot are excluded. How to run it: `experiment2/RECRUITMENT.md`.
 
 ## Why not one sitting
 
@@ -47,18 +46,18 @@ The biggest loss is people who don't return for Part 2, so the plan over-recruit
 | Return for Part 2 | 82% | Prolific reports 80% of participants completing all sessions at one-week intervals, against 50% at four-week intervals |
 | Analyzable after Part 2 | 92% | Pasted chat text, failed checks, unfinished chats (planning assumption) |
 
-If only 75% return for Part 2, recruit about 160 instead. For the norming survey, recruit about 110 to keep about 100.
+The 82% comes from online panels; students invited directly may return at a different rate, so recheck it in the pilot. If only 75% return for Part 2, recruit about 141 instead.
 
 - **Randomize late.** Assign friction at the start of Part 1, where it applies. Assign the elicitation arm at the start of Part 2, balanced within each friction level, so dropout after Part 1 can't unbalance the arms.
 - **Check for uneven dropout.** Compare return rates between the friction levels. If high friction loses more people, the site itself drove them away, and that must be reported.
 - **Retention practices.** Pay the $3 completion bonus after Part 2: Prolific found an 80% higher hourly rate changed retention by under 3 points, while completion bonuses work better. State the full schedule and pay up front, message people before each part opens, remind those who haven't finished, and invite only people who completed the previous part.
-- **Budget.** At $16/hour, participant payments come to about $3,700, covering the main sample, the norming survey and a 10-person pilot, before platform fees.
+- **Budget.** At $15/hour, participant payments come to about $3,550 for the main sample and a 10-person pilot. With the interviewer and agent API costs, hosting and a 10% contingency the study comes to about $4,150 (about $5,700 if every points bonus reaches $12). Students are paid directly by gift card, so there is no platform fee.
 
-**What about 100 can show.** Most comparisons are within a person: the say–do gap, and every agent measure, since each transcript is scored against the same person's answers on all 36 flows and for every model. Those are well powered. Comparisons between groups are the limit:
+**What about 90 can show.** Most comparisons are within a person: the say–do gap, and every agent measure, since each transcript is scored against the same person's answers on all 36 flows and for every model. Those are well powered. Comparisons between groups are the limit:
 
-- **Elicitation arm** (about 34 per arm): a two-arm comparison detects a standardized difference of about d = 0.7 at 80% power, or about 0.8 after correcting for three pairwise comparisons.
-- **Friction** (about 51 per level): about d = 0.56.
-- **Arm × friction** (about 17 per cell): exploratory only.
+- **Elicitation arm** (30 per arm): a two-arm comparison detects a standardized difference of about d = 0.74 at 80% power, or about 0.85 after correcting for three pairwise comparisons. RQ1.2 compares the structured and case-based arms with the open-ended arm; there is no no-interview group.
+- **Friction** is within-subjects (three screens at each level per person), so it uses every participant.
+- **Arm × friction** (30 per arm): exploratory only.
 
 Report arm and friction differences as estimates with confidence intervals rather than pass/fail tests.
 
@@ -68,14 +67,14 @@ Doing the site first keeps the cover story, at the cost of letting actions shape
 
 | Bias | Where it comes from | How we reduce it | How we measure it |
 | --- | --- | --- | --- |
-| Statements pulled toward remembered actions | People infer what they want from what they did, and like to look consistent (Bem, 1972) | A week between site and statements; choices sit inside ordinary tasks, so they are less memorable | Recall check at the end of Part 2: compare say–do agreement on flows people remember vs. forget. Plus the comparison with the norming sample below |
+| Statements pulled toward remembered actions | People infer what they want from what they did, and like to look consistent (Bem, 1972) | A week between site and statements; choices sit inside ordinary tasks, so they are less memorable | Recall check at the end of Part 2: compare say–do agreement on flows people remember vs. forget |
 | The site primes the interview | The site showed partners, insurers and a housemate, so they come to mind in the chat | The open-ended interviewer never names a recipient | How often transcripts mention recipients seen on the site vs. recipients that appear only in the questionnaire |
 | The cover story leaks | Privacy words in the listing, consent or tasks | No privacy words before the suspicion question; "try a new app" framing | Suspicion question; results reported with and without suspicious participants |
 | The settings check tips people off | Checking location settings hints at the topic | Framed as comparing Bramble with apps they use; placed after the suspicion question | Accepted cost: Part 2 reveals the topic anyway |
 | The chat shapes the questionnaire | Answers given minutes after the chat | Three-minute filler task | Stated as a limitation |
 | Repeated items answered from memory | People recall their first answer when a reworded item comes back | Repeats are reworded, at least 20 items apart, in random order | Stated as a limitation: stability is overstated |
 
-**Separating site carryover from the interview's effect.** The norming sample never sees the site. Compare main-sample verdicts with norming verdicts twice: on the 12 flows that appear on the site, and on the 24 that don't. The interview can shift both sets, but only the site can shift the first. If the gap between samples is larger on site flows, the excess is site carryover. This assumes the interview shifts both sets of flows about equally.
+**Separating site carryover from the interview's effect.** Without a norming sample there is no group that skipped the site, so site carryover can't be separated from the interview's effect directly. The recall check is the remaining measure, and the paper states this as a limitation.
 
 A small statement-first group (about 30 people, told the topic up front) would estimate the full order effect directly. It adds cost and loses the cover story for that group, so it is optional.
 
@@ -97,7 +96,7 @@ Most threats come from participants doing something other than what the measure 
 | Recall their first answer when a reworded item comes back | Stability looks higher than it is | Reword repeats, keep them at least 20 items apart, randomize the order |
 | Fail to find a phone setting | Everyday-settings values go missing or get guessed | Step-by-step paths for iPhone and Android, a "search Settings" tip, an "I couldn't find it" option |
 | Change a setting while checking it | The check records a new value, not a habit | Ask "Did you change any of these just now?" |
-| Use the wrong device | The site feels different; the settings check is impossible | Platform device filter plus a device check on the first screen |
+| Use the wrong device | The site feels different; the settings check is impossible | The invitation names the device, plus a device check on the first screen |
 
 Pre-register the exclusion rules. Exclude only for failed checks, pasted chat text or the wrong device. Flag, rather than exclude, anything that is realistic behavior, such as fast clicking or short answers.
 
@@ -105,11 +104,11 @@ Pre-register the exclusion rules. Exclude only for failed checks, pasted chat te
 
 Nothing before the suspicion question mentions privacy, so the site measures how people act when they don't know it's being studied. Each block is the exact text a participant sees.
 
-**Study listing**
+**Invitation email**
 
 > **Try a new grocery app (2 parts, one week apart)**
 >
-> In this study you'll try a new grocery delivery app, chat with a digital assistant, and answer questions about apps you use. There are two parts: Part 1 today (about 30 minutes, on your phone) and Part 2 in one week (about 45 minutes, on a computer). You're paid for each part, plus a $3 bonus when you finish Part 2 and a small bonus based on points you keep in the app. Please sign up only if you can do both parts.
+> In this study you'll try a new grocery delivery app, chat with a digital assistant, and answer questions about apps you use. There are two parts: Part 1 (about 50 minutes, on your phone) and Part 2 one week later (about 35 minutes, on a computer). You're paid $15 an hour by gift card for each part, plus a $3 bonus when you finish Part 2 and a bonus based on points you keep in the app. Please take part only if you can do both parts. Open this personal link on your phone to start: \[link with your participant code\]
 
 **Consent** (key points; the full form comes from the IRB)
 
@@ -163,7 +162,7 @@ After each task:
 
 **Closing**
 
-> Thanks, that's Part 1. Part 2 opens in 7 days, and we'll send you a message when it does. It takes about 45 minutes on a computer. Your points bonus will be paid within 3 days.
+> Thanks, that's Part 1. Part 2 opens in 7 days, and we'll send you a message when it does. It takes about 35 minutes on a computer. Your points bonus will be paid as described in your invitation.
 
 **What Part 1 records**: at every decision point, the choice, the default shown, whether the participant changed it, every toggle, and time to decide; the ease ratings, usability score, suspicion answer and settings answers; and the device.
 
@@ -171,9 +170,9 @@ After each task:
 
 The elicitation arm is assigned when Part 2 starts, and participants never see which arm they are in. Everything they read is identical across arms; only the assistant's questions differ.
 
-**Invitation** (sent on Day 8; open for 5 days)
+**Invitation** (emailed on Day 8 with their Part 2 link, `/part2?code=…`; open for 5 days)
 
-> Part 2 is open. It takes about 45 minutes on a computer. Please do it in one sitting, somewhere you can focus. You'll receive a $3 bonus when you finish.
+> Part 2 is open. It takes about 35 minutes on a computer. Please do it in one sitting, somewhere you can focus. You'll receive a $3 bonus when you finish.
 
 **Scenario briefing**
 
@@ -237,32 +236,6 @@ The elicitation arm is assigned when Part 2 starts, and participants never see w
 > Please don't share details of this study with anyone who might take part. Questions: \[researcher name and email\].
 
 **What Part 2 records**: the transcript with timestamps, response latency, paste attempts and typing time per message; each verdict with its confidence and position; comprehension and attention results; recall answers; the background survey; and the number of days since Part 1.
-
-## Norming survey instructions
-
-The norming survey is one session of about 17 minutes for separate people. It uses no cover story and asks for the same 48 verdicts as Part 2. Recruit from the same platform, in the same weeks and with the same eligibility, except that any device is allowed.
-
-**Study listing**
-
-> **How should apps use your location? (about 17 minutes)**
->
-> In this short survey you'll read situations in which an app, company or person wants to use your location, and say what you'd want to happen. There are no right or wrong answers.
-
-**Consent** (key points)
-
-> - This survey asks about your preferences for how apps and companies use your location.
-> - We don't collect your location or any contact details.
-> - Taking part is voluntary, and you can stop at any time.
-
-**Questionnaire**: the same introduction, practice item, comprehension question, 48 items and two attention items as Part 2, word for word.
-
-**Background survey**: the same as Part 2.
-
-**Closing**
-
-> Thank you. Your payment will arrive within 3 days.
-
-The norming survey has no chat, site or recall check. That is what makes it both the social-norm reference and the no-site comparison for measuring order bias.
 
 ## Before launch
 
