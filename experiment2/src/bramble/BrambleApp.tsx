@@ -4,6 +4,8 @@ import { screenLoadingKey, useBramble } from './BrambleContext'
 import { visibleMs } from '../log/clock'
 import { setBackHandler } from '../study/backGuard'
 import { ScreenSkeleton } from '../core/Loading'
+import { Notifications, type Notice } from '../core/Notifications'
+import type { AppState } from './appState'
 import { nextOrderStep } from './orderTimeline'
 import { BagIcon, CartIcon, GiftIcon, ReceiptIcon, TagIcon, UserIcon } from '../core/icons'
 import { Account } from './screens/Account'
@@ -67,6 +69,7 @@ export function BrambleApp() {
           {state.cart.length > 0 && <span className="cart-count">{state.cart.length}</span>}
         </button>
       </header>
+      <Notifications due={brambleNotices(state)} accent="#2f6b4f" />
       <main className="app-content">
         {/* Prompts live inside screens, so none can appear (or start timing) while loading. */}
         {loading ? <ScreenSkeleton /> : <Screen key={state.screen} />}
@@ -91,6 +94,29 @@ export function BrambleApp() {
       </nav>
     </div>
   )
+}
+
+const ORDER_NOTICES: { step: AppState['order']; id: string; text: string }[] = [
+  { step: 'packed', id: 'order_packed', text: 'Your order is packed and waiting for a courier.' },
+  { step: 'on_the_way', id: 'order_on_the_way', text: 'Dana picked up your order and is on the way.' },
+  { step: 'delivered', id: 'order_delivered', text: 'Your order was delivered. Enjoy!' },
+]
+const ORDER_STEPS: AppState['order'][] = ['none', 'placed', 'packed', 'on_the_way', 'delivered']
+
+/**
+ * Notices that are due. Order updates stay quiet while Orders is on screen (it already shows
+ * them). Sam's reply is the same whatever was shared with him.
+ */
+function brambleNotices(state: AppState): Notice[] {
+  const reached = ORDER_STEPS.indexOf(state.order)
+  const out: Notice[] = ORDER_NOTICES.filter((n) => reached >= ORDER_STEPS.indexOf(n.step)).map((n) => ({
+    id: n.id,
+    from: 'Bramble',
+    text: n.text,
+    quiet: state.screen === 'orders',
+  }))
+  if (state.settled.includes('sam_share')) out.push({ id: 'sam_reply', from: 'Sam', person: true, text: 'Thanks! See you soon 👍', after: 'noticeReply' })
+  return out
 }
 
 /**

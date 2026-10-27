@@ -391,3 +391,75 @@ a.btn {
 a.btn[aria-disabled='true'] {
   opacity: 0.45;
 }
+
+/* In-app notification banners (core/Notifications.tsx): a zero-height layer under the app header. */
+.notice-layer {
+  position: relative;
+  z-index: 40;
+  height: 0;
+}
+
+.notice-banner {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.97);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.18);
+  color: #1d2420;
+  font: inherit;
+  text-align: left;
+  animation: notice-in 220ms ease-out;
+}
+
+.notice-banner-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 700;
+}
+
+.notice-banner-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.notice-banner-from {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.notice-banner-text {
+  font-size: 14px;
+}
+
+.notice-banner-time {
+  align-self: flex-start;
+  color: #6b736e;
+  font-size: 12px;
+}
+
+@keyframes notice-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notice-banner {
+    animation: none;
+  }
+}

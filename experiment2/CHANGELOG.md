@@ -11,6 +11,7 @@ Shorter sessions (Matt and Noah: the study was too long). Proposals and estimate
 
 - **Tasks 2 and 3 merged** into one errand: "Order oat milk and a sourdough loaf for delivery, then let your housemate Sam know when it will arrive." 9 tasks instead of 10 (5 in Bramble). The flows and screens are unchanged; `bg_during_order`, `sam_share` and `bg_between_orders` now belong to Task 2. Task numbers keep their meaning (there is no Task 3), `t2` gains `ordered` and `samNotified`, and the order rule is now just 1 before 2, 6 last (still 12 orders). The rules require 9 tasks.
 - **Ease rating:** one tap answers and moves on (no Continue button).
+- **In-app notifications** (realism): banners for the order (packed, on the way, delivered), a reply from Sam after either app's "Let Sam know" (the same reply whatever was shared), and "Workout saved" in Stride. The same in both friction levels; never while a prompt is open, and hidden as soon as one opens. Logged as `action` `notification`.
 - **Part 2:** the filler is 2 minutes instead of 3, and the briefing is two short paragraphs ("about 35 minutes").
 
 ## 0.18.0 (2026-10-22)

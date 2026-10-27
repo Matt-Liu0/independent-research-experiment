@@ -35,6 +35,9 @@ export const TIMING = {
   /** Minimum visible ms in the main set before cool-down (it also waits for both workout prompts). */
   workoutMinMainSet: 12000,
   workoutCoolDown: 4000,
+  /** In-app notification banners: how long one stays up, and how long a reply (e.g. from Sam) takes. */
+  notice: 4000,
+  noticeReply: 2500,
 } as const
 
 export type TimingKey = keyof typeof TIMING

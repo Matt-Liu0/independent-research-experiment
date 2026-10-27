@@ -3,16 +3,18 @@ import '../bramble/bramble.css'
 import './stride.css'
 import { DumbbellIcon, GiftIcon, ListIcon, SunIcon, UserIcon } from '../core/icons'
 import { ScreenSkeleton } from '../core/Loading'
+import { Notifications, type Notice } from '../core/Notifications'
 import { delayFor } from '../core/timing'
 import { visibleMs } from '../log/clock'
 import { setBackHandler } from '../study/backGuard'
+import { getName } from '../study/name'
 import { Plans } from './screens/Plans'
 import { Profile } from './screens/Profile'
 import { StrideRewards } from './screens/StrideRewards'
 import { Today } from './screens/Today'
 import { Workout } from './screens/Workout'
 import { WorkoutSetup } from './screens/WorkoutSetup'
-import { nextWorkoutStep } from './state'
+import { nextWorkoutStep, type StrideState } from './state'
 import { strideLoadingKey, useStride } from './StrideContext'
 import type { StrideScreen } from './types'
 
@@ -69,6 +71,7 @@ export function StrideApp() {
           {state.points}
         </button>
       </header>
+      <Notifications due={strideNotices(state)} accent="#2563a8" />
       <main className="app-content">
         {/* Prompts live inside screens, so none can appear (or start timing) while loading. */}
         {loading ? <ScreenSkeleton /> : <Screen key={state.screen} />}
@@ -100,6 +103,17 @@ export function StrideApp() {
  * Warm-up → Main set → Cool-down → Done when due. Pauses while the app is hidden or closed
  * (e.g. during ease ratings), and resumes from saved state after a reload.
  */
+/** Notices that are due. Sam's reply is the same whatever was shared with him. */
+function strideNotices(state: StrideState): Notice[] {
+  const out: Notice[] = []
+  if (state.settled.includes('stride_sam_share')) out.push({ id: 'sam_reply', from: 'Sam', person: true, text: 'Go get it! 💪', after: 'noticeReply' })
+  if (state.workout === 'done') {
+    const name = getName()
+    out.push({ id: 'workout_saved', from: 'Stride', text: `Workout saved. Nice work${name ? `, ${name}` : ''}!` })
+  }
+  return out
+}
+
 function useWorkoutTimeline() {
   const { state, dispatch, act } = useStride()
   const running = state.workout !== 'none' && state.workout !== 'done'
