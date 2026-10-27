@@ -15,6 +15,7 @@ Matches the study budget (Matt, Oct 27): only Colgate students, paid directly by
 - **Export:** `bonus-payments.csv` (participant code, bonus) replaces `prolific-bonuses.txt`.
 - **Part 1 closing page:** says Part 2 takes about 35 minutes (it said 45, from before 0.19.0).
 
+- **Small towns get their real stores:** the store search keeps going out to about 15 km until it finds 5 supermarkets (Hamilton, NY: Price Chopper 1.6 mi, then four stores 4.7–9.9 mi out), and a store found on two map tiles counts once. The ZIP list then has fewer than 24 stores and no "Show more". The US map is uploaded (10 regional files, 8.9 GB).
 - **Demo links match what participants see:** "I'm done with this task" (skipping an unfinished task) appears only with `&skip=1` added to a demo link, for testing. It was already off for participants and pilots.
 
 ## 0.19.0 (2026-10-27)

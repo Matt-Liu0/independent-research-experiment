@@ -390,7 +390,8 @@ function ZipSearch() {
           onSelect={setSelected}
           heading={`${stores.length} stores in this ZIP code · A to Z`}
           footer={
-            !showAll && (
+            !showAll &&
+            stores.length > ZIP_PAGE_SIZE && (
               <button type="button" className="btn btn-outline" onClick={showMore}>
                 Show {stores.length - ZIP_PAGE_SIZE} more
               </button>

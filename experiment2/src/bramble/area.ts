@@ -45,8 +45,13 @@ export const MAP_BASE_URL: string = (import.meta.env.VITE_MAP_BASE_URL ?? '').re
 
 /** Zoom of the tiles read for supermarkets (they are all present from zoom 14). */
 const POI_ZOOM = 14
-/** Rings of tiles searched around the location: 1 → 3 × 3 tiles, 3 → 7 × 7 (about ±6 km). */
-const MAX_RING = 3
+/**
+ * Rings of tiles searched around the location (1 → 3 × 3 tiles, 3 → 7 × 7, about ±6 km).
+ * Cities stop once there are enough stores for the ZIP list; small towns keep going, up to
+ * about ±15 km, until there are 5 (Hamilton, NY: one supermarket in town, five within 10 miles).
+ */
+const NEAR_RING = 3
+const MAX_RING = 8
 /** Stores in the ZIP list, as in the default (24, A to Z). */
 const POOL_SIZE = 24
 /** Like the default: the 3rd and 5th nearest have oat milk (the two nearest don't), and one more further away. */
@@ -139,6 +144,17 @@ export function poisInTile(bytes: ArrayBuffer, z: number, x: number, y: number):
   return out
 }
 
+/** The same store found twice (e.g. on two neighboring tiles): same name within 150 m. */
+function sameStore(a: Poi, b: Poi): boolean {
+  return a.name === b.name && milesBetween(a.lnglat, b.lnglat) < 0.1
+}
+
+function distinct(pois: Poi[]): Poi[] {
+  const out: Poi[] = []
+  for (const p of pois) if (!out.some((u) => sameStore(u, p))) out.push(p)
+  return out
+}
+
 /** Supermarkets around a point, searching outward ring by ring until there are enough. */
 export async function findPois(center: LngLat, readTile: TileReader): Promise<Poi[]> {
   const [cx, cy] = tileOf(center, POI_ZOOM)
@@ -155,7 +171,9 @@ export async function findPois(center: LngLat, readTile: TileReader): Promise<Po
     )
     found.push(...results.flat())
     // Everything within the searched square is found once a full ring is in; stop when there are enough.
-    if (ring >= 1 && found.length >= POOL_SIZE) break
+    const count = distinct(found).length
+    if (ring >= 1 && count >= POOL_SIZE) break
+    if (ring >= NEAR_RING && count >= NEARBY_STORES.length) break
   }
   return found
 }
@@ -167,11 +185,11 @@ export function areaFromPois(center: LngLat, pois: Poi[]): Area | null {
     .sort((a, b) => a.miles - b.miles)
   const unique: typeof sorted = []
   for (const p of sorted) {
-    if (unique.some((u) => u.name === p.name && milesBetween(u.lnglat, p.lnglat) < 0.1)) continue
+    if (unique.some((u) => sameStore(u, p))) continue
     unique.push(p)
     if (unique.length === POOL_SIZE) break
   }
-  // Too few real stores nearby (rural areas): use the default neighborhood rather than a thin list.
+  // Too few real stores within reach (very remote areas): use the default neighborhood rather than a thin list.
   if (unique.length < NEARBY_STORES.length) return null
 
   const stores: (Store & { lnglat: LngLat })[] = unique.map((p, rank) => ({

@@ -92,4 +92,14 @@ describe('participant area', () => {
       expect(Math.min(p[0] - w, e - p[0], p[1] - s2, n - p[1])).toBeGreaterThan(0.15)
     }
   })
+
+  it("uses a small town's few stores, however far, counting a store found on two tiles once", () => {
+    const center: [number, number] = [-75.5464, 42.8208]
+    // One store in town, the rest 5–10 miles out (as around Hamilton, NY); one sits on two tiles.
+    const stores: [string, number, number][] = [['Town Market', 0.02, 0], ['Farm Shop', 0.09, 0], ['Country Store', 0.14, 0], ['Country Store', 0.1401, 0], ['Valley Grocer', 0, 0.11], ['Hill Market', -0.18, 0]]
+    const area = areaFromPois(center, stores.map(([name, dx, dy]) => ({ name, lnglat: [center[0] + dx, center[1] + dy] as [number, number] })))!
+    expect(area.nearby.map((s) => s.name)).toEqual(['Town Market', 'Farm Shop', 'Country Store', 'Valley Grocer', 'Hill Market'])
+    expect(area.nearby[4].miles).toBeGreaterThan(8)
+    expect(area.zipList).toHaveLength(5)
+  })
 })

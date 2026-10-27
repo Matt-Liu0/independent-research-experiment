@@ -130,7 +130,8 @@ export default function RealStoreMap({ precise, selected, onSelect, onFail, onGe
     fitAll(map, area, false)
     // Can't zoom out much past the starting view, and never below the lowest zoom we have tiles
     // for (below MAP_MIN_ZOOM the map would be blank gray with only the pins).
-    map.setMinZoom(Math.max(map.getZoom() - 0.3, MAP_MIN_ZOOM))
+    // (The regional map files have every zoom, so a spread-out small-town area can zoom out further.)
+    map.setMinZoom(Math.max(map.getZoom() - 0.3, area.kind === 'default' ? MAP_MIN_ZOOM : 0))
 
     // Only gestures by the participant count, not the recenter animation.
     map.on('dragend', (e) => e.originalEvent && handlers.current.onGesture?.('drag'))
