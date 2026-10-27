@@ -8,7 +8,9 @@ import { parsePattern } from '../core/units'
 import { logEvent, setLogContext } from '../log/logEvent'
 import { EaseRating } from '../surveys/EaseRating'
 import { ALL_TASKS, APP_NAMES, appOfTask, type TaskNumber } from './apps'
+import { AppSetup } from './AppSetup'
 import { HomeScreen } from './HomeScreen'
+import { isSetUp } from './setup'
 import { SESSION_APPS, savedStateOf, type SessionApp } from './sessionApps'
 import type { StageProps } from './stageProps'
 import { TaskBar } from './TaskBar'
@@ -252,8 +254,9 @@ function TaskRunner({
   // Done tapped before the task's goal was reached: ask once whether they're finished.
   const [checking, setChecking] = useState(false)
   // card: task card open, app not mounted yet. home: the phone's home screen, until the app's
-  // icon is tapped. splash: the app "opening". app: in use.
-  const [phase, setPhase] = useState<'card' | 'home' | 'splash' | 'app'>(() =>
+  // icon is tapped. splash: the app "opening". setup: the app's first-run setup (first time
+  // only). app: in use.
+  const [phase, setPhase] = useState<'card' | 'home' | 'splash' | 'setup' | 'app'>(() =>
     showCard ? 'card' : delayFor('splash') > 0 ? 'splash' : 'app',
   )
 
@@ -271,12 +274,14 @@ function TaskRunner({
 
   useEffect(() => {
     if (phase !== 'splash') return
-    const timer = setTimeout(() => setPhase('app'), delayFor('splash'))
+    const timer = setTimeout(() => setPhase(afterSplash()), delayFor('splash'))
     return () => clearTimeout(timer)
   }, [phase])
 
+  // Participants set each app up the first time they open it; agents never see the setup.
+  const afterSplash = () => (showCard && !isSetUp(app.id) ? 'setup' : 'app')
   const start = () => setPhase('home')
-  const open = () => setPhase(delayFor('splash') > 0 ? 'splash' : 'app')
+  const open = () => setPhase(delayFor('splash') > 0 ? 'splash' : afterSplash())
 
   const finish = () => {
     // Settle flows that settle on leaving (Deals, Plans) and close settings-page timing before scoring the task.
@@ -310,6 +315,8 @@ function TaskRunner({
       {/* The app mounts only once the task card is closed, so no prompt opens (or starts timing) behind it. */}
       {phase === 'app' ? (
         <App />
+      ) : phase === 'setup' ? (
+        <AppSetup app={app.id} onDone={() => setPhase('app')} />
       ) : phase === 'home' ? (
         <HomeScreen app={app.id} installed={installed} isNew={firstInApp && installed.length > 1} hint={firstInApp} onOpen={open} />
       ) : (

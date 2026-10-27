@@ -1,11 +1,16 @@
 import { getName } from '../../study/name'
+import { getSetup } from '../../study/setup'
 import { useBramble } from '../BrambleContext'
-import { PRODUCTS, findStore } from '../data'
+import { PRODUCTS, PRODUCT_CATEGORY, findStore } from '../data'
 
 export function Shop() {
   const { state, dispatch, navigate, act } = useBramble()
   const store = findStore(state.storeId)
   const name = getName()
+  // What the participant said they usually buy (first-run setup) comes first.
+  const usuals = getSetup().bramble?.usuals ?? []
+  const products = [...PRODUCTS].sort((a, b) => Number(usuals.includes(PRODUCT_CATEGORY[b.id])) - Number(usuals.includes(PRODUCT_CATEGORY[a.id])))
+  const personal = products.some((p) => usuals.includes(PRODUCT_CATEGORY[p.id]))
 
   const toggle = (productId: string) => {
     const inCart = state.cart.includes(productId)
@@ -27,9 +32,9 @@ export function Shop() {
         </button>
       </div>
 
-      <h2 className="section-title">Groceries</h2>
+      <h2 className="section-title">{personal ? 'Your usuals first' : 'Groceries'}</h2>
       <ul className="product-list">
-        {PRODUCTS.map((product) => {
+        {products.map((product) => {
           const inCart = state.cart.includes(product.id)
           return (
             <li key={product.id} className="card product-row">

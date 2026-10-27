@@ -5,9 +5,15 @@ import { LoadingBlock } from '../../core/Loading'
 import { Sheet } from '../../core/Sheet'
 import { useBusy } from '../../core/useBusy'
 import { getName } from '../../study/name'
+import { FITNESS_GOALS, getSetup } from '../../study/setup'
 import { TODAY_STATS } from '../data'
 import { STRIDE_FLOWS } from '../flows'
 import { useStride } from '../StrideContext'
+
+/** Greeting by the phone's clock. */
+function greeting(hour = new Date().getHours()): string {
+  return hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
+}
 
 export function Today() {
   const { state, settleFlow } = useStride()
@@ -15,6 +21,9 @@ export function Today() {
   // The health-access sheet opens from the Connect button, as an app's setup step would.
   const [asking, setAsking] = useState(false)
   const name = getName()
+  // From the first-run setup; stays on the phone.
+  const setup = getSetup().stride
+  const goal = FITNESS_GOALS.find((g) => g.id === setup?.goal)
   const access = state.flows.stride_health_access
   const accessAnswered = state.settled.includes('stride_health_access')
   const flow = STRIDE_FLOWS.getFlow('stride_health_access')
@@ -82,7 +91,13 @@ export function Today() {
 
   return (
     <section className="screen">
-      <h1 className="screen-title">{name ? `Good morning, ${name}` : 'Today'}</h1>
+      <h1 className="screen-title">{name ? `${greeting()}, ${name}` : 'Today'}</h1>
+      {goal && (
+        <p className="muted small">
+          Your goal: {goal.label}
+          {setup?.activeDays ? ` · active ${setup.activeDays} days a week` : ''}
+        </p>
+      )}
       {health}
 
       <div className="card row">

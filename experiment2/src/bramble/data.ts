@@ -106,6 +106,16 @@ export const PRODUCTS: Product[] = [
   { id: 'bananas', name: 'Bananas, bunch', price: 1.49 },
 ]
 
+/** Each product's category in the first-run setup ("What do you usually buy?"; study/setup.ts). */
+export const PRODUCT_CATEGORY: Record<string, string> = {
+  oat_milk: 'dairy',
+  sourdough: 'bakery',
+  apples: 'fruit',
+  yogurt: 'dairy',
+  eggs: 'eggs',
+  bananas: 'fruit',
+}
+
 export function findProduct(id: string): Product | undefined {
   return PRODUCTS.find((p) => p.id === id)
 }

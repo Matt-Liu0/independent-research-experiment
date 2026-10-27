@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { initialAppState } from '../bramble/appState'
 import { parseEntry } from './prolific'
+import { skipSetup } from './setup'
 import { MemoryStore } from './store'
 import { StudyApp } from './StudyApp'
 import { taskOutcome } from './tasks'
@@ -42,7 +43,10 @@ function atTasks(overrides: Partial<ParticipantDoc> = {}): MemoryStore {
 }
 
 describe('task stage', () => {
-  beforeEach(() => localStorage.clear())
+  beforeEach(() => {
+    localStorage.clear()
+    skipSetup()
+  })
 
   it('shows the task card first, then the app with the task bar', async () => {
     const user = userEvent.setup()
@@ -126,8 +130,35 @@ describe('task stage', () => {
   })
 })
 
-describe('unfinished-task check', () => {
+describe('app setup', () => {
   beforeEach(() => localStorage.clear())
+
+  it('asks what the participant usually buys the first time Bramble opens, then never again; the picks stay on the phone', async () => {
+    const user = userEvent.setup()
+    const store = atTasks()
+    render(<StudyApp entry={parseEntry(PARAMS)} store={store} />)
+    await user.click(await screen.findByRole('button', { name: 'Start task' }))
+    await user.click(screen.getByRole('button', { name: 'Bramble' }))
+    expect(screen.getByRole('heading', { name: /Welcome to Bramble/ })).toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: 'Bramble' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: 'Bread & bakery' }))
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+    expect(screen.getByRole('navigation', { name: 'Bramble' })).toBeInTheDocument()
+    // Sourdough (bakery) comes first in Shop.
+    await user.click(screen.getByRole('button', { name: 'Shop' }))
+    expect(screen.getAllByRole('button', { name: /^Add / })[0]).toHaveAccessibleName('Add Sourdough loaf')
+    expect(store.events.find((e) => e.type === 'task' && e.event === 'app_setup')).toMatchObject({ app: 'bramble', picked: 1 })
+    expect(JSON.stringify(store.participant)).not.toContain('bakery')
+    expect(JSON.stringify(store.events)).not.toContain('bakery')
+  })
+})
+
+describe('unfinished-task check', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    skipSetup()
+  })
 
   it('asks before finishing an unfinished task; Keep going returns to the app, and both are logged', async () => {
     const user = userEvent.setup()
@@ -196,7 +227,10 @@ describe('unfinished-task check', () => {
 })
 
 describe('two apps', () => {
-  beforeEach(() => localStorage.clear())
+  beforeEach(() => {
+    localStorage.clear()
+    skipSetup()
+  })
 
   const TEN = [1, 2, 3, 4, 5, 6, 7, 9, 8, 10] as ParticipantDoc['taskOrder']
 

@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TIMING, setTimingScale } from '../src/core/timing'
 import { parseEntry } from '../src/study/prolific'
+import { skipSetup } from '../src/study/setup'
 import { MemoryStore } from '../src/study/store'
 import { StudyApp } from '../src/study/StudyApp'
 import { newParticipant } from '../src/study/types'
@@ -100,6 +101,8 @@ describe('finding stores', () => {
 })
 
 describe('task splash', () => {
+  beforeEach(() => skipSetup())
+
   it('opens the app from the home screen, with a splash, only after the task card is closed', async () => {
     const existing = {
       ...newParticipant({ prolificPid: 'p', studyId: 's', sessionId: 'x' }),
