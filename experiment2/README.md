@@ -1,6 +1,6 @@
 # Experiment 2: Bramble and Stride site (Part 1)
 
-Phone web app for Part 1 of the study: two practice apps in one session, **Bramble** (grocery delivery, location data) and **Stride** (fitness and health, health and biometric data), in a balanced random order. What every stored field means: `DATA.md`. How to analyze it: `ANALYSIS.md`. Design: `../docs/superpowers/specs/2026-10-01-experiment2-bramble-site-design.md` and, for Stride, `../docs/superpowers/specs/2026-10-08-second-app-stride-design.md`. Plans: `../docs/superpowers/plans/`.
+Phone web app for Part 1 of the study: two practice apps in one session, **Bramble** (grocery delivery, location data) and **Stride** (fitness and health, health and biometric data), in a balanced random order. What every stored field means: `DATA.md`. How to analyze it: `ANALYSIS.md`. Which questionnaire item matches which app decision: `ITEM-MAP.md`. Design: `../docs/superpowers/specs/2026-10-01-experiment2-bramble-site-design.md` and, for Stride, `../docs/superpowers/specs/2026-10-08-second-app-stride-design.md`. Plans: `../docs/superpowers/plans/`.
 
 ## Commands
 
