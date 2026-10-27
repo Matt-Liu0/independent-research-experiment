@@ -23,7 +23,20 @@ read -r answer
 [ "$answer" = "y" ] || exit 1
 
 echo "2/4 Extracting the US (this takes a while)…"
-pmtiles extract "https://build.protomaps.com/${BUILD}.pmtiles" us.pmtiles --region="$DIR/region.geojson" --maxzoom=14 --download-threads=8
+# Few parallel streams: with many, the build server tends to drop the connection
+# ("stream error … INTERNAL_ERROR"). Retried up to 3 times. THREADS=1 sh … to go slower still.
+THREADS=${THREADS:-2}
+try=1
+until pmtiles extract "https://build.protomaps.com/${BUILD}.pmtiles" us.pmtiles --region="$DIR/region.geojson" --maxzoom=14 --download-threads="$THREADS"; do
+  if [ "$try" -ge 3 ]; then
+    echo "The download failed 3 times. Try again later, with THREADS=1, or with a newer build date."
+    exit 1
+  fi
+  try=$((try + 1))
+  echo "Download interrupted; retrying in 30 s (attempt $try of 3)…"
+  rm -f us.pmtiles
+  sleep 30
+done
 
 echo "3/4 Uploading to gs://${BUCKET}…"
 gcloud storage buckets describe "gs://${BUCKET}" --project="$PROJECT" >/dev/null 2>&1 ||
