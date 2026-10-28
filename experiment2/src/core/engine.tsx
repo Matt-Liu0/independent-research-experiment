@@ -78,7 +78,8 @@ export function coreReducer<F extends string, Scr extends string, S extends Core
       return { ...state, settled: addOnce(state.settled, action.flowId) }
 
     case 'addPoints':
-      return { ...state, points: state.points + action.amount }
+      // Never below zero: taking back an offer whose points were already spent leaves 0.
+      return { ...state, points: Math.max(0, state.points + action.amount) }
 
     case 'accountVisit':
       return { ...state, accountPageVisits: state.accountPageVisits + 1 }
@@ -252,8 +253,10 @@ export function EngineProvider<F extends string, Scr extends string, S extends C
       const firstAnswer = source === 'prompt' && !wasSettled
       if (flow.points && (firstAnswer || wasSettled)) {
         const accept = flow.options[0]
-        const amount =
+        const change =
           (value === accept ? flow.points : 0) - (wasSettled && before.flows[id] === accept ? flow.points : 0)
+        // Taking back points already spent (e.g. on the report) stops at 0.
+        const amount = Math.max(change, -before.points)
         if (amount !== 0) {
           logEvent('points', {
             flowId: id,

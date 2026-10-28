@@ -28,7 +28,7 @@ describe('participant area', () => {
   })
 
   it('lists the real supermarkets nearest the ZIP, with the default oat-milk pattern', async () => {
-    expect(await prepareArea(ZIP, { readTile: readLocal, fetcher: fakeZips })).toBe('participant')
+    expect(await prepareArea(ZIP, { readTile: readLocal, fetcher: fakeZips })).toMatchObject({ kind: 'participant', reason: 'ok' })
     const area = getArea()
     expect(area.kind).toBe('participant')
     expect(area.nearby.map((s) => s.id)).toEqual(['r1', 'r2', 'r3', 'r4', 'r5'])
@@ -53,16 +53,16 @@ describe('participant area', () => {
   })
 
   it('keeps the default neighborhood when the ZIP is unknown, the map file is missing, or too few stores are found', async () => {
-    expect(await prepareArea('99999', { readTile: readLocal, fetcher: fakeZips })).toBe('default')
-    expect(await prepareArea(ZIP, { fetcher: fakeZips })).toBe('default')
-    expect(await prepareArea(ZIP, { readTile: async () => undefined, fetcher: fakeZips })).toBe('default')
+    expect(await prepareArea('99999', { readTile: readLocal, fetcher: fakeZips })).toMatchObject({ kind: 'default', reason: 'zip_not_found' })
+    expect(await prepareArea(ZIP, { fetcher: fakeZips })).toMatchObject({ kind: 'default', reason: 'no_map' })
+    expect(await prepareArea(ZIP, { readTile: async () => undefined, fetcher: fakeZips })).toMatchObject({ kind: 'default', reason: 'too_few_stores' })
     expect(getArea()).toBe(DEFAULT_AREA)
     expect(areaFromPois([-83, 40], [{ name: 'Only one', lnglat: [-83.001, 40] }])).toBeNull()
   })
 
   it('gives up after the time limit', async () => {
     const slow: TileReader = () => new Promise(() => {})
-    expect(await prepareArea(ZIP, { readTile: slow, fetcher: fakeZips, timeoutMs: 20 })).toBe('default')
+    expect(await prepareArea(ZIP, { readTile: slow, fetcher: fakeZips, timeoutMs: 20 })).toMatchObject({ kind: 'default', reason: 'timeout' })
   })
 
   it('removes duplicates of the same store', () => {

@@ -155,27 +155,31 @@ function distinct(pois: Poi[]): Poi[] {
   return out
 }
 
-/** Supermarkets around a point, searching outward ring by ring until there are enough. */
+/**
+ * Supermarkets around a point. Two rounds, each fetched all at once (few round trips matter on
+ * phones): the near square (±NEAR_RING tiles, about ±6 km), then, only if that has fewer than
+ * 5 stores (small towns), the wider square out to MAX_RING (about ±15 km).
+ */
 export async function findPois(center: LngLat, readTile: TileReader): Promise<Poi[]> {
   const [cx, cy] = tileOf(center, POI_ZOOM)
-  const found: Poi[] = []
-  for (let ring = 0; ring <= MAX_RING; ring++) {
+  const square = (from: number, to: number) => {
     const tiles: [number, number][] = []
-    for (let dx = -ring; dx <= ring; dx++)
-      for (let dy = -ring; dy <= ring; dy++) if (Math.max(Math.abs(dx), Math.abs(dy)) === ring) tiles.push([cx + dx, cy + dy])
-    const results = await Promise.all(
-      tiles.map(async ([x, y]) => {
-        const bytes = await readTile(POI_ZOOM, x, y)
-        return bytes ? poisInTile(bytes, POI_ZOOM, x, y) : []
-      }),
-    )
-    found.push(...results.flat())
-    // Everything within the searched square is found once a full ring is in; stop when there are enough.
-    const count = distinct(found).length
-    if (ring >= 1 && count >= POOL_SIZE) break
-    if (ring >= NEAR_RING && count >= NEARBY_STORES.length) break
+    for (let dx = -to; dx <= to; dx++)
+      for (let dy = -to; dy <= to; dy++) if (Math.max(Math.abs(dx), Math.abs(dy)) >= from) tiles.push([cx + dx, cy + dy])
+    return tiles
   }
-  return found
+  const read = async (tiles: [number, number][]) =>
+    (
+      await Promise.all(
+        tiles.map(async ([x, y]) => {
+          const bytes = await readTile(POI_ZOOM, x, y)
+          return bytes ? poisInTile(bytes, POI_ZOOM, x, y) : []
+        }),
+      )
+    ).flat()
+  const found = await read(square(0, NEAR_RING))
+  if (distinct(found).length >= NEARBY_STORES.length) return found
+  return [...found, ...(await read(square(NEAR_RING + 1, MAX_RING)))]
 }
 
 /** Real stores as the app's stores: nearest first, duplicates (same name within 150 m) removed. */
@@ -236,30 +240,81 @@ async function archiveReader(url: string): Promise<TileReader> {
   return async (z, x, y) => (await archive.getZxy(z, x, y))?.data
 }
 
+/** Why the default neighborhood was used, if it was (shown on demo links; logged with the area event). */
+export type AreaReason = 'ok' | 'no_map' | 'zip_not_found' | 'outside_map' | 'too_few_stores' | 'timeout' | 'error'
+
+export interface AreaResult {
+  kind: Area['kind']
+  reason: AreaReason
+  ms: number
+}
+
+/** The last lookup's result, for the demo banner. */
+let lastResult: AreaResult | null = null
+export function lastAreaResult(): AreaResult | null {
+  return lastResult
+}
+
+/** One lookup per ZIP: started while the ZIP is typed, awaited when Start is tapped. */
+const pending = new Map<string, Promise<AreaResult>>()
+/** Only the most recently asked-for ZIP may set the area (the participant may retype it). */
+let latestZip: string | null = null
+
 /**
- * Sets up the participant's area from their ZIP. Resolves to the area used ('participant' or
- * 'default'); never throws, and gives up after `timeoutMs` so the session can go on.
+ * Sets up the participant's area from their ZIP. Never throws, and gives up after `timeoutMs`
+ * so the session can go on. Calling it again for the same ZIP joins the lookup already running.
  */
-export async function prepareArea(
+export function prepareArea(
   zip: string,
-  { timeoutMs = 10_000, readTile, fetcher }: { timeoutMs?: number; readTile?: TileReader; fetcher?: typeof fetch } = {},
-): Promise<Area['kind']> {
-  if (!readTile && !MAP_BASE_URL) return 'default'
-  const work = (async () => {
+  options: { timeoutMs?: number; readTile?: TileReader; fetcher?: typeof fetch } = {},
+): Promise<AreaResult> {
+  latestZip = zip
+  const reuse = !options.readTile && !options.fetcher
+  const running = reuse ? pending.get(zip) : undefined
+  if (running) return running
+  const job = lookUp(zip, options).then((result) => {
+    lastResult = result
+    return result
+  })
+  if (reuse) pending.set(zip, job)
+  return job
+}
+
+async function lookUp(
+  zip: string,
+  { timeoutMs = 20_000, readTile, fetcher }: { timeoutMs?: number; readTile?: TileReader; fetcher?: typeof fetch },
+): Promise<AreaResult> {
+  const started = Date.now()
+  // A lookup that finishes after the time limit must not switch the area mid-session.
+  let timedOut = false
+  const done = (reason: AreaReason, area?: Area): AreaResult => {
+    if (area && !timedOut && zip === latestZip) save(area)
+    return { kind: area ? 'participant' : 'default', reason, ms: Date.now() - started }
+  }
+  if (!readTile && !MAP_BASE_URL) return done('no_map')
+  const work = (async (): Promise<AreaResult> => {
     const center = await zipCenter(zip, fetcher)
-    if (!center) return null
+    if (!center) return done('zip_not_found')
     const region = regionFor(center)
-    if (!region) return null
+    if (!region) return done('outside_map')
     const archive = `${MAP_BASE_URL}/${region}.pmtiles`
     const reader = readTile ?? (await archiveReader(archive))
     const area = areaFromPois(center, await findPois(center, reader))
-    return area && { ...area, archive }
-  })().catch(() => null)
-  const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs))
-  const area = await Promise.race([work, timeout])
-  if (!area) return 'default'
-  save(area)
-  return 'participant'
+    return area ? done('ok', { ...area, archive }) : done('too_few_stores')
+  })().catch((err: unknown) => {
+    console.warn('area lookup failed', err)
+    return done('error')
+  })
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<AreaResult>((resolve) => {
+    timer = setTimeout(() => {
+      timedOut = true
+      resolve({ kind: 'default', reason: 'timeout', ms: Date.now() - started })
+    }, timeoutMs)
+  })
+  const result = await Promise.race([work, timeout])
+  clearTimeout(timer)
+  return result
 }
 
 /** A store by ID, in the current area or the default one (a record from before a reload, or a test). */

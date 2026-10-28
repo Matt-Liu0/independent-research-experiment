@@ -15,6 +15,8 @@ Matches the study budget (Matt, Oct 27): only Colgate students, paid directly by
 - **Export:** `bonus-payments.csv` (participant code, bonus) replaces `prolific-bonuses.txt`.
 - **Part 1 closing page:** says Part 2 takes about 35 minutes (it said 45, from before 0.19.0).
 
+- **Stride starts with 50 coins** (Matt, Oct 28), below the 100 the sleep report costs, so unlocking it means earning coins from an offer. Answering all three offers without unlocking also finishes Task 10 (`t10.offersAnswered`), so nobody is stuck. Balances never go below 0 (an offer taken back after its coins were spent). Stride's bonus is still $0.50–$5.00. **Bramble is unchanged** (150 points, free delivery costs 100), so the two apps' Rewards pages are no longer matched.
+- **Participant-area lookup on phones:** tiles are fetched in two batches instead of ring by ring, the lookup starts as soon as the ZIP is typed, the limit is 20 s, and the `area` event records why the default was used (`reason`: `no_map`, `zip_not_found`, `outside_map`, `too_few_stores`, `timeout`, `error`) and how long it took (`ms`). Demo links show it in the top banner ("map: …").
 - **Small towns get their real stores:** the store search keeps going out to about 15 km until it finds 5 supermarkets (Hamilton, NY: Price Chopper 1.6 mi, then four stores 4.7–9.9 mi out), and a store found on two map tiles counts once. The ZIP list then has fewer than 24 stores and no "Show more". The US map is uploaded (10 regional files, 8.9 GB).
 - **Demo links match what participants see:** "I'm done with this task" (skipping an unfinished task) appears only with `&skip=1` added to a demo link, for testing. It was already off for participants and pilots.
 

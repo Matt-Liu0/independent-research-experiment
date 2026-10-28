@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ComponentType } from 'react'
+import { getArea, lastAreaResult } from '../bramble/area'
 import { logEvent, setEventSink } from '../log/logEvent'
 import { Closing } from '../surveys/Closing'
 import { SettingsCheck } from '../surveys/SettingsCheck'
@@ -34,6 +35,13 @@ const STAGE_COMPONENTS: Record<Exclude<Stage, 'device'>, ComponentType<StageProp
   suspicion: Suspicion,
   settings: SettingsCheck,
   done: Closing,
+}
+
+/** Demo links only: which store-finder area is in use, and why the default if it is. */
+function mapStatus(): string {
+  if (getArea().kind === 'participant') return 'your area'
+  const r = lastAreaResult()
+  return r ? `default (${r.reason.replace(/_/g, ' ')}, ${(r.ms / 1000).toFixed(1)} s)` : 'default'
 }
 
 export function StudyApp({ entry, store, detect = detectDevice }: Props) {
@@ -144,7 +152,7 @@ export function StudyApp({ entry, store, detect = detectDevice }: Props) {
     <>
       {entry.mode === 'demo' && (
         <div className="demo-tag" aria-hidden="true">
-          Demo · nudged: {participant.pattern || 'none'}{participant.appOrder ? ` · ${participant.appOrder === 'stride_first' ? 'Stride' : 'Bramble'} first` : ''} · nothing saved
+          Demo · nudged: {participant.pattern || 'none'}{participant.appOrder ? ` · ${participant.appOrder === 'stride_first' ? 'Stride' : 'Bramble'} first` : ''} · map: {mapStatus()} · nothing saved
         </div>
       )}
       {entry.mode === 'pilot' && (

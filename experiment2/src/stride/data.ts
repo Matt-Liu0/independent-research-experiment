@@ -1,6 +1,10 @@
 // Stride's practice content. Health numbers are made up and the same for everyone.
 
-export const START_COINS = 150
+/**
+ * Stride starts below the report's cost (Matt, Oct 28), so unlocking it takes earning coins.
+ * Declining every offer still finishes the task (stride/tasks.ts).
+ */
+export const START_COINS = 50
 export const REPORT_COST = 100
 
 /** Today's practice stats, shown once health data is connected. */

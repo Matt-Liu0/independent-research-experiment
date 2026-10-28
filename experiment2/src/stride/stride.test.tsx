@@ -204,15 +204,41 @@ describe('Plans (Task 9)', () => {
 })
 
 describe('Rewards (Task 10)', () => {
-  it('unlocks the report with coins and pays for accepted offers', async () => {
+  it('starts below the cost: an accepted offer pays for the report', async () => {
     const user = userEvent.setup()
     const app = renderStride('neutral', { screen: 'rewards' })
+    expect(START_COINS).toBeLessThan(REPORT_COST)
     expect(screen.getByText(`${START_COINS} coins`)).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Unlock' }))
+    expect(screen.getByRole('button', { name: 'Unlock' })).toBeDisabled()
     const insurer = within(screen.getByText('Keel Health Insurance').closest('.offer-card') as HTMLElement)
     await user.click(insurer.getByRole('button', { name: 'Accept' }))
-    expect(app.state().points).toBe(START_COINS - REPORT_COST + 200)
-    expect(strideTaskOutcome(10, app.state())).toEqual({ done: true, reportUnlocked: true })
+    await user.click(screen.getByRole('button', { name: 'Unlock' }))
+    expect(app.state().points).toBe(START_COINS + 200 - REPORT_COST)
+    expect(strideTaskOutcome(10, app.state())).toMatchObject({ done: true, reportUnlocked: true })
+  })
+
+  it('counts the task as done when every offer is declined, without unlocking', async () => {
+    const user = userEvent.setup()
+    const app = renderStride('nudged', { screen: 'rewards' })
+    for (const card of document.querySelectorAll('.offer-card')) {
+      expect(strideTaskOutcome(10, app.state()).done).toBe(false)
+      await user.click(within(card as HTMLElement).getByRole('button', { name: 'Decline' }))
+    }
+    expect(strideTaskOutcome(10, app.state())).toEqual({ done: true, reportUnlocked: false, offersAnswered: true })
+    expect(app.state().points).toBe(START_COINS)
+  })
+
+  it('never goes below zero coins when an offer is taken back after the report was bought', async () => {
+    const user = userEvent.setup()
+    const app = renderStride('neutral', { screen: 'rewards' })
+    const university = within(screen.getByText('University sleep study').closest('.offer-card') as HTMLElement)
+    await user.click(university.getByRole('button', { name: 'Accept' }))
+    await user.click(screen.getByRole('button', { name: 'Unlock' }))
+    expect(app.state().points).toBe(START_COINS + 100 - REPORT_COST)
+    await user.click(university.getByRole('button', { name: 'Change' }))
+    await user.click(university.getByRole('button', { name: 'Decline' }))
+    expect(app.state().points).toBe(0)
+    expect(app.state().reportUnlocked).toBe(true)
   })
 
   it.each(LEVELS)('%s: reaching Gold pays no coins and is not one of the paid offers', async (level) => {
@@ -342,8 +368,9 @@ describe('parity between friction levels (Stride)', () => {
   it('pays $0.50–$5.00 in coins, like Bramble', () => {
     const offers = STRIDE_FLOW_LIST.filter((f) => f.points)
     const all = offers.reduce((sum, f) => sum + (f.points ?? 0), 0)
-    expect(bonusDollars(START_COINS - REPORT_COST)).toBe(0.5)
-    expect(bonusDollars(START_COINS - REPORT_COST + all)).toBe(5)
+    // Without the report: the 50 starting coins to every offer accepted.
+    expect(bonusDollars(START_COINS)).toBe(0.5)
+    expect(bonusDollars(START_COINS + all)).toBe(5)
     expect(STRIDE_FLOWS.getFlow('stride_reward_university').points).toBe(100)
   })
 })

@@ -23,8 +23,8 @@ export function Welcome({ participant, advance }: StageProps) {
     // The store finder's map and stores come from this ZIP. The ZIP itself is never saved or
     // sent anywhere: it is looked up in our own table on this phone (bramble/area.ts).
     setPreparing(true)
-    const kind = await prepareArea(zip)
-    logEvent('stage', { name: 'area', kind })
+    const { kind, reason, ms } = await prepareArea(zip)
+    logEvent('stage', { name: 'area', kind, reason, ms })
     advance()
   }
 
@@ -67,7 +67,12 @@ export function Welcome({ participant, advance }: StageProps) {
           autoComplete="postal-code"
           maxLength={5}
           value={zip}
-          onChange={(e) => setZip(e.target.value.replace(/\D/g, ''))}
+          onChange={(e) => {
+            const next = e.target.value.replace(/\D/g, '')
+            setZip(next)
+            // Start looking the area up while the name is still being typed; Start waits for it.
+            if (/^\d{5}$/.test(next)) void prepareArea(next)
+          }}
           placeholder="5 digits"
           aria-describedby="zip-note"
         />

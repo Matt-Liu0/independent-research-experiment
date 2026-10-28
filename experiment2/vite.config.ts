@@ -28,5 +28,7 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}', 'tests/**/*.test.{ts,tsx}', 'functions/src/**/*.test.ts'],
     exclude: ['tests/rules/**', 'tests/load/**', 'tests/functions/**', '**/node_modules/**'],
+    // Tests never reach the real US map (set in .env.local for builds); they use the bundled tiles.
+    env: { VITE_MAP_BASE_URL: '' },
   },
 })
