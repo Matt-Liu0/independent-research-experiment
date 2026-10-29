@@ -5,6 +5,7 @@ import { detectPart2Device, type Part2Entry } from './entry'
 import { Briefing, Chat } from './Interview'
 import type { Interviewer } from './interviewer'
 import { Comprehension, Intro, Items, Practice } from './Questionnaire'
+import { ConnectApps, Instructions } from './Setup'
 import type { Part2StageProps } from './stageProps'
 import type { Part2Store } from './store'
 import { BackgroundSurvey, Recall } from './Surveys'
@@ -15,6 +16,8 @@ type Boot = { state: 'loading' } | { state: 'ready' } | { state: 'blocked'; reas
 
 const STAGES: Record<Exclude<Part2Stage, 'device'>, ComponentType<Part2StageProps>> = {
   briefing: Briefing,
+  connect: ConnectApps,
+  instructions: Instructions,
   chat: Chat,
   filler: Filler,
   intro: Intro,

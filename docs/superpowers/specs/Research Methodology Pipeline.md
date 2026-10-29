@@ -70,16 +70,17 @@ There is no separate no-elicitation (norming) sample (decided Oct 27, 2026, to s
 * *Vignettes.* Every flow uses one template: "\[Recipient\] wants your \[attribute\] to \[aim\], \[condition\]." Only the wording for a changed coordinate differs between vignettes. So when two verdicts differ, the difference can be traced to the parameter that changed.  
 * *Item wording* (decided Oct 14, 2026). Items name a generic app ("your grocery delivery app", "your fitness app"), not Bramble or Stride: naming them would remind Experiment 2 participants of what they chose. Rewards are stated in dollars (100 points = $1.00). Items describe the flow only, with no default, highlighting, streak, friend count or tier, so for nudged and gamified flows the say–do gap is measured against the person's view of the bare flow.
 
-**Procedure** (one session, about 35 minutes).
+**Procedure** (one session, about 40 minutes).
 
 1. Consent and scenario briefing.  
-2. Elicitation in the assigned arm (about 15 minutes).  
-3. A short unrelated filler task (about 2 minutes; shortened from 3, Oct 27, 2026).  
-4. Stated-verdict questionnaire: an introduction, one practice item and a comprehension check ("Which option means the app should check with you every time?"), then the 53 items, one per page, in a random order per person, with two attention items at positions 18 and 36 (55 pages). Every item is answered Allow / Ask me / Block, each with a confidence rating from 1 (not at all sure) to 5 (completely sure). Twelve site flows are asked twice, reworded and at least 20 items apart: one per decision screen in each app, so the 6 Bramble and 6 Stride repeats are matched pairs.  
-5. A recall check (Experiment 2 participants only): six questions about what they chose on the site, three per app, each with an "I don't remember" option.  
-6. A short background survey: a standard privacy-concern scale (IUIPC; Malhotra et al., 2004), age range, gender (optional) and how often they use AI assistants.  
-7. Full debrief, disclosing the cover story of Experiment 2.  
-There is no separate retest session (decided Oct 5, 2026): stability is measured from the repeated items in step 4. Repeats within one sitting overstate stability, because people remember their first answer, and we report this as a limitation.
+2. Set-up, the same in every arm (built Oct 29, 2026, wording in draft): the participant connects the assistant to a grocery delivery app and a fitness app, then writes standing instructions in one text box (D0, about 2 minutes; may be left empty). The interviewer never sees D0.  
+3. Elicitation in the assigned arm (about 15 minutes).  
+4. A short unrelated filler task (about 2 minutes; shortened from 3, Oct 27, 2026).  
+5. Stated-verdict questionnaire: an introduction, one practice item and a comprehension check ("Which option means the app should check with you every time?"), then the 53 items, one per page, in a random order per person, with two attention items at positions 18 and 36 (55 pages). Every item is answered Allow / Ask me / Block, each with a confidence rating from 1 (not at all sure) to 5 (completely sure). Twelve site flows are asked twice, reworded and at least 20 items apart: one per decision screen in each app, so the 6 Bramble and 6 Stride repeats are matched pairs.  
+6. A recall check (Experiment 2 participants only): six questions about what they chose on the site, three per app, each with an "I don't remember" option.  
+7. A short background survey: a standard privacy-concern scale (IUIPC; Malhotra et al., 2004), age range, gender (optional) and how often they use AI assistants.  
+8. Full debrief, disclosing the cover story of Experiment 2.  
+There is no separate retest session (decided Oct 5, 2026): stability is measured from the repeated items in step 5. Repeats within one sitting overstate stability, because people remember their first answer, and we report this as a limitation.
 
 Elicitation comes before the questionnaire on purpose. The transcript should reflect what a person would tell an agent unprompted. Putting the questionnaire first would show every arm the full parameter structure and mostly erase the differences between arms.
 
@@ -132,8 +133,8 @@ The three arms map onto these unevenly. The open-ended arm is closest to standin
 
 **Proposed changes to the interviewer interface** (for review). Every change is the same in all three arms, so the arms still differ only in what the interviewer asks:
 
-* **Written instructions first (about 2 minutes).** Before the chat, one text box: "What should an assistant that manages your apps know about how to handle your information?" This copies today's custom-instructions field and gives every participant a short transcript D0. Experiment 3 can then run the agents on D0 alone and on D0 with D, measuring within each person what the interview adds over current practice. It costs 2 minutes and may prime the chat slightly, equally in every arm.
-* **Set-up framing.** Present the chat as setting up an assistant that will connect to a grocery delivery app and a fitness app, with a connection screen like the ones people see when linking an account. The stakes then match how assistants are used, and the page reads less like a survey. No privacy wording is added.
+* **Written instructions first (about 2 minutes; built Oct 29, 2026).** Before the chat, one text box: "What should an assistant that manages your apps know about how to handle your information?" This copies today's custom-instructions field and gives every participant a short transcript D0. Experiment 3 can then run the agents on D0 alone and on D0 with D, measuring within each person what the interview adds over current practice. It costs 2 minutes and may prime the chat slightly, equally in every arm.
+* **Set-up framing (built Oct 29, 2026).** Present the chat as setting up an assistant that will connect to a grocery delivery app and a fitness app, with a connection screen like the ones people see when linking an account. The stakes then match how assistants are used, and the page reads less like a survey. No privacy wording is added.
 * **Read-back at the end, in every arm.** The assistant says in plain words what it will do for the participant, and the participant confirms or corrects it, as agents do when they confirm a plan. In the case-based arm it comes after the rule confirmation. It makes the arms slightly more alike, which affects RQ1.2, so the pilot should check it; it stays in the transcript.
 * **No arm-specific controls.** Answer buttons for the case-based arm were considered and left out, so that no arm gets an interface the others lack.
 * **Answering the agent's questions in Experiment 4.** ask_user now always replies that the user is not available. A second condition could answer from the participant's questionnaire verdict on that flow, measuring how much asking in the moment recovers. It needs agent runs only.

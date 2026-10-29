@@ -18,7 +18,7 @@ export function Briefing({ advance }: Part2StageProps) {
         ))}
       </ul>
       <div className="page-spacer" />
-      <button type="button" className="btn btn-study" onClick={() => advance({}, ['chatStartedAt'])}>
+      <button type="button" className="btn btn-study" onClick={() => advance()}>
         {BRIEFING.start}
       </button>
     </main>

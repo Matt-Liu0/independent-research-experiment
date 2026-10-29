@@ -181,6 +181,12 @@ function interviewColumns(data: Record<string, unknown>): Row {
     interviewParticipantTurns: (iv?.participantTurns as number) ?? null,
     interviewParticipantChars: (iv?.participantChars as number) ?? null,
     fillerSolved: (filler?.solved as number) ?? null,
+    // The instructions box before the chat (D0); the text itself is in transcripts.jsonl.
+    instructionsChars: ((data.writtenInstructions as Record<string, unknown> | null | undefined)?.chars as number) ?? null,
+    instructionsSeconds: (() => {
+      const ms = (data.writtenInstructions as Record<string, unknown> | null | undefined)?.ms
+      return typeof ms === 'number' ? Math.round(ms / 100) / 10 : null
+    })(),
     chatStartedAt: toIso(data.chatStartedAt),
     debriefAt: toIso(data.debriefAt),
   }
@@ -196,7 +202,7 @@ export interface RawInterview {
  * The transcripts D, one JSON object per line, keyed by study code: the agents' only input in
  * Experiments 3 and 4. People left out of the Part 2 export (withdrawn) are left out here too.
  */
-export function buildTranscripts(interviews: RawInterview[], idMap: Row[]): string {
+export function buildTranscripts(interviews: RawInterview[], idMap: Row[], instructionsByUid: Map<string, string> = new Map()): string {
   const codeOfUid = new Map(idMap.map((r) => [r.uid as string, r.studyCode as string]))
   return interviews
     .filter((iv) => codeOfUid.has(iv.uid))
@@ -208,6 +214,9 @@ export function buildTranscripts(interviews: RawInterview[], idMap: Row[]): stri
         done: state.done,
         model: iv.data.model ?? null,
         promptsVersion: iv.data.promptsVersion ?? null,
+        // D0: what the participant wrote in the instructions box before the chat ("" = left empty,
+        // null = no such step, e.g. before 0.20.0). The interviewer never saw it.
+        writtenInstructions: instructionsByUid.get(iv.uid) ?? null,
         turns: state.turns.map((t) => ({
           role: t.role,
           text: t.text,

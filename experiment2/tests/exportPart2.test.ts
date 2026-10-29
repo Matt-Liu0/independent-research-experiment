@@ -106,10 +106,11 @@ describe('interview data', () => {
         { uid: 'someone-withdrawn', data: { state, model: 'claude-sonnet-5-5', promptsVersion: 'v1' } },
       ],
       out.idMap,
+      new Map([['laptop', 'Never sell my location']]),
     ).split('\n')
     expect(lines).toHaveLength(1)
     const t = JSON.parse(lines[0])
-    expect(t).toMatchObject({ studyCode: 'P001', arm: 'structured', model: 'claude-sonnet-5-5' })
+    expect(t).toMatchObject({ studyCode: 'P001', arm: 'structured', model: 'claude-sonnet-5-5', writtenInstructions: 'Never sell my location' })
     expect(t.turns[1]).toMatchObject({ role: 'participant', text: 'Only while using', at: '2026-11-08T00:01:00.000Z', source: null })
     expect(JSON.stringify(t)).not.toContain('laptop')
   })

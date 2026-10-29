@@ -2,10 +2,16 @@ import type { DeviceInfo, EntryParams } from '../study/types'
 import type { VerdictValue, Wording } from './items'
 import type { Slot } from './order'
 
-/** Part 2 (pipeline, Experiment 1 "Procedure"): briefing, the interview, a filler, the questionnaire, recall, background, debrief. */
+/**
+ * Part 2 (pipeline, Experiment 1 "Procedure"): briefing, connecting the assistant to the apps,
+ * written instructions (D0), the interview, a filler, the questionnaire, recall, background, debrief.
+ * The connect and instructions steps are the same in every arm (proposed Oct 29, 2026).
+ */
 const PART2_STAGES = [
   'device',
   'briefing',
+  'connect',
+  'instructions',
   'chat',
   'filler',
   'intro',
@@ -60,6 +66,17 @@ export interface InterviewSummary {
   minutes: number | null
 }
 
+/**
+ * What the participant wrote in the instructions box before the chat: the short, standing
+ * instructions people give assistants today (D0). The interviewer never sees it.
+ */
+export interface WrittenInstructions {
+  text: string
+  chars: number
+  /** Visible ms on the page. */
+  ms: number
+}
+
 export interface FillerResult {
   solved: number
   attempted: number
@@ -88,6 +105,7 @@ export interface Part2Doc extends EntryParams {
   arm: Arm | null
   interview: InterviewSummary | null
   filler: FillerResult | null
+  writtenInstructions: WrittenInstructions | null
   /** Ticked on the debrief page: the participant asks for their data to be removed. */
   withdrawRequested: boolean
   createdAt?: unknown
@@ -116,6 +134,7 @@ export function newPart2Doc(params: EntryParams, now = new Date()): Part2Doc {
     arm: null,
     interview: null,
     filler: null,
+    writtenInstructions: null,
     withdrawRequested: false,
   }
 }

@@ -6,7 +6,7 @@ export const BRIEFING = {
   isDraft: true,
   title: 'Part 2: your views',
   paragraphs: [
-    'Thanks for coming back. This part takes about 35 minutes: a chat with an AI assistant (about 15 minutes), a short puzzle, then short questions about different situations.',
+    'Thanks for coming back. This part takes about 40 minutes: setting up an AI assistant and chatting with it (about 18 minutes), a short puzzle, then short questions about different situations.',
     "Imagine that soon an assistant like this will manage your apps for you, including what they do with your information. It will ask how you'd want a grocery delivery app and a fitness app to handle your information. Answer in your own words: there are no right or wrong answers.",
   ],
   points: [
@@ -14,7 +14,37 @@ export const BRIEFING = {
     "Please don't type your name, address or anything else that could identify you.",
     'Press Enter to send a message.',
   ],
-  start: 'Start the chat',
+  start: 'Set up the assistant',
+}
+
+/** The set-up framing: the assistant "connects" to the two apps, as when linking an account. Same in every arm. */
+export const CONNECT = {
+  version: 'connect-v1-draft',
+  isDraft: true,
+  title: 'Set up your assistant',
+  intro: 'Your assistant will work in two of your apps for you. Connect both to continue.',
+  apps: [
+    { id: 'grocery', name: 'Grocery delivery app', detail: 'Your store, orders, delivery address and app settings' },
+    { id: 'fitness', name: 'Fitness app', detail: 'Your workouts, activity and health data, and app settings' },
+  ],
+  canDo: 'Your assistant will be able to see your account and change its settings, and answer the app\'s requests for you.',
+  connect: 'Connect',
+  connected: 'Connected',
+  continue: 'Continue',
+}
+
+/** The instructions box (D0), like the custom-instructions field assistants have today. Same in every arm. */
+export const INSTRUCTIONS = {
+  version: 'instructions-v1-draft',
+  isDraft: true,
+  title: 'Instructions for your assistant',
+  paragraphs: [
+    'Assistants let you write a few lines that they always follow.',
+    'What should your assistant know about how to handle your information in these apps? Write as much or as little as you like. You can also leave it empty.',
+  ],
+  privacyNote: "Please don't type your name, address or anything else that could identify you.",
+  label: 'Your instructions',
+  continue: 'Continue to the chat',
 }
 
 export const DEBRIEF = {

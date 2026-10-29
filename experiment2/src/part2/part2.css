@@ -198,3 +198,46 @@
   color: var(--green, #2f6b4f);
   font-weight: 600;
 }
+
+/* Set-up steps before the chat (Setup.tsx). */
+.connect-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.connect-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.connect-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.connect-name {
+  font-weight: 600;
+}
+
+.connect-button {
+  flex: none;
+  width: auto;
+  min-width: 120px;
+}
+
+.connect-done {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: inherit;
+}

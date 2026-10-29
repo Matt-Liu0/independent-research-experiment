@@ -5,6 +5,14 @@ Every build participants see has a version (`appVersion` on each record). Bump `
 
 
 
+## 0.21.0 (2026-10-29)
+
+Part 2 set-up steps before the chat (proposed Oct 29, 2026; pipeline, Experiment 1). Both are the same in every arm, so the arms still differ only in what the interviewer asks. Wording is DRAFT (`src/part2/sessionText.ts`).
+
+- **Connect the assistant** (`connect` stage): the participant connects the assistant to "a grocery delivery app" and "a fitness app", as when linking an account. Logged as `survey` `app_connected`.
+- **Instructions for your assistant** (`instructions` stage): one text box, like today's custom-instructions field (up to 1,500 characters, may be left empty). Saved as `writtenInstructions` on the record (the rules cap the length), exported as `instructionsChars` / `instructionsSeconds` and as `writtenInstructions` in `transcripts.jsonl`. This is D0, the input for the proposed "today's practice" condition in Experiment 3. The interviewer never sees it. `chatStartedAt` is now stamped when this page is done.
+- The briefing now says "about 40 minutes" (set-up and chat about 18 minutes).
+
 ## 0.20.0 (2026-10-27)
 
 Matches the study budget (Matt, Oct 27): only Colgate students, paid directly by gift card, and no norming sample (RQ1.2 now compares the interview arms, with the open-ended arm as the reference). Guide: `RECRUITMENT.md` (replaces `PROLIFIC.md`).

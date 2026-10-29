@@ -60,8 +60,23 @@ describe('Part 2', () => {
     const { doc, store } = await renderPart2({ fromStart: true })
     expect(screen.getByRole('heading', { name: 'Part 2: your views' })).toBeInTheDocument()
     expect(screen.getByText(/sent to Anthropic/)).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Start the chat' }))
+    await user.click(screen.getByRole('button', { name: 'Set up the assistant' }))
+
+    // Set-up framing: both apps must be connected (same in every arm).
+    expect(screen.getByRole('heading', { name: 'Set up your assistant' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: 'Connect Grocery delivery app' }))
+    await user.click(screen.getByRole('button', { name: 'Connect Fitness app' }))
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+
+    // Written instructions (D0): saved on the record, never logged; may be left empty.
+    expect(doc().stage).toBe('instructions')
+    await user.type(screen.getByLabelText('Your instructions'), '  Never sell my location.  ')
+    await user.click(screen.getByRole('button', { name: 'Continue to the chat' }))
     expect(doc().stage).toBe('chat')
+    expect(doc().writtenInstructions).toMatchObject({ text: 'Never sell my location.', chars: 23 })
+    expect(store.events.find((e) => e.type === 'survey' && e.event === 'instructions')).toMatchObject({ chars: 23 })
+    expect(JSON.stringify(store.events)).not.toContain('Never sell')
 
     expect(await screen.findByText(/grocery delivery app/)).toBeInTheDocument()
     const box = screen.getByLabelText('Your message')

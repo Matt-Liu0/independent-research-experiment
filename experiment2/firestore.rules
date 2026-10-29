@@ -134,7 +134,10 @@ service cloud.firestore {
 
     function validPart2Update() {
       let changed = request.resource.data.diff(resource.data).affectedKeys();
-      return !changed.hasAny(['participantCode', 'appVersion', 'createdAt', 'withdrawn', 'arm', 'interview']);
+      let w = request.resource.data.get('writtenInstructions', null);
+      return !changed.hasAny(['participantCode', 'appVersion', 'createdAt', 'withdrawn', 'arm', 'interview'])
+        // The instructions box (D0) keeps at most 1,500 characters, as on the page.
+        && (w == null || (w.text is string && w.text.size() <= 1500));
     }
 
     match /{col}/{uid} {

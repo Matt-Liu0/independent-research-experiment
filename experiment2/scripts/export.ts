@@ -39,6 +39,16 @@ export function writeExport(outDir: string, collection: string, raw: RawParticip
   return result
 }
 
+/** Each Part 2 participant's instructions text (D0), by uid, for transcripts.jsonl. */
+function instructionsOf(part2: RawParticipant[]): Map<string, string> {
+  const out = new Map<string, string>()
+  for (const p of part2) {
+    const w = p.data.writtenInstructions as { text?: unknown } | null | undefined
+    if (typeof w?.text === 'string') out.set(p.uid, w.text)
+  }
+  return out
+}
+
 /**
  * Part 2. verdicts.csv is the main Part 2 table: one row per person ×
  * battery item, with the stated verdict, its repeat, and the same person's verdict on the site.
@@ -57,7 +67,7 @@ export function writePart2Export(
   writeFileSync(join(outDir, 'battery-codebook.csv'), toCsv(batteryCodebook()))
   // The interview transcripts D (one JSON object per line). Free text: participants were asked
   // not to type identifying details, but read them before sharing.
-  writeFileSync(join(outDir, 'transcripts.jsonl'), buildTranscripts(interviews, p2.idMap) + '\n')
+  writeFileSync(join(outDir, 'transcripts.jsonl'), buildTranscripts(interviews, p2.idMap, instructionsOf(part2)) + '\n')
   // Private, like id-map.csv.
   writeFileSync(join(outDir, 'part2-id-map.csv'), toCsv(p2.idMap))
   return p2
