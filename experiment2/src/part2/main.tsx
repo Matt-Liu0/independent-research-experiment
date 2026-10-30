@@ -19,8 +19,11 @@ function createStore(): Part2Store {
   return new FirestorePart2Store(db, auth, entry.mode === 'pilot')
 }
 
+/** Demo replies wait about as long as the real model (Sonnet, a short reply: 1 to 2 seconds). */
+const DEMO_THINK_MS = 1500
+
 function createInterviewer(): Interviewer {
-  if (entry.mode === 'demo') return new ScriptedInterviewer(entry.arm)
+  if (entry.mode === 'demo') return new ScriptedInterviewer(entry.arm, DEMO_THINK_MS)
   return new CallableInterviewer(getFirebase().functions, entry.mode === 'pilot', entry.arm)
 }
 

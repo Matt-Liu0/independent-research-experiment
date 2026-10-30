@@ -1,8 +1,9 @@
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { DeviceInfo } from '../study/types'
 import { parsePart2Entry, type Part2Entry } from './entry'
+import { CHAT_TIMING } from './Interview'
 import { ScriptedInterviewer } from './interviewer'
 import { ATTENTION_ITEMS, BATTERY, REPEATED_ITEMS, getItem } from './items'
 import { slotKey, validSequence } from './order'
@@ -11,6 +12,14 @@ import { MemoryPart2Store } from './store'
 import { RECALL_QUESTIONS } from './surveyContent'
 import { newPart2Doc, type Part2Doc } from './types'
 import { ANAGRAMS } from './Wrapup'
+
+// Replies show at once in these tests; the streaming test below sets its own pace.
+beforeEach(() => {
+  CHAT_TIMING.wordMs = 0
+})
+afterEach(() => {
+  CHAT_TIMING.wordMs = 33
+})
 
 const PAGES = BATTERY.length + REPEATED_ITEMS.length + ATTENTION_ITEMS.length
 const PARAMS = { participantCode: 'P1' }
@@ -97,6 +106,20 @@ describe('Part 2', () => {
     await user.click(screen.getByRole('button', { name: 'Continue' }))
     expect(doc().filler).toMatchObject({ solved: ANAGRAMS.length, attempted: ANAGRAMS.length })
     expect(screen.getByRole('heading', { name: 'Your views' })).toBeInTheDocument()
+  })
+
+  it('streams each reply a word at a time, with Send off until it finishes', async () => {
+    const user = userEvent.setup()
+    const store = new MemoryPart2Store({ ...newPart2Doc(PARAMS), stage: 'chat' })
+    render(<Part2App entry={{ mode: 'study', params: PARAMS }} store={store} interviewer={new ScriptedInterviewer()} />)
+    expect(await screen.findByText(/How would you want an app like that to handle/)).toBeInTheDocument()
+    CHAT_TIMING.wordMs = 60
+    await user.type(screen.getByLabelText('Your message'), 'only while I use it')
+    await user.click(screen.getByRole('button', { name: 'Send' }))
+    await user.type(screen.getByLabelText('Your message'), 'more')
+    expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled()
+    expect(await screen.findByText('Is there anything else I should keep in mind?')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled()
   })
 
   it('asks for the message again if the assistant fails to reply', async () => {

@@ -14,6 +14,7 @@ Part 2 set-up steps before the chat (proposed Oct 29, 2026; pipeline, Experiment
 - The briefing now says "about 40 minutes" (set-up and chat about 18 minutes).
 - **Filler puzzle: 1.5 minutes** (was 2).
 - **Demo links show each arm's own shape** (`part2.html?demo=1&arm=open|structured|case`): the real fixed openers and closing (a test keeps them in step with `functions/src/prompts.ts`), the six structured questions in order, and three example situations per domain plus a rule read-back in the case-based arm (example situations only; T is not chosen yet). The model's own follow-ups are still stand-ins on demo links.
+- **The chat feels like an AI assistant:** every assistant message appears a word at a time (about 30 words a second), with Send off until it finishes, as chat assistants stream their replies. The model's reply still arrives whole; only the display is paced, the same in every arm. Screen readers get each message once it is complete, and reduced-motion settings show it at once. Demo replies wait about 1.5 seconds first, like the real model.
 
 ## 0.20.0 (2026-10-27)
 

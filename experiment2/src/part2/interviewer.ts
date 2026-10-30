@@ -143,10 +143,13 @@ function demoScript(arm: Arm): string[][] {
 export class ScriptedInterviewer implements Interviewer {
   private turns: ChatTurn[]
   private readonly script: string[][]
+  private readonly thinkMs: number
   private round = 0
 
-  constructor(arm: Arm = 'open') {
+  /** thinkMs: a pause before each reply, about as long as the real model takes (demo links). */
+  constructor(arm: Arm = 'open', thinkMs = 0) {
     this.script = demoScript(arm)
+    this.thinkMs = thinkMs
     this.turns = this.script[0].map((text) => ({ role: 'interviewer' as const, text }))
   }
 
@@ -156,6 +159,7 @@ export class ScriptedInterviewer implements Interviewer {
 
   async send(message: string | null): Promise<ChatView> {
     if (message !== null && !this.done) {
+      if (this.thinkMs) await new Promise((r) => setTimeout(r, this.thinkMs * (0.7 + Math.random() * 0.6)))
       this.turns.push({ role: 'participant', text: message.trim().slice(0, MAX_MESSAGE_CHARS) })
       this.round++
       for (const text of this.script[this.round]) this.turns.push({ role: 'interviewer', text })
