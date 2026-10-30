@@ -12,6 +12,8 @@ Part 2 set-up steps before the chat (proposed Oct 29, 2026; pipeline, Experiment
 - **Connect the assistant** (`connect` stage): the participant connects the assistant to "a grocery delivery app" and "a fitness app", as when linking an account. Logged as `survey` `app_connected`.
 - **Instructions for your assistant** (`instructions` stage): one text box, like today's custom-instructions field (up to 1,500 characters, may be left empty). Saved as `writtenInstructions` on the record (the rules cap the length), exported as `instructionsChars` / `instructionsSeconds` and as `writtenInstructions` in `transcripts.jsonl`. This is D0, the input for the proposed "today's practice" condition in Experiment 3. The interviewer never sees it. `chatStartedAt` is now stamped when this page is done.
 - The briefing now says "about 40 minutes" (set-up and chat about 18 minutes).
+- **Filler puzzle: 1.5 minutes** (was 2).
+- **Demo links show each arm's own shape** (`part2.html?demo=1&arm=open|structured|case`): the real fixed openers and closing (a test keeps them in step with `functions/src/prompts.ts`), the six structured questions in order, and three example situations per domain plus a rule read-back in the case-based arm (example situations only; T is not chosen yet). The model's own follow-ups are still stand-ins on demo links.
 
 ## 0.20.0 (2026-10-27)
 

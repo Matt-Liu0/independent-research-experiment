@@ -75,7 +75,7 @@ There is no separate no-elicitation (norming) sample (decided Oct 27, 2026, to s
 1. Consent and scenario briefing.  
 2. Set-up, the same in every arm (built Oct 29, 2026, wording in draft): the participant connects the assistant to a grocery delivery app and a fitness app, then writes standing instructions in one text box (D0, about 2 minutes; may be left empty). The interviewer never sees D0.  
 3. Elicitation in the assigned arm (about 15 minutes).  
-4. A short unrelated filler task (about 2 minutes; shortened from 3, Oct 27, 2026).  
+4. A short unrelated filler task (1.5 minutes; shortened from 3 to 2 on Oct 27 and to 1.5 on Oct 29, 2026).  
 5. Stated-verdict questionnaire: an introduction, one practice item and a comprehension check ("Which option means the app should check with you every time?"), then the 53 items, one per page, in a random order per person, with two attention items at positions 18 and 36 (55 pages). Every item is answered Allow / Ask me / Block, each with a confidence rating from 1 (not at all sure) to 5 (completely sure). Twelve site flows are asked twice, reworded and at least 20 items apart: one per decision screen in each app, so the 6 Bramble and 6 Stride repeats are matched pairs.  
 6. A recall check (Experiment 2 participants only): six questions about what they chose on the site, three per app, each with an "I don't remember" option.  
 7. A short background survey: a standard privacy-concern scale (IUIPC; Malhotra et al., 2004), age range, gender (optional) and how often they use AI assistants.  

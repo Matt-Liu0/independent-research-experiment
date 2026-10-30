@@ -4,8 +4,8 @@ import { logEvent } from '../log/logEvent'
 import { DEBRIEF } from './sessionText'
 import type { Part2StageProps } from './stageProps'
 
-/** Filler length (pipeline: "a short unrelated filler task"; shortened from 3 to 2 minutes, Oct 27). */
-export const FILLER_MS = 2 * 60_000
+/** Filler length (pipeline: "a short unrelated filler task"; 3 minutes, then 2 (Oct 27), then 1.5 (Oct 29)). */
+export const FILLER_MS = 90_000
 
 /** Unrelated to privacy or apps on purpose. Letters are scrambled the same way for everyone. */
 export const ANAGRAMS: { answer: string; letters: string }[] = [
@@ -28,7 +28,7 @@ export function solves(guess: string, answer: string): boolean {
 }
 
 /**
- * Word puzzles for about two minutes, between the chat and the questionnaire. Continue shows
+ * Word puzzles for a minute and a half, between the chat and the questionnaire. Continue shows
  * when the time is up, or earlier if every word is solved. Only counts are saved.
  */
 export function Filler({ advance }: Part2StageProps) {
@@ -56,7 +56,7 @@ export function Filler({ advance }: Part2StageProps) {
   return (
     <main className="page page-wide">
       <h1>A short puzzle</h1>
-      <p>Unscramble as many words as you can. You can continue after two minutes.</p>
+      <p>Unscramble as many words as you can. You can continue after a minute and a half.</p>
       <ol className="anagram-list">
         {ANAGRAMS.map((a, i) => {
           const ok = solves(guesses[i], a.answer)
