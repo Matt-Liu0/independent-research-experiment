@@ -3,14 +3,13 @@ import type { VerdictValue, Wording } from './items'
 import type { Slot } from './order'
 
 /**
- * Part 2 (pipeline, Experiment 1 "Procedure"): briefing, connecting the assistant to the apps,
- * written instructions (D0), the interview, a filler, the questionnaire, recall, background, debrief.
- * The connect and instructions steps are the same in every arm (proposed Oct 29, 2026).
+ * Part 2 (pipeline, Experiment 1 "Procedure"): briefing, written instructions (D0), the interview,
+ * a filler, the questionnaire, recall, background, debrief. The instructions step is the same in
+ * every arm (proposed Oct 29, 2026).
  */
 const PART2_STAGES = [
   'device',
   'briefing',
-  'connect',
   'instructions',
   'chat',
   'filler',

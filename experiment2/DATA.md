@@ -447,7 +447,7 @@ Design and item wording: `docs/superpowers/specs/2026-10-14-part2-questionnaire-
 | Field | Meaning | Values |
 |---|---|---|
 | `participantCode` | As in Part 1 | |
-| `stage` | Where they are | `device` → `briefing` → `connect` → `instructions` → `chat` → `filler` → `intro` → `practice` → `comprehension` → `items` → `recall` → `background` → `debrief` → `done` (from 0.18.0; before, `device` went straight to `intro` and `background` to `done`. `connect` and `instructions` from 0.21.0) |
+| `stage` | Where they are | `device` → `briefing` → `instructions` → `chat` → `filler` → `intro` → `practice` → `comprehension` → `items` → `recall` → `background` → `debrief` → `done` (from 0.18.0; before, `device` went straight to `intro` and `background` to `done`. `instructions` from 0.21.0; a `connect` page between `briefing` and `instructions` existed only in preview builds of 0.21.0) |
 | `writtenInstructions` | The instructions box before the chat (D0), the same in every arm: `{text, chars, ms}`. `text` is trimmed and may be empty (left blank); `ms` is visible time on the page. Free text: read before sharing. The interviewer never sees it | `null` before 0.21.0 or until the page is done |
 | `device` | As in Part 1; `passedCheck` means a computer | |
 | `sequence` | The page order, saved before the first item | list of `{kind: 'item', itemId, wording: 'A'/'B'}` or `{kind: 'attention', itemId}` (55 pages) |

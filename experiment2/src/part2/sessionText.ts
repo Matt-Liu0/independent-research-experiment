@@ -17,28 +17,14 @@ export const BRIEFING = {
   start: 'Set up the assistant',
 }
 
-/** The set-up framing: the assistant "connects" to the two apps, as when linking an account. Same in every arm. */
-export const CONNECT = {
-  version: 'connect-v1-draft',
-  isDraft: true,
-  title: 'Set up your assistant',
-  intro: 'Your assistant will work in two of your apps for you. Connect both to continue.',
-  apps: [
-    { id: 'grocery', name: 'Grocery delivery app', detail: 'Your store, orders, delivery address and app settings' },
-    { id: 'fitness', name: 'Fitness app', detail: 'Your workouts, activity and health data, and app settings' },
-  ],
-  canDo: 'Your assistant will be able to see your account and change its settings, and answer the app\'s requests for you.',
-  connect: 'Connect',
-  connected: 'Connected',
-  continue: 'Continue',
-}
-
 /** The instructions box (D0), like the custom-instructions field assistants have today. Same in every arm. */
 export const INSTRUCTIONS = {
-  version: 'instructions-v1-draft',
+  version: 'instructions-v2-draft',
   isDraft: true,
   title: 'Instructions for your assistant',
   paragraphs: [
+    // The set-up framing (Oct 30, 2026: one line here, in place of a separate page of Connect buttons).
+    'Your assistant will work in two of your apps for you, a grocery delivery app and a fitness app: it can change their settings and answer their requests for you.',
     'Assistants let you write a few lines that they always follow.',
     'What should your assistant know about how to handle your information in these apps? Write as much or as little as you like. You can also leave it empty.',
   ],
