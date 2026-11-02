@@ -135,11 +135,11 @@ describe('Part 2', () => {
     expect(await screen.findByText('Is there anything else I should keep in mind?')).toBeInTheDocument()
   })
 
-  it('runs intro → practice → comprehension → 55 items → recall → background → debrief, saving every answer', async () => {
+  it('runs intro → practice → comprehension → 41 items → recall → background → debrief, saving every answer', async () => {
     const user = userEvent.setup()
     const { doc, store } = await renderPart2()
     expect(screen.getByRole('heading', { name: 'Your views' })).toBeInTheDocument()
-    expect(screen.getByText(/read 55 short situations/)).toBeInTheDocument()
+    expect(screen.getByText(/read 41 short situations/)).toBeInTheDocument()
     await throughComprehension(user)
     expect(doc().practice).toEqual({ verdict: 'ask', confidence: 5 })
     expect(doc().comprehension).toEqual({ attempts: ['ask'], passed: true })

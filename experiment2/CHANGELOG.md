@@ -5,6 +5,16 @@ Every build participants see has a version (`appVersion` on each record). Bump `
 
 
 
+## 0.22.0 (2026-11-02)
+
+Shorter session (Matt, Nov 2): the questionnaire goes from 55 pages to 41, and Bramble loses two decisions.
+
+- **Bramble: `save_card` and `birthday_deals` removed** (the card checkbox at Checkout and the Birthday deals switch on Deals). They were the only non-location, unpaired Bramble flows. Bramble now has 12 flows, 27 in all. The Checkout still shows the practice card, without the save option.
+- **Questionnaire: 6 repeats instead of 12**, one per decision screen, alternating apps: `store_location` (U1), `stride_coach_live` (U2), `sam_share` (U3), `stride_hr_all_day` (U4), `deals_partner_offers` (U5), `stride_reward_data_partners` (U6). Each still has a matched flow in the other app.
+- **Questionnaire: 6 held-out flows instead of 12**: the named-research, unpaid-research and partners-live pairs (one location and one health item each).
+- **41 pages** (27 site + 6 held-out + 6 repeats + 2 attention), so the intro now says "41 short situations". The attention items move to positions 14 and 28, about a third and two thirds of the way through.
+- `verdicts.csv` has 33 rows per person, `flows.csv` 27.
+
 ## 0.21.0 (2026-10-29)
 
 Part 2 set-up steps before the chat (proposed Oct 29, 2026; pipeline, Experiment 1). Both are the same in every arm, so the arms still differ only in what the interviewer asks. Wording is DRAFT (`src/part2/sessionText.ts`).

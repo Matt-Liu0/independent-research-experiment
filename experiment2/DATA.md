@@ -189,9 +189,9 @@ Append-only: once written, an event can't be changed or deleted by the participa
 
 ---
 
-## 3. Bramble's 14 flows: IDs and values
+## 3. Bramble's 12 flows: IDs and values
 
-Flows #13 (`save_card`) and #14 (`birthday_deals`) were added in 0.11.0 to cover the financial and demographic categories. They use practice values only (a practice Visa ending 4242, a practice birthday of May 14), never the participant's own.
+Two more flows, `save_card` (Checkout) and `birthday_deals` (Deals), were added in 0.11.0 to cover the financial and demographic categories and removed in 0.22.0 (Nov 2, 2026) to shorten the session. Records from earlier builds may still contain them; the export ignores flows that are no longer defined.
 
 The first value listed shares more; ★ marks the option that shares least (`privacyOption`).
 
@@ -216,16 +216,14 @@ The two levels follow Utz et al. (2019), *(Un)informed Consent*: **nudged** high
 | 2 | `store_precise` | 1 | `exact` · `general` ★ | switch starts `exact` (on) | switch starts `general` (off) |
 | 3 | `courier_live` | 2 | `share` · `dont_share` ★ | switch starts `share` (on) | switch starts `dont_share` (off) |
 | 4 | `checkout_partner_offers` | 2 | `checked` · `unchecked` ★ | box starts `checked` | box starts `unchecked` |
-| 5 | `bg_during_order` | 3 | `allow` (Allow) · `not_now` (Don't Allow) ★ | "Allow" filled | equal buttons |
-| 6 | `sam_share` | 3 | `live_location` · `arrival_only` ★ | "Share my live location" filled | equal buttons |
-| 7 | `bg_between_orders` | 3 | `keep_on` (Change to Always Allow) · `turn_off` (Keep Only While Using) ★ | "Change to Always Allow" filled | equal buttons |
+| 5 | `bg_during_order` | 2 | `allow` (Allow) · `not_now` (Don't Allow) ★ | "Allow" filled | equal buttons |
+| 6 | `sam_share` | 2 | `live_location` · `arrival_only` ★ | "Share my live location" filled | equal buttons |
+| 7 | `bg_between_orders` | 2 | `keep_on` (Change to Always Allow) · `turn_off` (Keep Only While Using) ★ | "Change to Always Allow" filled | equal buttons |
 | 8 | `deals_personalized` | 4 | `on` · `off` ★ | switch starts `on` | switch starts `off` |
 | 9 | `deals_partner_offers` | 4 | `on` · `off` ★ | switch starts `on` | switch starts `off` |
 | 10 | `reward_keel` | 5 | `accept` (Accept, +200 pts) · `decline` (Decline) ★ | "Accept" filled | equal buttons |
 | 11 | `reward_university` | 5 | `accept` (Accept, +100 pts) · `decline` (Decline) ★ | "Accept" filled | equal buttons |
 | 12 | `reward_data_partners` | 5 | `accept` (Accept, +150 pts) · `decline` (Decline) ★ | "Accept" filled | equal buttons |
-| 13 | `save_card` | 2 | `checked` · `unchecked` ★ | box starts `checked` | box starts `unchecked` |
-| 14 | `birthday_deals` | 4 | `on` · `off` ★ | switch starts `on` | switch starts `off` |
 
 **Dependent flows:** #2 applies only if #1 is not `dont_allow`. #7 applies only if #5 is `allow`. Otherwise they're `null` and never settle.
 
@@ -251,8 +249,6 @@ Each flow is also described as a Contextual Integrity information flow, with the
 | 10 | `reward_keel` | bramble → keel_auto_insurance (third party, commercial) | digital_activity: location_history, exact, historical, identified | insurance_pricing | with_consent_for_payment | ongoing | 200 | nudged_choice / active_choice |
 | 11 | `reward_university` | bramble → university_traffic_lab (third party, research) | digital_activity: location_history, exact, historical, deidentified | research | with_consent_for_payment | ongoing | 100 | nudged_choice / active_choice |
 | 12 | `reward_data_partners` | bramble → data_partners (third party, commercial) | digital_activity: location_history, exact, historical, identified | market_research | with_consent_for_payment | ongoing | 150 | nudged_choice / active_choice |
-| 13 | `save_card` | participant → bramble (first party) | financial: payment_card, exact, static, identified | faster_checkout | with_consent | ongoing | 0 | opt_out / opt_in |
-| 14 | `birthday_deals` | participant → bramble_deals (first party, secondary use) | demographic: birthday, exact, static, identified | birthday_offers | with_consent | ongoing | 0 | opt_out / opt_in |
 
 Subject is always the participant. **Information categories** follow Matt's list: `health` (Medical and Health), `financial`, `demographic` (Demographic and Biographical), `communication` (Communal and Communicative), `digital_activity` (Digital Activity and Behavioral, which includes location tracking), `biometric` (Biometrical and Physical). Within a category, `attribute` says what is shared, and `granularity` (exact / approximate / unspecified), `temporality` (point_in_time / continuous / historical / static) and `identifiability` (identified / deidentified) describe it. **Consent forms** (worked out from each level's settings, so they always match the app):
 - `opt_out`: sharing is preset; the participant must act to stop it
@@ -343,7 +339,7 @@ Pilot runs use `pilot_pids` and `pilot_meta`.
 
 Every row uses a **study code** (`P001`, `P002`, … or `PL001`, … for pilots) instead of the participant code. Codes go in order of arrival. Withdrawn participants are left out.
 
-### `flows.csv`: one row per participant × flow (29 rows each: 14 Bramble, 15 Stride). The main Experiment 2 table
+### `flows.csv`: one row per participant × flow (27 rows each: 12 Bramble, 15 Stride). The main Experiment 2 table
 
 Only participants who were assigned a level have rows.
 
@@ -390,7 +386,7 @@ Includes everyone who arrived, also people who declined consent or failed the de
 
 `studyCode`, then every event field from section 2, in phone order (`pageLoadAt`, then `seq`). Lists are joined with `;`, and nested objects (such as a task `outcome`) are written as JSON.
 
-### `flow-codebook.csv`: one row per flow (29 rows)
+### `flow-codebook.csv`: one row per flow (27 rows)
 
 `flowId`, `app`, `counterpart`, `nudgeType`, `unit`, `unitScreen`, `expectedTask`, `screen`, `options`, `privacyOption`, `dependsOn`, `consentForm_nudged`, `consentForm_neutral`, `verdictMap` (e.g. `while_using=allow;once=ask;dont_allow=block`), the `ci_*` columns and `ci_statement`. Use it to match the site flows with the Part 2 questionnaire items.
 
@@ -450,7 +446,7 @@ Design and item wording: `docs/superpowers/specs/2026-10-14-part2-questionnaire-
 | `stage` | Where they are | `device` → `briefing` → `instructions` → `chat` → `filler` → `intro` → `practice` → `comprehension` → `items` → `recall` → `background` → `debrief` → `done` (from 0.18.0; before, `device` went straight to `intro` and `background` to `done`. `instructions` from 0.21.0; a `connect` page between `briefing` and `instructions` existed only in preview builds of 0.21.0) |
 | `writtenInstructions` | The instructions box before the chat (D0), the same in every arm: `{text, chars, ms}`. `text` is trimmed and may be empty (left blank); `ms` is visible time on the page. Free text: read before sharing. The interviewer never sees it | `null` before 0.21.0 or until the page is done |
 | `device` | As in Part 1; `passedCheck` means a computer | |
-| `sequence` | The page order, saved before the first item | list of `{kind: 'item', itemId, wording: 'A'/'B'}` or `{kind: 'attention', itemId}` (55 pages) |
+| `sequence` | The page order, saved before the first item | list of `{kind: 'item', itemId, wording: 'A'/'B'}` or `{kind: 'attention', itemId}` (41 pages: 27 site flows, 6 held-out flows, 6 repeats and 2 attention items at positions 14 and 28; 55 pages before 0.22.0) |
 | `answers.<slot>` | One answer per page, keyed `itemId:A`, `itemId:B` or `attention_1` / `attention_2` | `{itemId, wording, position, verdict: allow/ask/block, confidence: 1–5, ms, changes}` |
 | `practice` | The unscored practice item | `{verdict, confidence}` |
 | `comprehension` | "Which option means the app should check with you every time?" (correct: `ask`) | `{attempts: [...], passed}`; at most two attempts |
@@ -475,7 +471,7 @@ How the interview runs (all in `functions/src/interview.ts`, wording in `functio
 
 ### Export CSVs
 
-- **`verdicts.csv`** (main Part 2 table): one row per person × battery item (41 per person).
+- **`verdicts.csv`** (main Part 2 table): one row per person × battery item (33 per person; 41 before 0.22.0).
   - **Stated verdict:** `verdict`, `confidence`, `wording`, `position`, `ms` and `changes` are the first time the item was asked.
   - **Repeat:** `verdict2`, `confidence2` and `position2` are the repeat. `unstable` means the two verdicts differ; `uncertain` means both confidences were 1 or 2 (repeated items only).
   - **Site:** `siteFriction`, `siteStatus`, `siteFirstVerdict`, `siteFinalVerdict` and `sayDoAgree` come from the same person's row in `flows.csv` (site flows only).

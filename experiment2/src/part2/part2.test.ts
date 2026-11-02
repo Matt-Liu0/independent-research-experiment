@@ -14,20 +14,21 @@ function seeded(seed: number) {
 }
 
 describe('battery', () => {
-  it('has every site flow once, 12 held-out flows and 12 repeats (53 scored items)', () => {
+  it('has every site flow once, 6 held-out flows and 6 repeats (39 scored items)', () => {
     expect(SITE_ITEMS.map((i) => i.id)).toEqual(ALL_FLOWS.map((f) => f.id))
-    expect(HELD_OUT_ITEMS).toHaveLength(12)
-    expect(REPEATED_ITEMS).toHaveLength(12)
-    expect(BATTERY.length + REPEATED_ITEMS.length).toBe(53)
+    expect(SITE_ITEMS).toHaveLength(27)
+    expect(HELD_OUT_ITEMS).toHaveLength(6)
+    expect(REPEATED_ITEMS).toHaveLength(6)
+    expect(BATTERY.length + REPEATED_ITEMS.length).toBe(39)
     expect(new Set(BATTERY.map((i) => i.id)).size).toBe(BATTERY.length)
   })
 
-  it('repeats one flow per decision screen in each app, as matched pairs', () => {
+  it('repeats one matched flow per decision screen, alternating apps', () => {
     const repeated = REPEATED_ITEMS.map((id) => ALL_FLOWS.find((f) => f.id === id)!)
-    for (const app of ['bramble', 'stride'] as const) {
-      expect(repeated.filter((f) => f.app === app).map((f) => f.unit).sort()).toEqual(['U1', 'U2', 'U3', 'U4', 'U5', 'U6'])
-    }
-    for (const f of repeated.filter((r) => r.app === 'stride')) expect(REPEATED_ITEMS).toContain(f.counterpart)
+    expect(repeated.map((f) => `${f.unit}:${f.app}`).sort()).toEqual([
+      'U1:bramble', 'U2:stride', 'U3:bramble', 'U4:stride', 'U5:bramble', 'U6:stride',
+    ])
+    for (const f of repeated) expect(f.counterpart, f.id).not.toBeNull()
   })
 
   it('never names Bramble or Stride, and words every reward in dollars', () => {
@@ -42,7 +43,10 @@ describe('battery', () => {
   })
 
   it('pairs held-out flows across the two information types, each one or more parameters from every site flow', () => {
-    expect(HELD_OUT_ITEMS.filter((i) => i.domain === 'bramble')).toHaveLength(6)
+    expect(HELD_OUT_ITEMS.filter((i) => i.domain === 'bramble')).toHaveLength(3)
+    expect(HELD_OUT_ITEMS.map((i) => i.id.replace(/^ho_(loc|hl)_/, '')).sort()).toEqual(
+      ['named_research', 'named_research', 'partners_live', 'partners_live', 'unpaid_research', 'unpaid_research'],
+    )
     for (const item of HELD_OUT_ITEMS) {
       const { distance } = heldOutDistance(item.ci, SITE_ITEMS)
       expect(distance, item.id).toBeGreaterThanOrEqual(1)
@@ -57,7 +61,7 @@ describe('order', () => {
     const orders = Array.from({ length: 200 }, () => buildSequence(random))
     for (const slots of orders) {
       expect(validSequence(slots)).toBe(true)
-      expect(slots).toHaveLength(55)
+      expect(slots).toHaveLength(41)
       for (const pos of ATTENTION_POSITIONS) expect(slots[pos - 1].kind).toBe('attention')
     }
     expect(new Set(orders.map((o) => o.map(slotKey).join(','))).size).toBe(200)

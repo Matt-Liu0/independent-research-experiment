@@ -2,6 +2,8 @@
 
 Oct 14, 2026 · First piece of Part 2 · Decisions by Matt (Oct 14): questionnaire first, all 29 site flows plus 12 repeats, built on our own site.
 
+> **Cut on Nov 2, 2026 (Matt):** 41 pages instead of 55. `save_card` and `birthday_deals` were removed from Bramble and from the questionnaire (27 site flows); 6 repeats instead of 12 (one per decision screen, alternating apps: `store_location`, `stride_coach_live`, `sam_share`, `stride_hr_all_day`, `deals_partner_offers`, `stride_reward_data_partners`); 6 held-out flows instead of 12 (the named-research, unpaid-research and partners-live pairs); attention items at positions 14 and 28. The tables below show the Oct 14 design; `experiment2/ITEM-MAP.md` lists the current items.
+
 > **Out of date in part (Oct 27, 2026):** the norming survey and Prolific recruitment were dropped. Participants are Colgate students with participant codes, paid by gift card; RQ1.2 compares the interview arms. Current state: `Research Methodology Pipeline.md` and `experiment2/RECRUITMENT.md`. This record is kept as written.
 
 ## What it's for

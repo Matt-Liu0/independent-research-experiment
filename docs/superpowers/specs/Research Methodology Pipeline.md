@@ -62,10 +62,10 @@ There is no separate no-elicitation (norming) sample (decided Oct 27, 2026, to s
 **Materials.**
 
 * *Scenario.* Each session covers the two domains of the Experiment 2 apps: location data (grocery delivery) and health data (fitness). The interviewer gives each domain a fixed share of the elicitation time, so the held-out health items have a matching part of the transcript (decided Oct 18, 2026). Each flow coordinate has a fixed vocabulary taken from the policy schema in the evaluation design.  
-* *Flow battery.* 41 flows (decided Oct 14, 2026), plus 12 reworded repeats, for 53 scored items:  
-  * Site flows: all 29 decision points of Experiment 2 (Bramble's 14 and Stride's 15), so every flow on the site has both A(f) and S(f).  
+* *Flow battery.* 33 flows plus 6 reworded repeats, for 39 scored items (decided Oct 14, 2026; cut on Nov 2, 2026 from 41 flows and 12 repeats, 53 items, to shorten the session):  
+  * Site flows: all 27 decision points of Experiment 2 (Bramble's 12 and Stride's 15), so every flow on the site has both A(f) and S(f).  
   * Training flows **T** are the cases shown in the case-based arm, chosen from the site flows when the interview is designed. The structured arm's prompts name the same coordinate values.  
-  * Held-out flows **H** combine values that appear in T but never together. They are split into three levels by parameter distance from T. Twelve are written so far (6 location, 6 health, as matched pairs), at distance 1 or 2 from the nearest site flow. Once T is fixed, distances are recomputed against T and level-3 items are added (decided Oct 18, 2026).  
+  * Held-out flows **H** combine values that appear in T but never together. They are split into three levels by parameter distance from T. Six are used (3 location, 3 health, as matched pairs: named research, unpaid research and partners' live access), at distance 1 or 2 from the nearest site flow; six more were written and cut on Nov 2, 2026. Once T is fixed, distances are recomputed against T and level-3 items are added (decided Oct 18, 2026).  
 * H is defined by the materials, not by what a given participant happened to mention, so it is the same across arms.  
 * *Vignettes.* Every flow uses one template: "\[Recipient\] wants your \[attribute\] to \[aim\], \[condition\]." Only the wording for a changed coordinate differs between vignettes. So when two verdicts differ, the difference can be traced to the parameter that changed.  
 * *Item wording* (decided Oct 14, 2026). Items name a generic app ("your grocery delivery app", "your fitness app"), not Bramble or Stride: naming them would remind Experiment 2 participants of what they chose. Rewards are stated in dollars (100 points = $1.00). Items describe the flow only, with no default, highlighting, streak, friend count or tier, so for nudged and gamified flows the say–do gap is measured against the person's view of the bare flow.
@@ -76,7 +76,7 @@ There is no separate no-elicitation (norming) sample (decided Oct 27, 2026, to s
 2. Set-up, the same in every arm (built Oct 29, 2026, wording in draft): the page says the assistant will work in a grocery delivery app and a fitness app, and the participant writes standing instructions in one text box (D0, about 2 minutes; may be left empty). The interviewer never sees D0.  
 3. Elicitation in the assigned arm (about 15 minutes).  
 4. A short unrelated filler task (1.5 minutes; shortened from 3 to 2 on Oct 27 and to 1.5 on Oct 29, 2026).  
-5. Stated-verdict questionnaire: an introduction, one practice item and a comprehension check ("Which option means the app should check with you every time?"), then the 53 items, one per page, in a random order per person, with two attention items at positions 18 and 36 (55 pages). Every item is answered Allow / Ask me / Block, each with a confidence rating from 1 (not at all sure) to 5 (completely sure). Twelve site flows are asked twice, reworded and at least 20 items apart: one per decision screen in each app, so the 6 Bramble and 6 Stride repeats are matched pairs.  
+5. Stated-verdict questionnaire: an introduction, one practice item and a comprehension check ("Which option means the app should check with you every time?"), then the 39 items, one per page, in a random order per person, with two attention items at positions 14 and 28 (41 pages). Every item is answered Allow / Ask me / Block, each with a confidence rating from 1 (not at all sure) to 5 (completely sure). Six site flows are asked twice, reworded and at least 20 items apart: one per decision screen, alternating apps (Bramble on U1, U3, U5; Stride on U2, U4, U6), each with a matched flow in the other app.  
 6. A recall check (Experiment 2 participants only): six questions about what they chose on the site, three per app, each with an "I don't remember" option.  
 7. A short background survey: a standard privacy-concern scale (IUIPC; Malhotra et al., 2004), age range, gender (optional) and how often they use AI assistants.  
 8. Full debrief, disclosing the cover story of Experiment 2.  
@@ -95,7 +95,7 @@ The cost is that participants may answer the questionnaire in line with what the
   * terms with no clean match in the vocabulary.  
 * *Aided preferences (structured arm).* Answers the participant appears to form on the spot, marked by hesitation or "now that you mention it." We predict these are less stable across the repeated items, which links this measure to RQ1.3.  
 * *Elicitation effect.* Differences in S(H) between the structured and case-based arms and the open-ended arm. We model these with mixed-effects ordinal regression (allow \> ask \> block), with random effects for participant and flow. The questionnaire is identical across arms and assignment is random, so any systematic difference is caused by the elicitation format.  
-* *Consistency.* Agreement on the 12 repeated items within the session, reported as each participant's agreement rate and as Cohen's κ pooled over participants. Per-participant κ is secondary, because 12 pairs with three categories give noisy per-person values (decided Oct 18, 2026). Flows a participant answers inconsistently are flagged, and later experiments score agent errors on those flows separately.  
+* *Consistency.* Agreement on the 6 repeated items within the session, reported as each participant's agreement rate and as Cohen's κ pooled over participants. Per-participant κ is not reported, because 6 pairs with three categories are too few for a per-person value (decided Oct 18, 2026). Flows a participant answers inconsistently are flagged, and later experiments score agent errors on those flows separately.  
 * *Confidence shift* (proposed Oct 18, 2026, for review). Confidence ratings (1–5) on S(H) compared between the structured and case-based arms and the open-ended arm, with random effects for participant and flow. Talking a preference through may make people surer of it even when the verdict doesn't change.  
 * *Cost.* Elicitation time and number of turns.
 
@@ -169,7 +169,7 @@ Studies of consent interfaces show that defaults and button asymmetry shift choi
 
 **Environment.** The site contains two simulated mobile web apps, used in one session in a balanced random order (decided Oct 8, 2026): a fictional grocery delivery service ("Bramble") and a fictional fitness and health app ("Stride"). It is presented to participants as trying two new apps ("use each app as if it were your own account"). It is deliberately not called a usability test: a testing frame invites exploring rather than using, so final settings would reflect curiosity.
 
-* **Bramble:** six ordinary tasks (find a store, order an item, track a delivery, save deals, redeem a reward, change the address) with 14 privacy decision points, mostly location, plus a saved card (financial) and birthday deals (demographic). Task 6 leads to the Account settings page, where every setting can be revisited.
+* **Bramble:** five ordinary tasks (find a store; order and tell Sam when it arrives; save deals; redeem a reward; change the address) with 12 privacy decision points, mostly location. (Tracking the delivery became part of the order task on Oct 27, 2026; a saved card and birthday deals were cut on Nov 2, 2026.) Task 6 leads to the Account settings page, where every setting can be revisited.
 * **Stride:** four tasks (connect health data, a guided workout, save training plans, unlock a sleep report) with 15 decision points. Twelve each mirror one of Bramble's: the same decision screen, recipient type, consent condition, points and button wording, but health information instead of location (e.g. location history → an auto insurer becomes heart-rate history → a health insurer). The matched pairs vary information type while holding everything else fixed.
 * **Stride's three gamified flows** (decided Oct 13, 2026) have no Bramble counterpart. Each uses one game mechanic common in fitness apps, with no points attached: a streak (U1: "3-day streak. Don't lose it", turning on background step counting), social proof (U4: "8 of your 12 friends share their workouts", posting the route and heart rate on a public community map) and a status tier (U6: "You're 40 points from Gold", connecting a sleep tracker). Each is analyzed against the same person's Part 2 verdict on the bare flow; with one flow per mechanism, mechanisms are not compared with each other.
 * The same nudge pattern applies in both apps, so each matched pair is always at the same friction level for a given person.
@@ -235,7 +235,7 @@ A flow is also marked unstable when both answers are given with confidence 1 or 
 
 **Outputs passed on.**
 
-* For each participant: A(f) on the 29 site flows, with the active/passive flag and decision time; friction condition; suspicion flag; and the flow classification.  
+* For each participant: A(f) on the 27 site flows, with the active/passive flag and decision time; friction condition; suspicion flag; and the flow classification.  
 * The mapping from decision points to flows. Experiment 4 can reuse it to evaluate the agent's enforced policy on exactly these flows. Alternatively, the enforcer could be wired into the same site, so the agent's policy makes the same decisions the participant ma
 
 [App Design Interface](https://drive.google.com/open?id=1y2GrndrXJlc2dJuKwGFinWwVZm3o9DuN)
@@ -274,7 +274,7 @@ The design mirrors the human side item for item:
 **Materials.**
 
 * *Transcripts.* The 90 transcripts D from Experiment 1, de-identified.  
-* *Battery.* The same 41 flows plus 12 reworded repeats of site flows (53 items). They are generated from the shared flow file, so the wording is identical to what participants saw. The response format is also identical: allow / block / ask me, with confidence 1–5.  
+* *Battery.* The same 33 flows plus 6 reworded repeats of site flows (39 items). They are generated from the shared flow file, so the wording is identical to what participants saw. The response format is also identical: allow / block / ask me, with confidence 1–5.  
 * *Policy schema.* The 6-coordinate rule schema from the evaluation design, with the fixed vocabulary, plus:  
   * an ASK modality, so the policy can express "ask me";  
   * two provenance fields on every rule: whether it was *stated* or *inferred*, and a supporting quote from D.  
@@ -287,11 +287,11 @@ The design mirrors the human side item for item:
 
 **Procedure** (for each transcript × model × run).
 
-1. **Verdict probe.** For each of the 53 items, a fresh call containing the system prompt, D, and the one item. The agent returns a verdict, a confidence rating, and a one-sentence justification that either quotes D or says "not discussed."  
+1. **Verdict probe.** For each of the 39 items, a fresh call containing the system prompt, D, and the one item. The agent returns a verdict, a confidence rating, and a one-sentence justification that either quotes D or says "not discussed."  
 2. **Policy emission.** A fresh call containing the system prompt, D, the schema, and the evaluation rules. The agent returns R\_int as JSON. If it fails schema validation, the agent gets one retry with the error message. If it fails again, it is recorded as an emission failure, counted rather than dropped.  
 3. **Interpretation.** The interpreter evaluates R\_int on the battery to produce V\_int.
 
-The prior-only baseline repeats step 1 without D. Putting D at the start of every prompt lets the provider cache it across the 53 items.
+The prior-only baseline repeats step 1 without D. Putting D at the start of every prompt lets the provider cache it across the 39 items.
 
 **Measures.**
 
@@ -321,9 +321,9 @@ The main analysis is a mixed-effects logistic regression of correctness on model
 
 **Scale.**
 
-* Verdict probe: 90 transcripts × 4 models × 3 runs × 53 items ≈ 57,240 calls.  
+* Verdict probe: 90 transcripts × 4 models × 3 runs × 39 items ≈ 42,120 calls.  
 * Emission: 1,080 calls (about 1,190 with retries).  
-* Prior-only baseline: 4 models × 3 runs × 53 items ≈ 640 calls.
+* Prior-only baseline: 4 models × 3 runs × 39 items ≈ 470 calls.
 
 **Outputs used in analysis.** None of these are shown to any agent.
 
@@ -404,7 +404,7 @@ The main analysis is a mixed-effects logistic regression of correctness on model
 
 ### **Measures.**
 
-* ### Action fidelity (primary): A\_agent vs. S on the 29 site flows, by model × arm × condition. Errors are reported as over-permission, over-restriction or deferral.
+* ### Action fidelity (primary): A\_agent vs. S on the 27 site flows, by model × arm × condition. Errors are reported as over-permission, over-restriction or deferral.
 
 * ### Agent statement–action gap: what the agent did on the site vs. what it said in Experiment 3, by direction. Each mismatch gets one cause code:
 
@@ -444,4 +444,4 @@ The main analysis is a mixed-effects logistic regression of correctness on model
 
 ### **Outputs used in analysis.**
 
-### Per episode: A\_agent on the 29 site flows with start state, changes, tool calls and ask\_user calls; the final settings state; the report with its completion and overclaim codes; and task completion. As before, the agent never sees S or A.
+### Per episode: A\_agent on the 27 site flows with start state, changes, tool calls and ask\_user calls; the final settings state; the report with its completion and overclaim codes; and task completion. As before, the agent never sees S or A.

@@ -237,7 +237,7 @@ describe('friction by decision screen (within each participant)', () => {
     for (const box of screen.getAllByRole('checkbox')) expect(box).toBeChecked()
 
     await user.click(tab('Deals'))
-    expect(screen.getAllByRole('switch').map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'true', 'true'])
+    expect(screen.getAllByRole('switch').map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'true'])
 
     await user.click(tab('Rewards'))
     expect(screen.getAllByRole('button', { name: 'Accept' })[0]).toHaveAttribute('data-emphasis', 'plain')

@@ -129,7 +129,6 @@ describe('Checkout', () => {
     expect(place).toBeEnabled()
     expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'false')
     expect(screen.getByRole('checkbox', { name: /partner brands based on my delivery address/ })).not.toBeChecked()
-    expect(screen.getByRole('checkbox', { name: /Save this card/ })).not.toBeChecked()
 
     await user.click(place)
 
@@ -139,7 +138,6 @@ describe('Checkout', () => {
     expect(settled.map((e) => [e.flowId, e.value])).toEqual([
       ['courier_live', 'dont_share'],
       ['checkout_partner_offers', 'unchecked'],
-      ['save_card', 'unchecked'],
     ])
   })
 
@@ -147,12 +145,10 @@ describe('Checkout', () => {
     const user = userEvent.setup()
     const app = renderApp('nudged', ready)
     expect(screen.getByRole('checkbox', { name: /partner brands based on my delivery address/ })).toBeChecked()
-    expect(screen.getByRole('checkbox', { name: /Save this card/ })).toBeChecked()
     await user.click(screen.getByRole('button', { name: /place order/i }))
     expect(app.eventsOf('settled')).toEqual([
       expect.objectContaining({ flowId: 'courier_live', value: 'share', changedFromDefault: false }),
       expect.objectContaining({ flowId: 'checkout_partner_offers', value: 'checked', changedFromDefault: false }),
-      expect.objectContaining({ flowId: 'save_card', value: 'checked', changedFromDefault: false }),
     ])
   })
 
@@ -201,7 +197,7 @@ describe('Deals', () => {
   it('neutral: both deal settings start off, deals show right away, and settings settle on leaving', async () => {
     const user = userEvent.setup()
     const app = renderApp('neutral', { screen: 'deals' })
-    expect(screen.getAllByRole('switch').map((s) => s.getAttribute('aria-checked'))).toEqual(['false', 'false', 'false'])
+    expect(screen.getAllByRole('switch').map((s) => s.getAttribute('aria-checked'))).toEqual(['false', 'false'])
     await user.click(screen.getByRole('button', { name: 'Save Honeycrisp apples' }))
     await user.click(screen.getByRole('button', { name: 'Save Greek yogurt, 32 oz' }))
     expect(app.state().savedDeals).toEqual(['apples', 'yogurt'])
@@ -211,13 +207,12 @@ describe('Deals', () => {
     expect(app.eventsOf('settled').map((e) => [e.flowId, e.value])).toEqual([
       ['deals_personalized', 'off'],
       ['deals_partner_offers', 'off'],
-      ['birthday_deals', 'off'],
     ])
   })
 
   it('nudged: shows deals straight away with both switches on', () => {
     renderApp('nudged', { screen: 'deals' })
-    expect(screen.getAllByRole('switch').map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'true', 'true'])
+    expect(screen.getAllByRole('switch').map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'true'])
     expect(screen.getByRole('button', { name: 'Save Sourdough loaf' })).toBeInTheDocument()
   })
 })

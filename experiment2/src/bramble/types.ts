@@ -15,8 +15,6 @@ export const FLOW_IDS = [
   'reward_keel',
   'reward_university',
   'reward_data_partners',
-  'save_card',
-  'birthday_deals',
 ] as const
 
 export type FlowId = (typeof FLOW_IDS)[number]

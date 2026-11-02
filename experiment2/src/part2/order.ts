@@ -37,11 +37,11 @@ export function validSequence(slots: readonly Slot[]): boolean {
 }
 
 /**
- * A random order: every battery item once, the 12 repeated flows a second time in the other
+ * A random order: every battery item once, the repeated flows a second time in the other
  * wording (which wording comes first is random) at least MIN_REPEAT_GAP positions later, and
  * the attention items at fixed positions.
  *
- * Shuffling alone almost never keeps all 12 gaps (about 1 in 100,000), so the repeated flows
+ * Shuffling alone often breaks a gap, so the repeated flows
  * are placed first, in random order, each at a random pair of free positions far enough apart
  * (starting over in the rare case none is left). The other items fill the remaining positions
  * in random order. Gaps are counted without the attention items, which only widen them.

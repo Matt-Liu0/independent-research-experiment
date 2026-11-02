@@ -18,7 +18,7 @@ The case arm is only assigned once the case set T is filled in (`functions/src/p
 
 | File | One row per | Use it for |
 |---|---|---|
-| `flows.csv` | participant × site flow (29 each) | **Experiment 2**: what people did |
+| `flows.csv` | participant × site flow (27 each) | **Experiment 2**: what people did |
 | `participants.csv` | Part 1 participant | exclusions, timing, ease, SUS, bonus |
 | `events.csv` | event | anything not summarized elsewhere (timing, back-and-forth) |
 | `verdicts.csv` | Part 2 participant × battery item (41 each) | **Experiment 1**: what people said, joined to what they did |

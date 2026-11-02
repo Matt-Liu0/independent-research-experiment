@@ -118,7 +118,6 @@ export function Checkout() {
       <div className="card">
         <div className="eyebrow-small">Payment</div>
         <div className="strong">Practice Visa ending 4242</div>
-        <FlowChoice flowId="save_card" />
       </div>
 
       <FlowChoice flowId="checkout_partner_offers" />
