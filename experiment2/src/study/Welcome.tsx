@@ -43,8 +43,8 @@ export function Welcome({ participant, advance }: StageProps) {
         paid to you as a bonus (100 points or coins = $1.00).
       </p>
       <p>
-        Both apps use practice details (an address, a simulated location and practice health data), so you never need to
-        give your real ones.
+        Both apps use practice details (an address, a spot in your ZIP code's area in place of your real location, and
+        practice health data), so you never need to give your real ones.
       </p>
       <div className="field">
         <label htmlFor="name">What should the apps call you?</label>

@@ -34,7 +34,7 @@ export const INSTRUCTIONS = {
 }
 
 export const DEBRIEF = {
-  version: 'debrief-v1-draft',
+  version: 'debrief-v2-draft',
   isDraft: true,
   title: 'About this study',
   paragraphs: [
@@ -42,7 +42,7 @@ export const DEBRIEF = {
     "In Part 1 we described Bramble and Stride as new apps to try. They were made by the research team for this study, and they weren't real products. We didn't tell you this at the start, because we wanted to see how people handle privacy choices when they come up during everyday tasks, rather than when they are thinking about privacy.",
     'Some of the choices in the apps were shown in different ways for different screens: for example, a sharing option switched on already, or highlighted as the main button. This lets us see how the design of a screen changes what people choose.',
     'In Part 2 we asked what you would want. Comparing what people say with what they do helps us understand how well AI assistants that act for people can follow their wishes.',
-    'The apps used practice details only: no real location or health data was collected, and no information was ever shared with any company. Your choices in the apps had no effect outside the study, other than your bonus.',
+    "The apps used practice details only: no real location or health data was collected, and no information was ever shared with any company, apart from your Part 2 messages, which were sent to Anthropic to write the assistant's replies. Your choices in the apps had no effect outside the study, other than your bonus.",
   ],
   withdraw:
     'Now that you know the purpose of the study, you can ask us to remove your data. Your payment is not affected.',
