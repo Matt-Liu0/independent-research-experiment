@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
   CHAT_OPENED,
   DOMAIN_MS,
@@ -33,9 +33,17 @@ function exchange(s: InterviewState, said: string, modelReply = 'Can you tell me
   return next
 }
 
-afterEach(() => {
+// Tests set their own case sets; the real T is put back afterwards.
+const REAL_T = { location: [...CASE_SET.location], health: [...CASE_SET.health] }
+
+beforeEach(() => {
   CASE_SET.location.length = 0
   CASE_SET.health.length = 0
+})
+
+afterEach(() => {
+  CASE_SET.location.splice(0, Infinity, ...REAL_T.location)
+  CASE_SET.health.splice(0, Infinity, ...REAL_T.health)
 })
 
 describe('arm assignment', () => {

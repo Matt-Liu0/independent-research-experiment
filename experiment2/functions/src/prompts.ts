@@ -2,7 +2,7 @@
 // and the case set T. DRAFT: written from the pipeline spec (Experiment 1, "Design" and
 // "Materials") for Matt and Noah to review. Nothing here should launch with isDraft: true.
 
-export const PROMPTS_VERSION = 'interview-v1-draft'
+export const PROMPTS_VERSION = 'interview-v2-draft'
 export const PROMPTS_ARE_DRAFT = true
 
 export type Arm = 'open' | 'structured' | 'case'
@@ -20,12 +20,32 @@ const DOMAIN_SCOPE: Record<Domain, string> = {
 
 /**
  * The case set T for the case-based arm: site flows shown as cases, in a fixed order per domain.
- * EMPTY until Matt and Noah choose T. While either domain is empty, the case arm is not assigned.
- * Each text should be a site flow's questionnaire wording (src/part2/items.ts, wording A).
+ * Each text is the flow's questionnaire wording (src/part2/items.ts, wording A). DRAFT, proposed
+ * Nov 3, 2026, for Matt and Noah to review: six per domain, matched pairs across the domains
+ * (the same position is the same recipient and condition, with health information in place of
+ * location). Chosen so each held-out flow combines values seen in T but never together:
+ * named research = the university lab (no name) + an identified recipient; unpaid research =
+ * data companies (paid) + an unpaid flow; partners' live access = partner brands (history) +
+ * live sharing (the housemate). The insurers (reward_keel, stride_reward_insurer) are left out
+ * to fit 7.5 minutes; they are the first to add if the pilot shows time to spare.
  */
 export const CASE_SET: Record<Domain, { id: string; text: string }[]> = {
-  location: [],
-  health: [],
+  location: [
+    { id: 'store_location', text: "Your grocery delivery app wants your current location to show nearby stores and what they have in stock, while you're using the app." },
+    { id: 'sam_share', text: 'Your housemate wants your live location, not just the arrival time, until your grocery order arrives.' },
+    { id: 'bg_between_orders', text: 'Your grocery delivery app wants your location in the background at all times, even when you have no order, to speed up future orders.' },
+    { id: 'deals_partner_offers', text: 'Partner brands of your grocery delivery app want your location history to send you marketing offers.' },
+    { id: 'reward_university', text: 'A university traffic research lab wants your location history from your grocery delivery app, with your name removed, for research, and the app gives you a $1.00 reward.' },
+    { id: 'reward_data_partners', text: 'Data companies want your location history from your grocery delivery app for market research, and the app gives you a $1.50 reward.' },
+  ],
+  health: [
+    { id: 'stride_health_access', text: "Your fitness app wants your heart rate, sleep and activity data to track your workouts and show your daily stats, while you're using the app." },
+    { id: 'stride_sam_share', text: "Your housemate wants to follow your live workout (heart rate and progress), not just a summary, while you're working out." },
+    { id: 'stride_hr_all_day', text: "Your fitness app wants your heart rate in the background at all times, even when you're not working out, to track your fitness." },
+    { id: 'stride_plans_partner_offers', text: 'Partner brands of your fitness app want your health history to send you marketing offers.' },
+    { id: 'stride_reward_university', text: 'A university sleep research lab wants your sleep history from your fitness app, with your name removed, for research, and the app gives you a $1.00 reward.' },
+    { id: 'stride_reward_data_partners', text: 'Data companies want your activity history from your fitness app for market research, and the app gives you a $1.50 reward.' },
+  ],
 }
 
 export function caseArmReady(): boolean {
@@ -40,7 +60,9 @@ Rules for every message:
 - Use their own words when you refer back to something they said.
 - Don't mention research, studies, experiments, or any app by name.
 - Write plain conversational text: no lists, headings, bold, or emoji.
-- If they say something unrelated or unclear, briefly bring the conversation back to how they want their information handled.`
+- If an answer is unclear (for example "hmm" or "depends"), ask once what they mean. If it is still unclear, accept it as it is and move on; never ask about the same point a third time.
+- Treat "I don't mind", "I don't care" or "whatever" as a real answer that they are fine with it. Don't push for more.
+- If they say something unrelated or ask you a question that isn't about their preferences, don't answer it: say in one short sentence that you'd like to stay on how they want their information handled, then repeat or continue your question.`
 
 const ARM_RULES: Record<Arm, string> = {
   open: `How to ask: only use general follow-up questions, such as "Is there anything else I should keep in mind?" or "Can you tell me more about that?". You may ask them to explain something they said, in their own words. Never name a kind of information, a person or company that might receive it, a purpose, or a condition that they have not mentioned first.`,
@@ -52,7 +74,7 @@ const ARM_RULES: Record<Arm, string> = {
 5. What it is used for: running the service, personalizing, advertising, pricing insurance, research.
 6. Under what conditions: only with their permission, only while using the app, once or ongoing, how long it is kept, in return for a reward.
 If an answer is "it depends", ask what it depends on, then continue. After the sixth, write a short thank-you and end that message with [[NEXT]].`,
-  case: `How to ask: they have just answered several example situations about the current app. Say in one or two sentences the general rule you infer from their answers: what they would allow, what they would block, what they would want to be asked about, and why. Then ask whether that rule is right. If they correct it, restate the corrected rule and ask again. When they confirm it, write a short thank-you and end that message with [[NEXT]].`,
+  case: `How to ask: they have just answered several example situations about the current app. Say in one or two sentences the general rule you infer from their answers: what they would allow, what they would block, what they would want to be asked about, and why. If they were unsure about or didn't answer a situation, say so by name rather than guessing a rule for it. Then ask whether that rule is right. If they correct it, restate the corrected rule and ask again. When they confirm it, write a short thank-you and end that message with [[NEXT]].`,
 }
 
 /** The system prompt for one arm. Fixed for the whole conversation (and cached). */
@@ -73,19 +95,19 @@ export function domainNote(domain: Domain): string {
 export const OPENERS: Record<Arm, Record<Domain, string>> = {
   open: {
     location:
-      "Hi! I'm going to help you with your apps. Let's start with a grocery delivery app. How would you want an app like that to handle information about where you are and where you go?",
+      "Hi! I'm going to help you with your apps, and I'd like to understand your preferences in more detail. Let's start with a grocery delivery app. How would you want an app like that to handle information about where you are and where you go?",
     health:
       'Thanks. Now think about a fitness app. How would you want it to handle your health information, like your heart rate, workouts and sleep?',
   },
   structured: {
     location:
-      "Hi! I'm going to help you with your apps. Let's start with a grocery delivery app and information about where you are. First: which apps or services are you comfortable having your location at all?",
+      "Hi! I'm going to help you with your apps, and I'd like to understand your preferences in more detail. Let's start with a grocery delivery app and information about where you are. First: which apps or services are you comfortable having your location at all?",
     health:
       'Thanks. Now think about a fitness app and your health information, like your heart rate, workouts and sleep. Which apps or services are you comfortable having that information at all?',
   },
   case: {
     location:
-      "Hi! I'm going to help you with your apps. Let's start with a grocery delivery app. I'll describe a few situations; for each, tell me whether you'd allow it, block it, or want to be asked first, and why.",
+      "Hi! I'm going to help you with your apps, and I'd like to understand your preferences in more detail. Let's start with a grocery delivery app. I'll describe a few situations; for each, tell me whether you'd allow it, block it, or want to be asked first, and why.",
     health:
       "Thanks. Now a fitness app. Again I'll describe a few situations; for each, tell me whether you'd allow it, block it, or want to be asked first, and why.",
   },

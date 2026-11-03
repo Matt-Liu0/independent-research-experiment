@@ -49,19 +49,19 @@ export const DEMO_FIXED = {
   openers: {
     open: {
       location:
-        "Hi! I'm going to help you with your apps. Let's start with a grocery delivery app. How would you want an app like that to handle information about where you are and where you go?",
+        "Hi! I'm going to help you with your apps, and I'd like to understand your preferences in more detail. Let's start with a grocery delivery app. How would you want an app like that to handle information about where you are and where you go?",
       health:
         'Thanks. Now think about a fitness app. How would you want it to handle your health information, like your heart rate, workouts and sleep?',
     },
     structured: {
       location:
-        "Hi! I'm going to help you with your apps. Let's start with a grocery delivery app and information about where you are. First: which apps or services are you comfortable having your location at all?",
+        "Hi! I'm going to help you with your apps, and I'd like to understand your preferences in more detail. Let's start with a grocery delivery app and information about where you are. First: which apps or services are you comfortable having your location at all?",
       health:
         'Thanks. Now think about a fitness app and your health information, like your heart rate, workouts and sleep. Which apps or services are you comfortable having that information at all?',
     },
     case: {
       location:
-        "Hi! I'm going to help you with your apps. Let's start with a grocery delivery app. I'll describe a few situations; for each, tell me whether you'd allow it, block it, or want to be asked first, and why.",
+        "Hi! I'm going to help you with your apps, and I'd like to understand your preferences in more detail. Let's start with a grocery delivery app. I'll describe a few situations; for each, tell me whether you'd allow it, block it, or want to be asked first, and why.",
       health:
         "Thanks. Now a fitness app. Again I'll describe a few situations; for each, tell me whether you'd allow it, block it, or want to be asked first, and why.",
     },
@@ -72,20 +72,23 @@ export const DEMO_FIXED = {
 const caseMessage = (index: number, total: number, text: string) =>
   `Situation ${index + 1} of ${total}: ${text} Would you allow this, block it, or want to be asked first?`
 
-/**
- * Example situations for the demo only. The real case set T isn't chosen yet
- * (functions/src/prompts.ts, CASE_SET); these are site flows' questionnaire wording.
- */
-const DEMO_CASES = {
+/** The case set T (functions/src/prompts.ts, CASE_SET), copied for the demo; a test keeps them equal. */
+export const DEMO_CASES = {
   location: [
     "Your grocery delivery app wants your current location to show nearby stores and what they have in stock, while you're using the app.",
+    'Your housemate wants your live location, not just the arrival time, until your grocery order arrives.',
+    'Your grocery delivery app wants your location in the background at all times, even when you have no order, to speed up future orders.',
     'Partner brands of your grocery delivery app want your location history to send you marketing offers.',
-    'A car insurance company wants your location history from your grocery delivery app to offer you a safe-driving discount, and the app gives you a $2.00 reward.',
+    'A university traffic research lab wants your location history from your grocery delivery app, with your name removed, for research, and the app gives you a $1.00 reward.',
+    'Data companies want your location history from your grocery delivery app for market research, and the app gives you a $1.50 reward.',
   ],
   health: [
-    'Your workout coach wants your live heart rate to adjust your pace, during workouts.',
+    "Your fitness app wants your heart rate, sleep and activity data to track your workouts and show your daily stats, while you're using the app.",
+    "Your housemate wants to follow your live workout (heart rate and progress), not just a summary, while you're working out.",
     "Your fitness app wants your heart rate in the background at all times, even when you're not working out, to track your fitness.",
-    'A health insurance company wants your heart-rate and activity history from your fitness app to offer you a wellness discount, and the app gives you a $2.00 reward.',
+    'Partner brands of your fitness app want your health history to send you marketing offers.',
+    'A university sleep research lab wants your sleep history from your fitness app, with your name removed, for research, and the app gives you a $1.00 reward.',
+    'Data companies want your activity history from your fitness app for market research, and the app gives you a $1.50 reward.',
   ],
 }
 

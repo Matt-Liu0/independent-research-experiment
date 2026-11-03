@@ -5,6 +5,15 @@ Every build participants see has a version (`appVersion` on each record). Bump `
 
 
 
+## 0.23.0 (2026-11-03)
+
+Case set T, clearer interviewer rules, and a launch check (Matt, Nov 3). Prompts are still DRAFT (`interview-v2-draft`).
+
+- **Case set T drafted** (`functions/src/prompts.ts`, `CASE_SET`): six site flows per app, matched pairs across the apps: `store_location` / `stride_health_access`, `sam_share` / `stride_sam_share`, `bg_between_orders` / `stride_hr_all_day`, `deals_partner_offers` / `stride_plans_partner_offers`, `reward_university` / `stride_reward_university`, `reward_data_partners` / `stride_reward_data_partners`. Every held-out flow combines values that appear in T. The insurers are left out to fit 7.5 minutes. With T filled, the server now assigns the case arm too. The demo case arm shows the same cases.
+- **Unclear answers:** the interviewer asks once what an unclear answer means, then accepts it; takes "I don't mind" as an answer; steers off-topic messages back in one sentence without answering them; and in the case arm names situations the person was unsure about instead of guessing a rule for them.
+- **Openers:** the first message in every arm now says the assistant would like to understand the person's preferences in more detail (the same text for everyone; it doesn't read the instructions box, which may be empty).
+- **`npm run check:launch`** fails while any `isDraft: true` or `PROMPTS_ARE_DRAFT = true` is left, or T is empty. `npm run build:launch` runs it before the build. `npm run build` (preview and demo) doesn't.
+
 ## 0.22.0 (2026-11-02)
 
 Shorter session (Matt, Nov 2): the questionnaire goes from 55 pages to 41, and Bramble loses two decisions.

@@ -1,11 +1,13 @@
 {
   "name": "experiment2",
   "private": true,
-  "version": "0.22.0",
+  "version": "0.23.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "check:launch": "tsx scripts/check-launch.ts",
+    "build:launch": "npm run check:launch && npm run build",
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
