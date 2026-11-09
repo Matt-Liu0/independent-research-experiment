@@ -5,6 +5,12 @@ Every build participants see has a version (`appVersion` on each record). Bump `
 
 
 
+## 0.25.0 (2026-11-09)
+
+Pilot links start fresh on a new code (Matt, Nov 9). Testers no longer need a private window for each run.
+
+- **Pilot only** (`study/firestoreStore.ts`, `part2/store.ts`): opening a pilot link (`&pilot=1`) with a new code on a browser that already holds a pilot record under another code now signs in as a new anonymous user and starts a new session, instead of "Someone has already taken part on this browser". The same code still resumes. Study links are unchanged: one browser, one code.
+
 ## 0.24.0 (2026-11-03)
 
 Three wording fixes where the participant text didn't match what the site does (Matt, Nov 3). All still DRAFT.

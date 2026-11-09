@@ -1,4 +1,4 @@
-import { onAuthStateChanged, signInAnonymously, type Auth, type User } from 'firebase/auth'
+import { onAuthStateChanged, signInAnonymously, signOut, type Auth, type User } from 'firebase/auth'
 import { addDoc, collection, doc, getDoc, increment, serverTimestamp, setDoc, waitForPendingWrites, type Firestore } from 'firebase/firestore'
 import type { EventSink, StudyEvent } from '../log/logEvent'
 import type { EntryParams } from '../study/types'
@@ -66,9 +66,12 @@ export class FirestorePart2Store implements Part2Store {
   private readonly auth: Auth
   private readonly names: { records: string; pids: string }
 
+  private readonly pilot: boolean
+
   constructor(db: Firestore, auth: Auth, pilot: boolean) {
     this.db = db
     this.auth = auth
+    this.pilot = pilot
     this.names = part2Collections(pilot)
     this.sink = { write: (event) => this.writeEvent(event) }
   }
@@ -79,15 +82,21 @@ export class FirestorePart2Store implements Part2Store {
   }
 
   async start(params: EntryParams): Promise<Part2StartResult> {
-    const user = (await currentUser(this.auth)) ?? (await signInAnonymously(this.auth)).user
+    let user = (await currentUser(this.auth)) ?? (await signInAnonymously(this.auth)).user
     this.uid = user.uid
     const existing = await getDoc(this.ref())
     if (existing.exists()) {
       const record = existing.data() as Part2Doc
-      if (record.participantCode !== params.participantCode) return { kind: 'pid_mismatch' }
-      this.flushPending()
-      this.update({ resumeCount: increment(1) as unknown as number })
-      return { kind: 'resumed', doc: { ...record, resumeCount: record.resumeCount + 1 } }
+      if (record.participantCode === params.participantCode) {
+        this.flushPending()
+        this.update({ resumeCount: increment(1) as unknown as number })
+        return { kind: 'resumed', doc: { ...record, resumeCount: record.resumeCount + 1 } }
+      }
+      if (!this.pilot) return { kind: 'pid_mismatch' }
+      // Pilot links: a new code on a tester's browser starts a fresh session as a new anonymous user.
+      await signOut(this.auth)
+      user = (await signInAnonymously(this.auth)).user
+      this.uid = user.uid
     }
     const pidRef = doc(this.db, this.names.pids, params.participantCode)
     try {

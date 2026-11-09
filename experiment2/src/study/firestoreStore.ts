@@ -1,4 +1,4 @@
-import { onAuthStateChanged, signInAnonymously, type Auth, type User } from 'firebase/auth'
+import { onAuthStateChanged, signInAnonymously, signOut, type Auth, type User } from 'firebase/auth'
 import {
   addDoc,
   collection,
@@ -58,10 +58,13 @@ export class FirestoreStore implements StudyStore {
   private pending: StudyEvent[] = []
   readonly sink: EventSink
 
-  constructor(db: Firestore, auth: Auth, names: CollectionNames) {
+  private readonly pilot: boolean
+
+  constructor(db: Firestore, auth: Auth, names: CollectionNames, pilot = false) {
     this.db = db
     this.auth = auth
     this.names = names
+    this.pilot = pilot
     this.sink = { write: (event) => this.writeEvent(event) }
   }
 
@@ -72,18 +75,24 @@ export class FirestoreStore implements StudyStore {
 
   async start(params: EntryParams): Promise<StartResult> {
     // Anonymous auth persists in this browser, so a reload keeps the same uid.
-    const user = (await currentUser(this.auth)) ?? (await signInAnonymously(this.auth)).user
+    let user = (await currentUser(this.auth)) ?? (await signInAnonymously(this.auth)).user
     this.uid = user.uid
-    const ref = this.participantRef()
 
-    const existing = await getDoc(ref)
+    const existing = await getDoc(this.participantRef())
     if (existing.exists()) {
       const participant = existing.data() as ParticipantDoc
-      if (participant.participantCode !== params.participantCode) return { kind: 'pid_mismatch' }
-      this.flushPending()
-      this.update({ resumeCount: increment(1) as unknown as number })
-      return { kind: 'resumed', participant: { ...participant, resumeCount: participant.resumeCount + 1 } }
+      if (participant.participantCode === params.participantCode) {
+        this.flushPending()
+        this.update({ resumeCount: increment(1) as unknown as number })
+        return { kind: 'resumed', participant: { ...participant, resumeCount: participant.resumeCount + 1 } }
+      }
+      if (!this.pilot) return { kind: 'pid_mismatch' }
+      // Pilot links: a new code on a tester's browser starts a fresh session as a new anonymous user.
+      await signOut(this.auth)
+      user = (await signInAnonymously(this.auth)).user
+      this.uid = user.uid
     }
+    const ref = this.participantRef()
 
     // One record per participant code: claiming a code someone else holds is refused by the rules.
     const pidRef = doc(this.db, this.names.pids, params.participantCode)
