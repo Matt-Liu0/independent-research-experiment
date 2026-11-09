@@ -13,6 +13,7 @@ import type { Entry } from './entry'
 import type { StageProps } from './stageProps'
 import type { StudyStore } from './store'
 import { TaskStage } from './TaskStage'
+import { useSideways } from './useSideways'
 import { nextStage, type DeviceInfo, type ParticipantDoc, type Stage, type TimestampField } from './types'
 import { Welcome } from './Welcome'
 
@@ -51,6 +52,7 @@ export function StudyApp({ entry, store, detect = detectDevice }: Props) {
       : { state: 'blocked', reason: entry.mode === 'agent' ? 'invalid_agent' : 'missing_params' },
   )
   const [participant, setParticipant] = useState<ParticipantDoc | null>(null)
+  const sideways = useSideways()
   // Mirrors `participant` so `advance` can read the latest stage without re-creating callbacks.
   const participantRef = useRef<ParticipantDoc | null>(null)
   const started = useRef(false)
@@ -161,7 +163,7 @@ export function StudyApp({ entry, store, detect = detectDevice }: Props) {
         </div>
       )}
       {Stage ? <Stage key={participant.stage} {...props} /> : <DeviceCheck {...props} detect={detect} skipCheck={entry.skipDeviceCheck === true} />}
-      <div className="rotate-overlay">Please turn your phone upright to continue.</div>
+      {sideways && <div className="rotate-overlay">Please turn your phone upright to continue.</div>}
     </>
   )
 }

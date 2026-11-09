@@ -5,6 +5,10 @@ Every build participants see has a version (`appVersion` on each record). Bump `
 
 
 
+## 0.25.1 (2026-11-09)
+
+- **"Please turn your phone upright" no longer appears while typing** (`study/useSideways.ts`): the overlay used a CSS `(orientation: landscape)` query, which reads the page's shape; on Android the keyboard shrinks the page until it is wider than tall, so the overlay covered the screen whenever a text box was focused (Matt, Nov 9). It now follows the screen's actual orientation.
+
 ## 0.25.0 (2026-11-09)
 
 Pilot links start fresh on a new code (Matt, Nov 9). Testers no longer need a private window for each run.
