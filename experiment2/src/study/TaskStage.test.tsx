@@ -215,10 +215,15 @@ describe('unfinished-task check', () => {
     expect(store.events.filter((e) => e.type === 'task' && e.event === 'goal_met')).toHaveLength(1)
   })
 
-  it('offers the skip option only on demo links with &skip=1, for testing', async () => {
+  it('offers the skip option only on pilot links and demo links with &skip=1, for testing', async () => {
     const user = userEvent.setup()
-    for (const [link, offered] of [['?demo=neutral', false], ['?demo=neutral&skip=1', true]] as const) {
-      const existing = { ...atTasks().participant!, participantCode: 'DEMO' }
+    const links = [
+      ['?demo=neutral', 'DEMO', false],
+      ['?demo=neutral&skip=1', 'DEMO', true],
+      ['?pilot=1&code=PILOT_A', 'PILOT_A', true],
+    ] as const
+    for (const [link, code, offered] of links) {
+      const existing = { ...atTasks().participant!, participantCode: code }
       const { unmount } = render(<StudyApp entry={parseEntry(link)} store={new MemoryStore({ existing })} />)
       await user.click(await screen.findByRole('button', { name: 'Start task' }))
       await user.click(screen.getByRole('button', { name: 'Bramble' }))

@@ -9,11 +9,15 @@ import { Spinner } from '../../core/Loading'
 import { ScreenHeader } from '../../core/ScreenHeader'
 import { deliveryWindow } from '../orderTimeline'
 import { useBusy } from '../../core/useBusy'
+import { useCurrentTask } from '../../study/currentTask'
 
 const CHECKOUT_FLOWS = FLOWS.filter((f) => f.screen === 'checkout')
+/** Task 2 (order, then tell Sam). An order placed earlier would use up the session's one order and show its prompts in the wrong task. */
+const ORDER_TASK = 2
 
 export function Checkout() {
   const { state, dispatch, navigate, showFlow, settleFlow, act } = useBramble()
+  const task = useCurrentTask()
   const [busy, run] = useBusy()
   // The delivery window is worked out once, when checkout opens.
   const [openedAt] = useState(() => Date.now())
@@ -46,6 +50,18 @@ export function Checkout() {
         <p className="notice">Order placed! You can follow it in Orders.</p>
         <button type="button" className="btn btn-green" onClick={() => navigate('orders')}>
           Track your order
+        </button>
+      </section>
+    )
+  }
+
+  if (task !== null && task !== ORDER_TASK) {
+    return (
+      <section className="screen">
+        {header}
+        <p className="notice">You'll place an order in a later task. Your cart is saved until then.</p>
+        <button type="button" className="btn btn-outline" onClick={() => navigate('shop')}>
+          Back to shopping
         </button>
       </section>
     )

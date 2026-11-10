@@ -158,6 +158,19 @@ describe('Checkout', () => {
     expect(screen.getByRole('button', { name: 'Place order · $10.48' })).toBeInTheDocument()
   })
 
+  it('holds ordering back until the order task, without showing its prompts', () => {
+    const app = renderApp('nudged', ready, 1)
+    expect(screen.getByText("You'll place an order in a later task. Your cart is saved until then.")).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /place order/i })).not.toBeInTheDocument()
+    expect(app.eventsOf('prompt_shown')).toEqual([])
+    expect(app.state().cart).toEqual(['oat_milk', 'sourdough'])
+  })
+
+  it('lets the order be placed in the order task', () => {
+    renderApp('nudged', ready, 2)
+    expect(screen.getByRole('button', { name: /place order/i })).toBeEnabled()
+  })
+
   it('asks for a store first when none is set', () => {
     renderApp('nudged', { ...ready, storeId: null })
     expect(screen.getByText('Choose a store before you order.')).toBeInTheDocument()

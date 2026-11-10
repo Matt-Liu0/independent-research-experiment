@@ -5,6 +5,13 @@ Every build participants see has a version (`appVersion` on each record). Bump `
 
 
 
+## 0.26.0 (2026-11-09)
+
+Two fixes from the first phone pilot (Yaphet, Nov 9).
+
+- **No ordering before the order task** (`bramble/screens/Checkout.tsx`, `study/currentTask.ts`): Bramble takes one order per session, so an order placed in an earlier task (Yaphet ordered oat milk alone while stuck on Task 1) left Task 2 ("order oat milk and a sourdough loaf") impossible to finish. It also showed the courier, partner-offers, Sam and background-location prompts in the wrong task. Outside Task 2, Checkout now says "You'll place an order in a later task. Your cart is saved until then." and shows none of the checkout prompts.
+- **Pilot links can skip a task** (`study/TaskStage.tsx`): "I'm done with this task" now shows in the unfinished-task check on pilot links as well as on demo links with `&skip=1`, so a tester who gets stuck can still finish the session. Study links are unchanged: no skipping.
+
 ## 0.25.1 (2026-11-09)
 
 - **"Please turn your phone upright" no longer appears while typing** (`study/useSideways.ts`): the overlay used a CSS `(orientation: landscape)` query, which reads the page's shape; on Android the keyboard shrinks the page until it is wider than tall, so the overlay covered the screen whenever a text box was focused (Matt, Nov 9). It now follows the screen's actual orientation.

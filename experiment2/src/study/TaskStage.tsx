@@ -9,6 +9,7 @@ import { logEvent, setLogContext } from '../log/logEvent'
 import { EaseRating } from '../surveys/EaseRating'
 import { ALL_TASKS, APP_NAMES, appOfTask, type TaskNumber } from './apps'
 import { AppSetup } from './AppSetup'
+import { CurrentTaskProvider } from './currentTask'
 import { HomeScreen } from './HomeScreen'
 import { isSetUp } from './setup'
 import { SESSION_APPS, savedStateOf, type SessionApp } from './sessionApps'
@@ -25,7 +26,8 @@ export function TaskStage({ participant, mode, allowTaskSkip = false, update, ad
   const agent = mode === 'agent'
   // "I'm done with this task" lets a task be skipped: only on demo links with &skip=1, for
   // testing. Plain demo links behave as participants see it.
-  const allowSkip = mode === 'demo' && allowTaskSkip
+  // Pilot testers can always skip, so a problem in one task doesn't end their run.
+  const allowSkip = (mode === 'demo' && allowTaskSkip) || mode === 'pilot'
   const order = participant.taskOrder ?? ALL_TASKS
   const { taskIndex, taskPhase } = participant
   const task = order[taskIndex]
@@ -164,7 +166,7 @@ function AppSession({ app, participant, task, taskIndex, taskPhase, total, nextT
 
 /**
  * Asked when Done is tapped before the task looks finished. Same in both friction levels.
- * Participants can only keep going; the skip option is for demo links.
+ * Participants can only keep going; the skip option is for pilot links and demo links with &skip=1.
  */
 function UnfinishedCheck({
   task,
@@ -315,7 +317,9 @@ function TaskRunner({
       {checking && <UnfinishedCheck task={task} allowSkip={allowSkip} onAnswer={answerCheck} />}
       {/* The app mounts only once the task card is closed, so no prompt opens (or starts timing) behind it. */}
       {phase === 'app' ? (
-        <App />
+        <CurrentTaskProvider value={task}>
+          <App />
+        </CurrentTaskProvider>
       ) : phase === 'setup' ? (
         <AppSetup app={app.id} onDone={() => setPhase('app')} />
       ) : phase === 'home' ? (

@@ -5,12 +5,15 @@ import { BrambleProvider, useBramble, type Bramble } from '../bramble/BrambleCon
 import type { Friction } from '../bramble/types'
 import { uniformUnits, type UnitId } from '../core/units'
 import { createMemorySink, setEventSink, setLogContext } from '../log/logEvent'
+import type { TaskNumber } from '../study/apps'
+import { CurrentTaskProvider } from '../study/currentTask'
 
 /**
  * Renders the practice app on its own, with events captured in memory.
- * `friction` is one level for every screen, or a list of the nudged units.
+ * `friction` is one level for every screen, or a list of the nudged units. `task` is the study
+ * task in progress, if any.
  */
-export function renderApp(friction: Friction | readonly UnitId[], initialState: Partial<AppState> = {}) {
+export function renderApp(friction: Friction | readonly UnitId[], initialState: Partial<AppState> = {}, task: TaskNumber | null = null) {
   const nudgedUnits = typeof friction === 'string' ? uniformUnits(friction) : friction
   const sink = createMemorySink()
   setEventSink(sink)
@@ -23,10 +26,12 @@ export function renderApp(friction: Friction | readonly UnitId[], initialState: 
   }
 
   const view = render(
-    <BrambleProvider nudgedUnits={nudgedUnits} initialState={{ ...initialAppState(), ...initialState }}>
-      <BrambleApp />
-      <Capture />
-    </BrambleProvider>,
+    <CurrentTaskProvider value={task}>
+      <BrambleProvider nudgedUnits={nudgedUnits} initialState={{ ...initialAppState(), ...initialState }}>
+        <BrambleApp />
+        <Capture />
+      </BrambleProvider>
+    </CurrentTaskProvider>,
   )
 
   return {
