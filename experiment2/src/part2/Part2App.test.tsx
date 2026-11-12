@@ -183,11 +183,11 @@ describe('Part 2', () => {
     expect(doc().recall).toEqual(Object.fromEntries(RECALL_QUESTIONS.map((q) => [q.id, q.options[0].value])))
 
     for (const group of screen.getAllByRole('radiogroup').slice(0, 10)) await user.click(within(group).getByRole('radio', { name: '6' }))
-    await user.click(radio('Your age', '25–34'))
+    // Age range and gender can be skipped; AI use can't.
     expect(screen.getByRole('button', { name: 'Finish' })).toBeDisabled()
     await user.click(radio('How often do you use AI assistants (such as ChatGPT, Claude, Gemini or Siri)?', 'Never'))
     await user.click(screen.getByRole('button', { name: 'Finish' }))
-    expect(doc().background).toEqual({ iuipc: Array(10).fill(6), ageRange: '25–34', gender: null, aiUse: 'Never' })
+    expect(doc().background).toEqual({ iuipc: Array(10).fill(6), ageRange: null, gender: null, aiUse: 'Never' })
 
     expect(screen.getByRole('heading', { name: 'About this study' })).toBeInTheDocument()
     expect(screen.getByText(/made by the research team/)).toBeInTheDocument()

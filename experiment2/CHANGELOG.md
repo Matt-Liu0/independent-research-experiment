@@ -5,6 +5,10 @@ Every build participants see has a version (`appVersion` on each record). Bump `
 
 
 
+## 0.27.1 (2026-11-12)
+
+- **Age range can be skipped** (`part2/Surveys.tsx`): the background survey's age question is now "Your age (optional)", like gender, and is saved as `null` if skipped. The IUIPC items and AI assistant use are still required.
+
 ## 0.27.0 (2026-11-12)
 
 The session after Part 1 is split in two (three-part design, option B pay, Nov 12). Part 2 is now the chat alone; Part 3, 2–3 days later on any device, is everything after it. The gap replaces the word puzzle, so what people told the interviewer isn't fresh when they answer the questionnaire.

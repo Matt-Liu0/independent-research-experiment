@@ -451,7 +451,7 @@ Design and item wording: `docs/superpowers/specs/2026-10-14-part2-questionnaire-
 | `practice` | The unscored practice item | `{verdict, confidence}` |
 | `comprehension` | "Which option means the app should check with you every time?" (correct: `ask`) | `{attempts: [...], passed}`; at most two attempts |
 | `recall.<question>` | What they remember choosing | the flow's own value (e.g. `once`, `arrival_only`, `accept`) or `dont_remember` |
-| `background` | IUIPC (10 items, 1–7), age range, gender (optional), AI assistant use | `{iuipc: [..10], ageRange, gender, aiUse}` |
+| `background` | IUIPC (10 items, 1–7), age range (optional from 0.27.1), gender (optional), AI assistant use | `{iuipc: [..10], ageRange, gender, aiUse}`; `ageRange` and `gender` are `null` if skipped |
 | `arm` | The interview arm. **Written by the interviewer function only** (the rules refuse it from the browser), balanced across arms | `open` · `structured` · `case` (the case arm is assigned only once the case set T is filled in), or `null` before the chat |
 | `interview` | Summary of the interview, also written only by the function. The transcript itself is in `part2_interviews` (below) | `{done, turns, participantTurns, participantChars, startedAt, endedAt, minutes}` (times in ms) |
 | `filler` | Before 0.27.0 only: the word puzzle between the chat and the questionnaire | `{solved, attempted, ms}` (0–10 words) |

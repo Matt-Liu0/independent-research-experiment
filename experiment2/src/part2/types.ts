@@ -44,7 +44,8 @@ export interface ItemAnswer {
 
 export interface Background {
   iuipc: number[]
-  ageRange: string
+  /** null if skipped (optional, like gender). */
+  ageRange: string | null
   gender: string | null
   aiUse: string
 }

@@ -140,7 +140,7 @@ export function buildPart2Export(
     const answers = (p.data.answers ?? {}) as Record<string, ItemAnswer>
     const all = Object.values(answers)
     const comprehension = p.data.comprehension as { attempts: string[]; passed: boolean } | null
-    const background = p.data.background as { iuipc: number[]; ageRange: string; gender: string | null; aiUse: string } | null
+    const background = p.data.background as { iuipc: number[]; ageRange: string | null; gender: string | null; aiUse: string } | null
     const recall = (p.data.recall ?? {}) as Record<string, string>
     const p1 = part1Row.get(code)
     const startedAt = ms(p.data.startedItemsAt) ?? ms(p.data.createdAt)

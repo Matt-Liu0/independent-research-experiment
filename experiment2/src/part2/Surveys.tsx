@@ -76,7 +76,8 @@ export function BackgroundSurvey({ advance }: Part2StageProps) {
   const [ageRange, setAgeRange] = useState<string>()
   const [gender, setGender] = useState<string>()
   const [aiUse, setAiUse] = useState<string>()
-  const complete = iuipc.every((a) => a !== null) && ageRange !== undefined && aiUse !== undefined
+  // Age range and gender may be skipped; the IUIPC items and AI use are required.
+  const complete = iuipc.every((a) => a !== null) && aiUse !== undefined
 
   return (
     <main className="page page-wide">
@@ -111,7 +112,7 @@ export function BackgroundSurvey({ advance }: Part2StageProps) {
             </div>
           </li>
         ))}
-        <Choice id="age" question="Your age" options={AGE_RANGES} value={ageRange} onChange={setAgeRange} />
+        <Choice id="age" question="Your age (optional)" options={AGE_RANGES} value={ageRange} onChange={setAgeRange} />
         <Choice id="gender" question="Your gender (optional)" options={GENDERS} value={gender} onChange={setGender} />
         <Choice
           id="ai-use"
@@ -127,7 +128,7 @@ export function BackgroundSurvey({ advance }: Part2StageProps) {
         disabled={!complete}
         onClick={() => {
           logEvent('survey', { name: 'background_submitted' })
-          advance({ background: { iuipc: iuipc as number[], ageRange: ageRange!, gender: gender ?? null, aiUse: aiUse! } }, ['completedAt'])
+          advance({ background: { iuipc: iuipc as number[], ageRange: ageRange ?? null, gender: gender ?? null, aiUse: aiUse! } }, ['completedAt'])
         }}
       >
         Finish
