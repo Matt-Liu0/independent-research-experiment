@@ -2,9 +2,9 @@ import { onAuthStateChanged, signInAnonymously, signOut, type Auth, type User } 
 import { addDoc, collection, doc, getDoc, increment, serverTimestamp, setDoc, waitForPendingWrites, type Firestore } from 'firebase/firestore'
 import type { EventSink, StudyEvent } from '../log/logEvent'
 import type { EntryParams } from '../study/types'
-import { newPart2Doc, type Part2Doc, type Part2StartResult, type Part2TimestampField } from './types'
+import { newPart2Doc, type Part, type Part2Doc, type Part2StartResult, type Part2TimestampField } from './types'
 
-/** Storage for Part 2. Firestore in the study; memory in tests and demo links. */
+/** Storage for Part 2 or Part 3. Firestore in the study; memory in tests and demo links. */
 export interface Part2Store {
   start(params: EntryParams): Promise<Part2StartResult>
   update(fields: Partial<Part2Doc>, stamp?: Part2TimestampField[]): void
@@ -12,10 +12,15 @@ export interface Part2Store {
   flush(): Promise<void>
 }
 
-/** Collections: part2, its one-per-participant-code claims, and pilot_ copies. */
-export function part2Collections(pilot: boolean) {
-  const name = `${pilot ? 'pilot_' : ''}part2`
-  return { records: name, pids: `${name}_pids` }
+/**
+ * Collections: part2 or part3, its one-per-participant-code claims, and pilot_ copies. part2_done
+ * holds one document per participant code whose Part 2 chat has finished, written only by the
+ * interviewer function; Part 3 opens only for those codes.
+ */
+export function part2Collections(pilot: boolean, part: Part = 2) {
+  const prefix = pilot ? 'pilot_' : ''
+  const name = `${prefix}part${part}`
+  return { records: name, pids: `${name}_pids`, part2Done: `${prefix}part2_done` }
 }
 
 export class MemoryPart2Store implements Part2Store {
@@ -23,11 +28,15 @@ export class MemoryPart2Store implements Part2Store {
   events: StudyEvent[] = []
   readonly sink: EventSink = { write: (e) => this.events.push(e) }
 
+  /** Part 3 tests: false acts as if the Part 2 chat isn't finished. */
+  part2Done = true
+
   constructor(existing?: Part2Doc) {
     this.doc = existing ?? null
   }
 
   async start(params: EntryParams): Promise<Part2StartResult> {
+    if (!this.doc && !this.part2Done) return { kind: 'part2_not_done' }
     if (this.doc) {
       if (this.doc.participantCode !== params.participantCode) return { kind: 'pid_mismatch' }
       this.doc = { ...this.doc, resumeCount: this.doc.resumeCount + 1 }
@@ -64,15 +73,16 @@ export class FirestorePart2Store implements Part2Store {
   readonly sink: EventSink
   private readonly db: Firestore
   private readonly auth: Auth
-  private readonly names: { records: string; pids: string }
-
+  private readonly names: ReturnType<typeof part2Collections>
   private readonly pilot: boolean
+  private readonly part: Part
 
-  constructor(db: Firestore, auth: Auth, pilot: boolean) {
+  constructor(db: Firestore, auth: Auth, pilot: boolean, part: Part = 2) {
     this.db = db
     this.auth = auth
     this.pilot = pilot
-    this.names = part2Collections(pilot)
+    this.part = part
+    this.names = part2Collections(pilot, part)
     this.sink = { write: (event) => this.writeEvent(event) }
   }
 
@@ -97,6 +107,10 @@ export class FirestorePart2Store implements Part2Store {
       await signOut(this.auth)
       user = (await signInAnonymously(this.auth)).user
       this.uid = user.uid
+    }
+    // Checked before claiming the code, so opening Part 3 too early doesn't tie the code to this browser.
+    if (this.part === 3 && !(await getDoc(doc(this.db, this.names.part2Done, params.participantCode))).exists()) {
+      return { kind: 'part2_not_done' }
     }
     const pidRef = doc(this.db, this.names.pids, params.participantCode)
     try {

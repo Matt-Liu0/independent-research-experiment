@@ -32,7 +32,7 @@ function Choice({
   )
 }
 
-/** Part 2 only: what the person remembers choosing a week earlier. */
+/** Part 3: what the person remembers choosing in Part 1. */
 export function Recall({ advance }: Part2StageProps) {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const complete = RECALL_QUESTIONS.every((q) => answers[q.id])

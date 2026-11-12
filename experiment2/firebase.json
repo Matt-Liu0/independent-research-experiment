@@ -12,13 +12,17 @@
         "destination": "/part2.html"
       },
       {
+        "source": "/part3",
+        "destination": "/part3.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
     ],
     "headers": [
       {
-        "source": "/@(index|part2).html",
+        "source": "/@(index|part2|part3).html",
         "headers": [
           {
             "key": "Cache-Control",

@@ -1,6 +1,9 @@
-// Part 2 records → analysis tables. Pure functions, like transform.ts.
-// Part 2 runs on a computer under a different anonymous uid from Part 1, so records are joined
-// to Part 1 by participant code, and Part 1's study code is reused.
+// Part 2 and Part 3 records → analysis tables. Pure functions, like transform.ts.
+// Each part runs under its own anonymous uid (Part 2 on a computer, Part 3 on any device), so
+// records are joined by participant code, and Part 1's study code is reused. Part 3 holds the
+// questionnaire, recall, background and debrief; mergePart3 folds it into the Part 2 record, so
+// the tables below have one row per person. Records from before the split (pilot, up to 0.26)
+// have everything in the Part 2 record and no Part 3 record.
 import { ciColumns, toIso, type ExportResult, type RawParticipant, type Row } from './transform'
 import { heldOutDistance } from '../src/part2/distance'
 import { ATTENTION_ITEMS, BATTERY, REPEATED_ITEMS, SITE_ITEMS } from '../src/part2/items'
@@ -20,6 +23,66 @@ const ms = (v: unknown): number | null => {
 }
 
 const mean = (xs: number[]) => (xs.length ? Math.round((xs.reduce((a, b) => a + b, 0) / xs.length) * 100) / 100 : null)
+
+/** Paid to everyone who finishes all three parts, on top of the Part 1 points bonus (option B pay, Nov 12, 2026). */
+export const COMPLETION_BONUS_USD = 3
+
+/** What Part 3 adds to a person's record (the rest of a Part 3 record is its own bookkeeping). */
+const PART3_FIELDS = [
+  'sequence', 'answers', 'practice', 'comprehension', 'recall', 'background',
+  'withdrawRequested', 'startedItemsAt', 'completedAt', 'debriefAt',
+] as const
+
+/**
+ * One record per Part 2 participant, with their Part 3 answers folded in (matched by participant
+ * code; the latest Part 3 record if a pilot code has several). part3Stage is null with no Part 3
+ * record; preSplit marks records from before Part 3 existed, whose answers are in the Part 2 record.
+ */
+export function mergePart3(part2: RawParticipant[], part3: RawParticipant[]): RawParticipant[] {
+  const latest = new Map<string, RawParticipant>()
+  for (const q of part3) {
+    const code = String(q.data.participantCode ?? '')
+    const seen = latest.get(code)
+    if (!seen || (ms(q.data.createdAt) ?? 0) >= (ms(seen.data.createdAt) ?? 0)) latest.set(code, q)
+  }
+  return part2.map((p) => {
+    const q = latest.get(String(p.data.participantCode ?? ''))
+    const preSplit = !q && Object.keys((p.data.answers ?? {}) as object).length > 0
+    if (!q) return { ...p, data: { ...p.data, part3Stage: null, preSplit } }
+    const fromPart3 = Object.fromEntries(PART3_FIELDS.map((f) => [f, q.data[f] ?? null]))
+    return {
+      ...p,
+      data: {
+        ...p.data,
+        ...fromPart3,
+        preSplit: false,
+        part3Uid: q.uid,
+        part3Stage: q.data.stage ?? null,
+        part3CreatedAt: q.data.createdAt ?? null,
+        part3Device: q.data.device ?? null,
+        part3ResumeCount: q.data.resumeCount ?? null,
+        part3AppVersion: q.data.appVersion ?? null,
+      },
+    }
+  })
+}
+
+const part2Completed = (data: Record<string, unknown>) => (data.interview as { done?: unknown } | null | undefined)?.done === true
+const part3Completed = (data: Record<string, unknown>) =>
+  data.part3Stage != null ? data.part3Stage === 'done' : data.preSplit === true && data.stage === 'done'
+
+/**
+ * The completion bonus: one row per participant code that finished Part 1 (its record reached
+ * 'done'), the Part 2 chat and Part 3. Withdrawn people are paid too ("Your payment is not
+ * affected"), so this reads the records before anyone is left out.
+ */
+export function completionBonuses(part1: RawParticipant[], merged: RawParticipant[]): Row[] {
+  const part1Done = new Set(part1.filter((p) => p.data.stage === 'done').map((p) => String(p.data.participantCode)))
+  return merged
+    .filter((p) => part1Done.has(String(p.data.participantCode)) && part2Completed(p.data) && part3Completed(p.data))
+    .map((p) => ({ participantCode: String(p.data.participantCode), bonusUSD: COMPLETION_BONUS_USD.toFixed(2) }))
+    .sort((a, b) => a.participantCode.localeCompare(b.participantCode))
+}
 
 /** One row per battery item: wording, CI coding and, for held-out items, the nearest site flow. */
 export function batteryCodebook(): Row[] {
@@ -82,19 +145,32 @@ export function buildPart2Export(
     const p1 = part1Row.get(code)
     const startedAt = ms(p.data.startedItemsAt) ?? ms(p.data.createdAt)
     const part1Done = p1 ? ms(p1.completedAt) : null
+    const chatEnded = ((p.data.interview as { endedAt?: unknown } | null)?.endedAt as number | null | undefined) ?? null
+    const part3Start = ms(p.data.part3CreatedAt)
+    const done2 = part2Completed(p.data)
+    const done3 = part3Completed(p.data)
 
     const row: Row = {
       studyCode: code,
       pilot,
       matchedToPart1: p1 !== undefined,
       daysSincePart1: startedAt !== null && part1Done !== null ? Math.round(((startedAt - part1Done) / 86_400_000) * 10) / 10 : null,
+      // Part 1 finished, the Part 2 chat finished, Part 3 finished (the completion bonus needs all three).
+      part2Completed: done2,
+      part3Completed: done3,
+      completedAllParts: p1?.completed === true && done2 && done3,
+      preSplit: p.data.preSplit === true,
+      daysPart2ToPart3: chatEnded !== null && part3Start !== null ? Math.round(((part3Start - chatEnded) / 86_400_000) * 10) / 10 : null,
       appVersion: (p.data.appVersion as string) ?? null,
+      part3AppVersion: (p.data.part3AppVersion as string) ?? null,
       stage: (p.data.stage as string) ?? null,
-      completed: p.data.stage === 'done',
+      part3Stage: (p.data.part3Stage as string) ?? null,
       arm: (p.data.arm as string) ?? null,
       ...interviewColumns(p.data),
       os: ((p.data.device as Record<string, unknown> | null)?.os as string) ?? null,
+      part3Os: ((p.data.part3Device as Record<string, unknown> | null)?.os as string) ?? null,
       resumeCount: (p.data.resumeCount as number) ?? null,
+      part3ResumeCount: (p.data.part3ResumeCount as number) ?? null,
       practiceVerdict: ((p.data.practice as Record<string, unknown> | null)?.verdict as string) ?? null,
       comprehensionAttempts: comprehension ? comprehension.attempts.join(';') : null,
       comprehensionPassed: comprehension?.passed ?? null,
@@ -171,16 +247,14 @@ export function buildPart2Export(
 }
 
 
-/** Part 2 only: the interview summary (written by the server), the filler and the debrief. */
+/** The interview summary (written by the server), the instructions box and the debrief time. */
 function interviewColumns(data: Record<string, unknown>): Row {
   const iv = data.interview as Record<string, unknown> | null | undefined
-  const filler = data.filler as Record<string, unknown> | null | undefined
   return {
     interviewDone: (iv?.done as boolean) ?? null,
     interviewMinutes: (iv?.minutes as number) ?? null,
     interviewParticipantTurns: (iv?.participantTurns as number) ?? null,
     interviewParticipantChars: (iv?.participantChars as number) ?? null,
-    fillerSolved: (filler?.solved as number) ?? null,
     // The instructions box before the chat (D0); the text itself is in transcripts.jsonl.
     instructionsChars: ((data.writtenInstructions as Record<string, unknown> | null | undefined)?.chars as number) ?? null,
     instructionsSeconds: (() => {

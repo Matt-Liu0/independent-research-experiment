@@ -1,4 +1,4 @@
-/* Part 2 runs on a computer: a wider column than the phone pages. */
+/* Parts 2 and 3: a wider column than the phone pages on a computer (Part 3 also runs on phones, where it fills the width). */
 .page-wide {
   max-width: 640px;
 }
@@ -44,17 +44,34 @@
   padding-left: 20px;
 }
 
-.item-progress {
-  height: 6px;
-  border-radius: 999px;
-  background: var(--line, #e5e2da);
-  overflow: hidden;
+/* Parts 2 and 3 have no tab bar: the researcher label goes in the top corner, clear of the answer buttons. */
+.demo-tag-top {
+  top: calc(12px + env(safe-area-inset-top));
+  right: 8px;
+  bottom: auto;
+  left: auto;
 }
 
-.item-progress span {
+/* Part 3: how far through the part the participant is, pinned to the top of the window. */
+.part-progress {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 6px;
+  background: var(--line, #e5e2da);
+}
+
+.part-progress span {
   display: block;
   height: 100%;
   background: var(--ink, #1f2a24);
+  transition: width 200ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .part-progress span {
+    transition: none;
+  }
 }
 
 .option[aria-checked='true'] .muted {
@@ -170,31 +187,4 @@
 .chat-send {
   width: auto;
   padding-inline: 24px;
-}
-
-/* The filler puzzle. */
-.anagram-list {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.anagram {
-  display: grid;
-  grid-template-columns: 9rem 1fr;
-  align-items: center;
-  gap: 12px;
-}
-
-.anagram-letters {
-  font-family: ui-monospace, monospace;
-  font-size: 1.15rem;
-  letter-spacing: 0.15em;
-}
-
-.anagram-solved {
-  color: var(--green, #2f6b4f);
-  font-weight: 600;
 }

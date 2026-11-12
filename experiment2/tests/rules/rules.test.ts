@@ -354,7 +354,7 @@ describe('Part 2 records', () => {
     await assertSucceeds(setDoc(doc(d, 'part2', 'a'), { ...part2Record('pid_a'), arm: null, interview: null }))
     await assertFails(updateDoc(doc(d, 'part2', 'a'), { arm: 'structured' }))
     await assertFails(updateDoc(doc(d, 'part2', 'a'), { interview: { done: true } }))
-    await assertSucceeds(updateDoc(doc(d, 'part2', 'a'), { stage: 'filler', filler: { solved: 3, attempted: 4, ms: 180000 } }))
+    await assertSucceeds(updateDoc(doc(d, 'part2', 'a'), { stage: 'done' }))
   })
 
   it('keeps transcripts and arm counters out of reach of every browser', async () => {
@@ -380,5 +380,49 @@ describe('Part 2 records', () => {
     const d = db('a')
     await assertFails(setDoc(doc(d, 'anything', 'a'), part2Record('pid_a')))
     await assertFails(setDoc(doc(d, 'anything_pids', 'x'), { uid: 'a', createdAt: serverTimestamp() }))
+  })
+
+  describe('Part 3', () => {
+    /** What the interviewer function writes (Admin SDK) when a code's Part 2 chat finishes. */
+    async function finishPart2(pid: string, prefix = '') {
+      await env.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(doc(ctx.firestore() as unknown as Firestore, `${prefix}part2_done`, pid), { doneAt: serverTimestamp() })
+      })
+    }
+
+    it("opens only for a code whose Part 2 chat is finished", async () => {
+      for (const prefix of ['', 'pilot_']) {
+        const col = `${prefix}part3`
+        const d = db(`u_${col}`)
+        await setDoc(doc(d, `${col}_pids`, 'P3'), { uid: `u_${col}`, createdAt: serverTimestamp() })
+        await assertFails(setDoc(doc(d, col, `u_${col}`), part2Record('P3')))
+        await finishPart2('P3', prefix)
+        await assertSucceeds(setDoc(doc(d, col, `u_${col}`), part2Record('P3')))
+        await assertSucceeds(updateDoc(doc(d, col, `u_${col}`), { stage: 'items', answers: { 'store_location:A': { verdict: 'allow' } } }))
+        await assertSucceeds(addDoc(collection(d, col, `u_${col}`, 'events'), { type: 'item', clientT: 1, t: serverTimestamp() }))
+      }
+    })
+
+    it("doesn't count a pilot Part 2 for a study Part 3", async () => {
+      await finishPart2('P3', 'pilot_')
+      const d = db('a')
+      await setDoc(doc(d, 'part3_pids', 'P3'), { uid: 'a', createdAt: serverTimestamp() })
+      await assertFails(setDoc(doc(d, 'part3', 'a'), part2Record('P3')))
+    })
+
+    it('lets anyone signed in check whether a code finished Part 2, but only the function mark it', async () => {
+      await finishPart2('P3')
+      await assertSucceeds(getDoc(doc(db('a'), 'part2_done', 'P3')))
+      await assertSucceeds(getDoc(doc(db('a'), 'part2_done', 'nobody')))
+      await assertFails(getDoc(doc(env.unauthenticatedContext().firestore() as unknown as Firestore, 'part2_done', 'P3')))
+      await assertFails(setDoc(doc(db('a'), 'part2_done', 'P4'), { doneAt: serverTimestamp() }))
+      await assertFails(setDoc(doc(db('a'), 'pilot_part2_done', 'P4'), { doneAt: serverTimestamp() }))
+    })
+
+    it('keeps Part 3 claims one per code, separate from Part 2', async () => {
+      await assertSucceeds(setDoc(doc(db('laptop'), 'part2_pids', 'P'), { uid: 'laptop', createdAt: serverTimestamp() }))
+      await assertSucceeds(setDoc(doc(db('phone'), 'part3_pids', 'P'), { uid: 'phone', createdAt: serverTimestamp() }))
+      await assertFails(setDoc(doc(db('other'), 'part3_pids', 'P'), { uid: 'other', createdAt: serverTimestamp() }))
+    })
   })
 })

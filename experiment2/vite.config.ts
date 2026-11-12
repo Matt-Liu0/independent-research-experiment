@@ -17,6 +17,7 @@ export default defineConfig({
       input: {
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
         part2: fileURLToPath(new URL('./part2.html', import.meta.url)),
+        part3: fileURLToPath(new URL('./part3.html', import.meta.url)),
       },
     },
   },

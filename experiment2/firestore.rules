@@ -109,16 +109,23 @@ service cloud.firestore {
       }
     }
 
-    // ---- Part 2 ----
+    // ---- Parts 2 and 3 ----
     // Same pattern as Part 1: one record per participant code (claimed in <col>_pids), owner-only,
     // with fields that can't change after creation. The interview arm and its summary are
     // written only by the interviewer function (Admin SDK, which bypasses these rules), so
     // participants can neither set nor change them. The transcripts (<col>_interviews) and the
     // arm counters (part2_meta, pilot_part2_meta) have no rule here, so no browser can read or
-    // write them.
+    // write them. Part 3 records can only be created for a code in <prefix>part2_done, which
+    // the interviewer function writes when that code's chat finishes; anyone signed in can check
+    // whether a code is there (it holds nothing else), so Part 3 can say "finish Part 2 first".
 
     function part2Collection(col) {
-      return col in ['part2', 'pilot_part2'];
+      return col in ['part2', 'pilot_part2', 'part3', 'pilot_part3'];
+    }
+
+    function part2Finished(col, code) {
+      return !(col in ['part3', 'pilot_part3'])
+        || exists(docPath((col == 'pilot_part3' ? 'pilot_' : '') + 'part2_done', code));
     }
 
     function validNewPart2(col, uid) {
@@ -129,7 +136,8 @@ service cloud.firestore {
         && d.get('arm', null) == null
         && d.get('interview', null) == null
         && d.createdAt == request.time
-        && get(docPath(col + '_pids', d.participantCode)).data.uid == uid;
+        && get(docPath(col + '_pids', d.participantCode)).data.uid == uid
+        && part2Finished(col, d.participantCode);
     }
 
     function validPart2Update() {
@@ -151,9 +159,10 @@ service cloud.firestore {
     }
 
     match /{pidCol}/{pid} {
-      allow get: if pidCol in ['part2_pids', 'pilot_part2_pids']
+      allow get: if pidCol in ['part2_pids', 'pilot_part2_pids', 'part3_pids', 'pilot_part3_pids']
         && signedIn() && resource.data.uid == request.auth.uid;
-      allow create: if pidCol in ['part2_pids', 'pilot_part2_pids'] && validPidClaim();
+      allow create: if pidCol in ['part2_pids', 'pilot_part2_pids', 'part3_pids', 'pilot_part3_pids'] && validPidClaim();
+      allow get: if pidCol in ['part2_done', 'pilot_part2_done'] && signedIn();
     }
 
     // ---- One record per participant code ----

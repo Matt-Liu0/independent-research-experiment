@@ -11,12 +11,14 @@ import { CallableInterviewer, ScriptedInterviewer, type Interviewer } from './in
 import { Part2App } from './Part2App'
 import { FirestorePart2Store, MemoryPart2Store, type Part2Store } from './store'
 
-const entry = parsePart2Entry(window.location.search)
+// part3.html sets data-part="3" on <body>; both pages share this entry point.
+const part = document.body.dataset.part === '3' ? 3 : 2
+const entry = parsePart2Entry(window.location.search, undefined, part)
 
 function createStore(): Part2Store {
   if (entry.mode === 'demo') return new MemoryPart2Store()
   const { db, auth } = getFirebase()
-  return new FirestorePart2Store(db, auth, entry.mode === 'pilot')
+  return new FirestorePart2Store(db, auth, entry.mode === 'pilot', part)
 }
 
 /** Demo replies wait about as long as the real model (Sonnet, a short reply: 1 to 2 seconds). */

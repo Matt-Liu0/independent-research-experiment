@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { buildExport } from '../scripts/transform'
-import { batteryCodebook, buildPart2Export, buildTranscripts } from '../scripts/transformPart2'
+import { batteryCodebook, buildPart2Export, buildTranscripts, completionBonuses, mergePart3 } from '../scripts/transformPart2'
 import { BATTERY, REPEATED_ITEMS } from '../src/part2/items'
 import type { ItemAnswer } from '../src/part2/types'
 
 const at = (day: number, minute = 0) => new Date(Date.UTC(2026, 10, day, 12, minute))
 
-const part1 = buildExport('participants', [
+const part1Raw = [
   {
     uid: 'phone',
     data: { participantCode: 'PID1', createdAt: at(1), completedAt: at(1, 30), pattern: 'U1U2U3', stage: 'done', withdrawn: false },
@@ -15,21 +15,33 @@ const part1 = buildExport('participants', [
       { type: 'settled', flowId: 'sam_share', value: 'arrival_only', pageLoadAt: 1, seq: 2 },
     ],
   },
-])
+]
+const part1 = buildExport('participants', part1Raw)
 
 const answer = (itemId: string, wording: 'A' | 'B' | null, position: number, verdict: ItemAnswer['verdict'], confidence: number): ItemAnswer => ({
   itemId, wording, position, verdict, confidence, ms: 4000, changes: 0,
 })
 
-const part2Raw = [
+/** Part 2 (the chat, on a laptop) and Part 3 (the questionnaire, on a phone 2.5 days later). */
+const part2Only = [
   {
     uid: 'laptop',
     events: [],
     data: {
-      participantCode: 'PID1', stage: 'done', withdrawn: false, createdAt: at(8), startedItemsAt: at(9),
-      arm: 'structured',
-      interview: { done: true, turns: 14, participantTurns: 6, participantChars: 410, startedAt: 1, endedAt: 2, minutes: 12.5 },
-      filler: { solved: 7, attempted: 9, ms: 180000 },
+      participantCode: 'PID1', stage: 'done', withdrawn: false, createdAt: at(8),
+      arm: 'structured', device: { os: 'other' },
+      interview: { done: true, turns: 14, participantTurns: 6, participantChars: 410, startedAt: 1, endedAt: at(8, 20).getTime(), minutes: 12.5 },
+      withdrawRequested: false,
+    },
+  },
+]
+const part3Raw = [
+  {
+    uid: 'phone3',
+    events: [],
+    data: {
+      participantCode: 'PID1', stage: 'done', withdrawn: false, createdAt: new Date(at(8, 20).getTime() + 2.5 * 86_400_000),
+      startedItemsAt: at(9), device: { os: 'ios' }, resumeCount: 1, debriefAt: at(11),
       withdrawRequested: false,
       comprehension: { attempts: ['allow', 'ask'], passed: true },
       answers: {
@@ -44,6 +56,7 @@ const part2Raw = [
     },
   },
 ]
+const part2Raw = mergePart3(part2Only, part3Raw)
 
 describe('Part 2 export', () => {
   const out = buildPart2Export(part2Raw, false, part1)
@@ -77,11 +90,46 @@ describe('Part 2 export', () => {
   })
 })
 
+describe('Parts 2 and 3 together', () => {
+  const row = buildPart2Export(part2Raw, false, part1).participants[0]
+
+  it("folds each person's Part 3 answers into their Part 2 row, by participant code", () => {
+    expect(row).toMatchObject({
+      os: 'other', part3Os: 'ios', part3ResumeCount: 1, stage: 'done', part3Stage: 'done', preSplit: false,
+      part2Completed: true, part3Completed: true, completedAllParts: true, daysPart2ToPart3: 2.5, itemsAnswered: 5,
+    })
+  })
+
+  it('shows who finished Part 2 but has not done Part 3 yet', () => {
+    const waiting = buildPart2Export(mergePart3(part2Only, []), false, part1).participants[0]
+    expect(waiting).toMatchObject({ part2Completed: true, part3Stage: null, part3Completed: false, completedAllParts: false, itemsAnswered: 0 })
+  })
+
+  it('reads records from before the split, which have the questionnaire in the Part 2 record', () => {
+    const old = { ...part2Only[0], data: { ...part2Only[0].data, ...part3Raw[0].data, participantCode: 'PID1', createdAt: at(8), debriefAt: at(9) } }
+    const r = buildPart2Export(mergePart3([old], []), false, part1).participants[0]
+    expect(r).toMatchObject({ preSplit: true, part3Stage: null, part3Completed: true, itemsAnswered: 5 })
+  })
+
+  it('pays the $3 completion bonus to everyone who finished all three parts, including those who asked to be removed', () => {
+    expect(completionBonuses(part1Raw, part2Raw)).toEqual([{ participantCode: 'PID1', bonusUSD: '3.00' }])
+    const removed = mergePart3(part2Only, [{ ...part3Raw[0], data: { ...part3Raw[0].data, withdrawRequested: true } }])
+    expect(completionBonuses(part1Raw, removed)).toHaveLength(1)
+    expect(completionBonuses(part1Raw, mergePart3(part2Only, []))).toHaveLength(0)
+    expect(completionBonuses([], part2Raw)).toHaveLength(0)
+  })
+
+  it('takes a withdrawal request from the Part 3 debrief', () => {
+    const asked = mergePart3(part2Only, [{ ...part3Raw[0], data: { ...part3Raw[0].data, withdrawRequested: true } }])
+    expect(buildPart2Export(asked, false, part1).participants).toHaveLength(0)
+  })
+})
+
 describe('interview data', () => {
   const out = buildPart2Export(part2Raw, false, part1)
 
   it('adds the arm and interview summary per person, and the arm on each verdict row', () => {
-    expect(out.participants[0]).toMatchObject({ arm: 'structured', interviewDone: true, interviewMinutes: 12.5, interviewParticipantTurns: 6, fillerSolved: 7 })
+    expect(out.participants[0]).toMatchObject({ arm: 'structured', interviewDone: true, interviewMinutes: 12.5, interviewParticipantTurns: 6 })
     expect(out.verdicts.every((v) => v.arm === 'structured')).toBe(true)
   })
 

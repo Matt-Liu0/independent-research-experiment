@@ -1,6 +1,6 @@
 // Exports study data to CSV.
 //
-//   npm run export                 # study data (Part 1 and Part 2)
+//   npm run export                 # study data (Parts 1, 2 and 3)
 //   npm run export -- --pilot      # pilot data instead
 //   npm run export -- --out dir    # output folder (default exports/<date>)
 //
@@ -12,7 +12,7 @@ import { pathToFileURL } from 'node:url'
 import { initializeApp } from 'firebase-admin/app'
 import { getFirestore, type Firestore } from 'firebase-admin/firestore'
 import { bonusPayments, buildExport, flowCodebook, toCsv, type ExportResult, type RawParticipant } from './transform'
-import { batteryCodebook, buildPart2Export, buildTranscripts, type RawInterview } from './transformPart2'
+import { batteryCodebook, buildPart2Export, buildTranscripts, completionBonuses, mergePart3, type RawInterview } from './transformPart2'
 
 export async function loadParticipants(db: Firestore, collection: string): Promise<RawParticipant[]> {
   const snapshot = await db.collection(collection).get()
@@ -50,8 +50,9 @@ function instructionsOf(part2: RawParticipant[]): Map<string, string> {
 }
 
 /**
- * Part 2. verdicts.csv is the main Part 2 table: one row per person ×
- * battery item, with the stated verdict, its repeat, and the same person's verdict on the site.
+ * Parts 2 and 3, one row per person (`part2` already has Part 3 folded in: mergePart3).
+ * verdicts.csv is the main table: one row per person × battery item, with the stated verdict,
+ * its repeat, and the same person's verdict on the site.
  */
 export function writePart2Export(
   outDir: string,
@@ -84,11 +85,18 @@ async function main() {
 
   initializeApp({ projectId })
   const prefix = pilot ? 'pilot_' : ''
-  const part2 = await loadParticipants(getFirestore(), `${prefix}part2`)
-  // Asked on the Part 2 debrief to have their data removed: left out of Part 1 too.
+  const part2 = mergePart3(
+    await loadParticipants(getFirestore(), `${prefix}part2`),
+    await loadParticipants(getFirestore(), `${prefix}part3`),
+  )
+  // Asked on the debrief (end of Part 3) to have their data removed: left out of Part 1 too.
   const removePids = new Set(part2.filter((p) => p.data.withdrawRequested === true).map((p) => String(p.data.participantCode)))
-  const raw = (await loadParticipants(getFirestore(), collection)).filter((p) => !removePids.has(String(p.data.participantCode)))
+  const allPart1 = await loadParticipants(getFirestore(), collection)
+  const raw = allPart1.filter((p) => !removePids.has(String(p.data.participantCode)))
   const result = writeExport(outDir, collection, raw)
+  // $3 for finishing all three parts, by participant code (private, like bonus-payments.csv).
+  // Read before anyone is left out: asking to be removed doesn't affect payment.
+  writeFileSync(join(outDir, 'completion-bonus.csv'), toCsv(completionBonuses(allPart1, part2)))
   const withdrawn = raw.length - result.participants.length
   console.log(
     `Exported ${result.participants.length} participants (${withdrawn} withdrawn and ${removePids.size} who asked on the debrief, left out), ` +
@@ -97,7 +105,8 @@ async function main() {
   const interviews = (await getFirestore().collection(`${prefix}part2_interviews`).get()).docs.map((d) => ({ uid: d.id, data: d.data() }))
   const p2 = writePart2Export(outDir, pilot, part2, result, interviews)
   console.log(
-    `Exported Part 2 for ${p2.participants.length} (${interviews.length} interviews) → ${outDir}`,
+    `Exported Parts 2 and 3 for ${p2.participants.length} (${interviews.length} interviews, ` +
+      `${p2.participants.filter((r) => r.part3Completed === true).length} finished Part 3) → ${outDir}`,
   )
 }
 

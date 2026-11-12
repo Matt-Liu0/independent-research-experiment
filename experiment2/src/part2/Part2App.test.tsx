@@ -7,11 +7,10 @@ import { CHAT_TIMING } from './Interview'
 import { ScriptedInterviewer } from './interviewer'
 import { ATTENTION_ITEMS, BATTERY, REPEATED_ITEMS, getItem } from './items'
 import { slotKey, validSequence } from './order'
-import { Part2App } from './Part2App'
+import { Part2App, part3Progress } from './Part2App'
 import { MemoryPart2Store } from './store'
 import { RECALL_QUESTIONS } from './surveyContent'
-import { newPart2Doc, type Part2Doc } from './types'
-import { ANAGRAMS } from './Wrapup'
+import { newPart2Doc, type Part, type Part2Doc } from './types'
 
 // Replies show at once in these tests; the streaming test below sets its own pace.
 beforeEach(() => {
@@ -30,13 +29,15 @@ const device = (passedCheck: boolean): DeviceInfo => ({
   os: 'other', screenW: 1440, screenH: 900, userAgent: 'test', touch: false, passedCheck, automated: false,
 })
 
-/** Part 2 records already past the chat and filler, for the questionnaire tests. */
-const atQuestionnaire = (): Part2Doc => ({ ...newPart2Doc(PARAMS), stage: 'intro', arm: 'open' })
+/** Part 3 records on the questionnaire's first page. */
+const atQuestionnaire = (): Part2Doc => ({ ...newPart2Doc(PARAMS), stage: 'intro' })
 
-async function renderPart2(options: { existing?: Part2Doc; passes?: boolean; fromStart?: boolean } = {}) {
+/** Part 3 on its first questionnaire page by default; `fromStart` opens a new record (Part 2 unless `part` says otherwise). */
+async function renderPart2(options: { existing?: Part2Doc; passes?: boolean; fromStart?: boolean; part?: Part; part2Done?: boolean } = {}) {
   const existing = options.existing ?? (options.fromStart ? undefined : atQuestionnaire())
   const store = new MemoryPart2Store(existing)
-  const entry: Part2Entry = { mode: 'study', params: PARAMS }
+  store.part2Done = options.part2Done ?? true
+  const entry: Part2Entry = { part: options.part ?? (options.fromStart ? 2 : 3), mode: 'study', params: PARAMS }
   const view = render(
     <Part2App entry={entry} store={store} interviewer={new ScriptedInterviewer()} detect={() => device(options.passes ?? true)} />,
   )
@@ -66,7 +67,7 @@ async function throughComprehension(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('Part 2', () => {
-  it('runs the briefing, the chat and the filler before the questionnaire', async () => {
+  it('runs the briefing, the instructions and the chat, then ends', async () => {
     const user = userEvent.setup()
     const { doc, store } = await renderPart2({ fromStart: true })
     expect(screen.getByRole('heading', { name: 'Part 2: your views' })).toBeInTheDocument()
@@ -95,19 +96,16 @@ describe('Part 2', () => {
     expect(JSON.stringify(store.events)).not.toContain('Heart rate is private')
     await user.click(await screen.findByRole('button', { name: 'Continue' }))
 
-    expect(screen.getByRole('heading', { name: 'A short puzzle' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
-    const inputs = screen.getAllByRole('textbox')
-    for (const [i, a] of ANAGRAMS.entries()) await user.type(inputs[i], a.answer.toLowerCase())
-    await user.click(screen.getByRole('button', { name: 'Continue' }))
-    expect(doc().filler).toMatchObject({ solved: ANAGRAMS.length, attempted: ANAGRAMS.length })
-    expect(screen.getByRole('heading', { name: 'Your views' })).toBeInTheDocument()
+    // Part 2 ends after the chat; the questionnaire is Part 3, 2 to 3 days later.
+    expect(doc().stage).toBe('done')
+    expect(screen.getByText(/link to Part 3/)).toBeInTheDocument()
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
   })
 
   it('streams each reply a word at a time, with Send off until it finishes', async () => {
     const user = userEvent.setup()
     const store = new MemoryPart2Store({ ...newPart2Doc(PARAMS), stage: 'chat' })
-    render(<Part2App entry={{ mode: 'study', params: PARAMS }} store={store} interviewer={new ScriptedInterviewer()} />)
+    render(<Part2App entry={{ part: 2, mode: 'study', params: PARAMS }} store={store} interviewer={new ScriptedInterviewer()} />)
     expect(await screen.findByText(/How would you want an app like that to handle/)).toBeInTheDocument()
     CHAT_TIMING.wordMs = 60
     await user.type(screen.getByLabelText('Your message'), 'only while I use it')
@@ -127,7 +125,7 @@ describe('Part 2', () => {
       return real(message)
     }
     const store = new MemoryPart2Store({ ...newPart2Doc(PARAMS), stage: 'chat' })
-    render(<Part2App entry={{ mode: 'study', params: PARAMS }} store={store} interviewer={interviewer} />)
+    render(<Part2App entry={{ part: 2, mode: 'study', params: PARAMS }} store={store} interviewer={interviewer} />)
     expect(await screen.findByText(/grocery delivery app/)).toBeInTheDocument()
     expect(calls).toBe(2)
     expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
@@ -137,7 +135,7 @@ describe('Part 2', () => {
     const user = userEvent.setup()
     const interviewer = new ScriptedInterviewer()
     const store = new MemoryPart2Store({ ...newPart2Doc(PARAMS), stage: 'chat' })
-    render(<Part2App entry={{ mode: 'study', params: PARAMS }} store={store} interviewer={interviewer} />)
+    render(<Part2App entry={{ part: 2, mode: 'study', params: PARAMS }} store={store} interviewer={interviewer} />)
     await screen.findByText(/grocery delivery app/)
     const real = interviewer.send.bind(interviewer)
     interviewer.send = async () => {
@@ -152,11 +150,12 @@ describe('Part 2', () => {
     expect(await screen.findByText('Is there anything else I should keep in mind?')).toBeInTheDocument()
   })
 
-  it('runs intro → practice → comprehension → 41 items → recall → background → debrief, saving every answer', async () => {
+  it('Part 3 runs intro → practice → comprehension → 41 items → recall → background → debrief, saving every answer', async () => {
     const user = userEvent.setup()
     const { doc, store } = await renderPart2()
-    expect(screen.getByRole('heading', { name: 'Your views' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Part 3: your views' })).toBeInTheDocument()
     expect(screen.getByText(/read 41 short situations/)).toBeInTheDocument()
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
     await throughComprehension(user)
     expect(doc().practice).toEqual({ verdict: 'ask', confidence: 5 })
     expect(doc().comprehension).toEqual({ attempts: ['ask'], passed: true })
@@ -196,6 +195,8 @@ describe('Part 2', () => {
     await user.click(screen.getByRole('button', { name: 'Continue' }))
     expect(doc().withdrawRequested).toBe(true)
     expect(doc().stage).toBe('done')
+    expect(screen.getByText(/all three parts/)).toBeInTheDocument()
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
     expect(await screen.findByText('Your answers are saved. You can close this page.')).toBeInTheDocument()
   }, 60_000)
 
@@ -239,15 +240,41 @@ describe('Part 2', () => {
     expect(screen.getByText(text)).toBeInTheDocument()
   })
 
-  it('turns phones away, asking for a computer', async () => {
+  it('turns phones away from Part 2, asking for a computer', async () => {
     const { doc } = await renderPart2({ passes: false, fromStart: true })
     expect(screen.getByRole('heading', { name: 'Please use a computer' })).toBeInTheDocument()
     expect(doc().stage).toBe('device')
+  })
+
+  it('lets phones into Part 3, recording the device', async () => {
+    const { doc } = await renderPart2({ passes: false, fromStart: true, part: 3 })
+    expect(screen.getByRole('heading', { name: 'Part 3: your views' })).toBeInTheDocument()
+    expect(doc().device).toMatchObject({ passedCheck: false })
+  })
+
+  it("keeps Part 3 closed until the code's Part 2 chat is finished", async () => {
+    const { store } = await renderPart2({ fromStart: true, part: 3, part2Done: false })
+    expect(screen.getByRole('heading', { name: 'Please finish Part 2 first' })).toBeInTheDocument()
+    expect(store.doc).toBeNull()
+  })
+
+  it('moves the Part 3 progress bar one step per page, situations included', () => {
+    const at = (stage: Part2Doc['stage'], answered = 0) =>
+      part3Progress({ ...atQuestionnaire(), stage, answers: Object.fromEntries(Array.from({ length: answered }, (_, i) => [`k${i}`, {} as never])) })
+    expect(at('intro')).toBe(0)
+    expect(at('items', 0)).toBe(Math.round((3 / (PAGES + 6)) * 100))
+    expect(at('items', 20)).toBeGreaterThan(at('items', 10)!)
+    expect(at('debrief')).toBe(Math.round(((PAGES + 5) / (PAGES + 6)) * 100))
+    expect(at('done')).toBeNull()
+    expect(at('device')).toBeNull()
   })
 })
 
 describe('Part 2 links', () => {
   it('reads the mode, code and arm from the URL', () => {
+    expect(parsePart2Entry('?code=S12', false, 3)).toMatchObject({ part: 3, mode: 'study' })
+    // No arm on Part 3 links.
+    expect(parsePart2Entry('?code=S12&pilot=1&arm=case', false, 3).arm).toBeUndefined()
     expect(parsePart2Entry('?code=S12&pilot=1')).toMatchObject({ mode: 'pilot', params: { participantCode: 'S12' } })
     expect(parsePart2Entry('?demo=1')).toMatchObject({ mode: 'demo' })
     // An arm can be picked on demo and pilot links only.

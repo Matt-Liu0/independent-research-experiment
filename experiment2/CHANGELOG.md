@@ -5,6 +5,19 @@ Every build participants see has a version (`appVersion` on each record). Bump `
 
 
 
+## 0.27.0 (2026-11-12)
+
+The session after Part 1 is split in two (three-part design, option B pay, Nov 12). Part 2 is now the chat alone; Part 3, 2–3 days later on any device, is everything after it. The gap replaces the word puzzle, so what people told the interviewer isn't fresh when they answer the questionnaire.
+
+- **Part 2** (`part2.html`, computer): device check → briefing → instructions → chat → done. The briefing says "about 25 minutes", and the end page says the Part 3 link comes by email in 2 to 3 days. The word puzzle (`filler`) is gone.
+- **Part 3** (`part3.html`, new, phone or computer): device check (any device passes; the device is recorded) → questionnaire (intro, practice, comprehension check, 41 situations) → recall → background → debrief → done ("Thank you for taking part in all three parts"). The intro is headed "Part 3: your views" and opens "Thanks for coming back. In this last part…". The debrief says "In Parts 2 and 3 we asked what you would want".
+- **Part 3 opens only after Part 2:** when a code's chat finishes, the interviewer function writes `part2_done/<code>`; Part 3 checks it before claiming the code (so opening Part 3 too early doesn't tie the code to that browser) and shows "Please finish Part 2 first" otherwise. The security rules enforce the same check, and a pilot Part 2 doesn't open a study Part 3. Needs a functions and rules deploy.
+- **Part 3 progress bar:** a thin bar pinned to the top of every Part 3 page, moving one step per page, with every situation counted. It replaces the situations-only bar.
+- **Export:** Part 3 records are folded into each person's Part 2 row by participant code, with `part2Completed`, `part3Completed`, `completedAllParts`, `daysPart2ToPart3`, `part3Os` and `preSplit` (records from before the split keep their questionnaire in the Part 2 record and still export). New `completion-bonus.csv`: $3 for everyone who finished all three parts, including people who asked to be removed. Withdrawal requests now come from the Part 3 debrief. `fillerSolved` is gone.
+- **Part 1's end page:** "Part 2 … takes about 25 minutes on a computer" (was 35).
+- **Pilot and demo label** on Parts 2 and 3 moves to the top right, clear of the answer buttons on a phone.
+- **Not changed:** the consent text on the site (`src/study/consentText.ts`) still says "in two parts, one week apart" and "explained at the end of Part 2". It needs the new wording from the updated consent form.
+
 ## 0.26.1 (2026-11-12)
 
 Two Part 2 chat fixes from an end-to-end test of all three arms against the real interviewer.

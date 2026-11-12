@@ -48,7 +48,7 @@ export function Closing({ participant, store, mode }: StageProps) {
         will be paid as described in your invitation.
       </p>
       <p>
-        Part 2 opens in 7 days, and we'll send you a message when it does. It takes about 35 minutes on a computer.
+        Part 2 opens in 7 days, and we'll send you a message when it does. It takes about 25 minutes on a computer.
       </p>
       <div className="page-spacer" />
       {saving === 'saving' && (

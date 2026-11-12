@@ -7,7 +7,8 @@ import type { Part2StageProps } from './stageProps'
 import type { ItemAnswer } from './types'
 
 /** Total pages: the scored items plus the attention items. */
-const TOTAL = BATTERY.length + REPEATED_ITEMS.length + ATTENTION_ITEMS.length
+export const TOTAL_ITEMS = BATTERY.length + REPEATED_ITEMS.length + ATTENTION_ITEMS.length
+const TOTAL = TOTAL_ITEMS
 
 /** The three choices and what each means (shown on the introduction and again after a wrong comprehension answer). */
 function Definitions() {
@@ -25,9 +26,9 @@ function Definitions() {
 export function Intro({ advance }: Part2StageProps) {
   return (
     <main className="page page-wide">
-      <h1>Your views</h1>
+      <h1>Part 3: your views</h1>
       <p>
-        Now you'll read {TOTAL} short situations. In each one, an app, a company or a person wants to use some of your
+        Thanks for coming back. In this last part you'll read {TOTAL} short situations. In each one, an app, a company or a person wants to use some of your
         information. For each situation, choose:
       </p>
       <Definitions />
@@ -253,9 +254,6 @@ export function Items({ doc, update, advance }: Part2StageProps) {
 
   return (
     <main className="page page-wide">
-      <div className="item-progress" aria-label={`Situation ${index + 1} of ${TOTAL}`}>
-        <span style={{ width: `${(index / TOTAL) * 100}%` }} />
-      </div>
       <ItemCard key={slotKey(slot)} label={`Situation ${index + 1} of ${TOTAL}`} text={text} onNext={onNext} />
     </main>
   )

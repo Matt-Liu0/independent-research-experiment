@@ -28,7 +28,7 @@ Phone web app for Part 1 of the study: two practice apps in one session, **Bramb
 | `/?demo=nudged`, `/?demo=neutral` or `/?demo=mixed` | Researcher preview: any device, nothing saved. `nudged`/`neutral` set every screen to that level; `mixed` gives a random 3-of-6 pattern, as participants get. Add `&first=stride` or `&first=bramble` to choose the app order (otherwise random) |
 | `/?agent=1&EPISODE_ID=…&nudged=U1-U3-U5&taskOrder=4-1-2-3-5-6-7-9-8-10` | Experiment 4 agent episode, driven by the MCP harness; data read from `window.__brambleAgent` (see `DATA.md` section 8) |
 
-To try the app locally: `npm run dev`, then open http://localhost:5173/?demo=nudged. Part 2 with a stand-in interviewer (no model, nothing saved): http://localhost:5173/part2.html?demo=1 (add `&arm=structured` or `&arm=case` to label the arm). To talk to the real interviewer locally, put `ANTHROPIC_API_KEY=<key>` in `functions/.secret.local` (git-ignored), run `npm run emulators:chat`, and open `http://localhost:5173/part2.html?code=test1&pilot=1&anydevice=1` (add `&arm=…` to choose the arm on pilot links); move the record to the chat by going through the briefing. For a run that saves to the emulator, start `npm run emulators` too and use `http://localhost:5173/?code=test1` (the device check needs a phone, or Chrome DevTools' phone emulation).
+To try the app locally: `npm run dev`, then open http://localhost:5173/?demo=nudged. Part 2 with a stand-in interviewer (no model, nothing saved): http://localhost:5173/part2.html?demo=1 (add `&arm=structured` or `&arm=case` to label the arm). Part 3 (the questionnaire): http://localhost:5173/part3.html?demo=1. To talk to the real interviewer locally, put `ANTHROPIC_API_KEY=<key>` in `functions/.secret.local` (git-ignored), run `npm run emulators:chat`, and open `http://localhost:5173/part2.html?code=test1&pilot=1&anydevice=1` (add `&arm=…` to choose the arm on pilot links); move the record to the chat by going through the briefing. For a run that saves to the emulator, start `npm run emulators` too and use `http://localhost:5173/?code=test1` (the device check needs a phone, or Chrome DevTools' phone emulation).
 
 ## Testing on a real phone
 
@@ -67,7 +67,7 @@ To change the default area, edit `src/bramble/mapConfig.ts` (location, store pin
 | `src/study/` | Link entry (`entry.ts`), device check, consent, assignment (pattern × app order), tasks, Firestore store |
 | `src/study/consentText.ts` | **DRAFT** consent text: replace with the IRB version and bump `version` |
 | `src/surveys/` | Ease rating, SUS, suspicion question, settings check, closing |
-| `src/part2/` | Part 2 (`part2.html`): briefing and chat (`Interview.tsx`), filler and debrief (`Wrapup.tsx`, wording in `sessionText.ts`, **DRAFT**), battery wording (`items.ts`), order, screens, store |
+| `src/part2/` | Parts 2 and 3, one app with a stage list per part (`types.ts`). Part 2 (`part2.html`): briefing and chat (`Interview.tsx`). Part 3 (`part3.html`, opens once the code's chat is done): questionnaire (`Questionnaire.tsx`, wording in `items.ts`), recall and background (`Surveys.tsx`), debrief (`Wrapup.tsx`). Wording in `sessionText.ts` (**DRAFT**), order, store |
 | `functions/` | The Part 2 interviewer, a Cloud Function (`interviewTurn`): arm assignment, the interview script (`interview.ts`), the interviewer's prompts and the case set T (`prompts.ts`, **DRAFT**, T empty) |
 | `firestore.rules` | Security rules |
 | `scripts/export.ts` | CSV export |

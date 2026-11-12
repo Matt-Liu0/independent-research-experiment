@@ -3,7 +3,7 @@
 // the function call the model: only opening the chat, which uses the fixed opener.
 import { deleteApp, initializeApp, type FirebaseApp } from 'firebase/app'
 import { connectAuthEmulator, getAuth } from 'firebase/auth'
-import { connectFirestoreEmulator, doc, getDoc, initializeFirestore } from 'firebase/firestore'
+import { connectFirestoreEmulator, doc, getDoc, initializeFirestore, setDoc } from 'firebase/firestore'
 import { connectFunctionsEmulator, getFunctions } from 'firebase/functions'
 import { initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/rules-unit-testing'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
@@ -29,7 +29,7 @@ function browser() {
   connectFirestoreEmulator(db, host, Number(port))
   const functions = getFunctions(app, 'us-central1')
   connectFunctionsEmulator(functions, '127.0.0.1', functionsPort)
-  return { auth, db, functions, store: new FirestorePart2Store(db, auth, true) }
+  return { auth, db, functions, store: new FirestorePart2Store(db, auth, true), part3: new FirestorePart2Store(db, auth, true, 3) }
 }
 
 /** A pilot Part 2 participant who has reached the chat. */
@@ -79,9 +79,10 @@ describe('interviewTurn', () => {
       const record = await asAdmin((db) => getDoc(doc(db, 'pilot_part2', p.uid)))
       arms.push(record.data()!.arm)
     }
-    expect(arms.every((a) => a === 'open' || a === 'structured')).toBe(true)
+    expect(arms.every((a) => a === 'open' || a === 'structured' || a === 'case')).toBe(true)
     const counts = (await asAdmin((db) => getDoc(doc(db, 'pilot_part2_meta', 'arms')))).data()!
-    expect(Math.abs((counts.open ?? 0) - (counts.structured ?? 0))).toBeLessThanOrEqual(1)
+    const used = ['open', 'structured', 'case'].map((a) => counts[a] ?? 0)
+    expect(Math.max(...used) - Math.min(...used)).toBeLessThanOrEqual(1)
   })
 
   it('ignores a message sent from an out-of-date view, without calling the model', async () => {
@@ -104,5 +105,29 @@ describe('interviewTurn', () => {
     await new CallableInterviewer(p.functions, true).send(null, 0)
     await expect(getDoc(doc(p.db, 'pilot_part2_interviews', p.uid))).rejects.toMatchObject({ code: 'permission-denied' })
     await expect(getDoc(doc(p.db, 'pilot_part2_meta', 'arms'))).rejects.toMatchObject({ code: 'permission-denied' })
+  })
+
+  it('opens Part 3 for the code once its Part 2 chat finishes, and not before', async () => {
+    const p = await atChat('handoff')
+    const code = `handoff_${run}`
+    const interviewer = new CallableInterviewer(p.functions, true, 'open')
+    await interviewer.send(null, 0)
+    // On the fitness app with its time used up, so the next message ends the chat without a model call.
+    const ref = doc(p.db, 'pilot_part2_interviews', p.uid).path
+    await asAdmin(async (db) => {
+      const saved = (await getDoc(doc(db, ref))).data()!
+      await setDoc(doc(db, ref), { ...saved, state: { ...saved.state, domainIndex: 1, domainStartedAt: 0 } })
+    })
+
+    // Part 3 on another device, too early: refused without claiming the code.
+    const phone = browser()
+    expect(await phone.part3.start({ participantCode: code })).toEqual({ kind: 'part2_not_done' })
+
+    const end = await interviewer.send('that is all', 1)
+    expect(end.done).toBe(true)
+    expect((await asAdmin((db) => getDoc(doc(db, 'pilot_part2_done', code)))).exists()).toBe(true)
+
+    const later = await phone.part3.start({ participantCode: code })
+    expect(later).toMatchObject({ kind: 'new', doc: { participantCode: code, stage: 'device' } })
   })
 })

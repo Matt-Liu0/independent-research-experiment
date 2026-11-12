@@ -149,6 +149,8 @@ export const interviewTurn = onCall(
       if (!current || current.turns.length !== state.turns.length) throw new HttpsError('aborted', 'The conversation changed. Please reload.')
       tx.update(interviewRef, { state: updated, updatedAt: FieldValue.serverTimestamp() })
       tx.update(recordRef, { interview: summary(updated) })
+      // Part 2 is done once the chat is: this opens Part 3 for the participant's code (firestore.rules).
+      if (updated.done) tx.set(db.doc(`${req.pilot ? 'pilot_' : ''}part2_done/${record.data()!.participantCode}`), { doneAt: FieldValue.serverTimestamp() })
     })
     return publicView(updated)
   },

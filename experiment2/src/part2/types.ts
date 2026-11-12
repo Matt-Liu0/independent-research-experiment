@@ -3,30 +3,28 @@ import type { VerdictValue, Wording } from './items'
 import type { Slot } from './order'
 
 /**
- * Part 2 (pipeline, Experiment 1 "Procedure"): briefing, written instructions (D0), the interview,
- * a filler, the questionnaire, recall, background, debrief. The instructions step is the same in
- * every arm (proposed Oct 29, 2026).
+ * Parts 2 and 3 (pipeline, Experiment 1 "Procedure", split Nov 12, 2026). Part 2 (computer):
+ * briefing, written instructions (D0), the interview. Part 3 (2-3 days later, phone or
+ * computer): the questionnaire, recall, background, debrief. The 2-3 day gap replaces the
+ * filler task, so what people told the interviewer isn't fresh when they answer. Both parts use
+ * the same record shape, in their own collections; the export joins them by participant code.
  */
-const PART2_STAGES = [
-  'device',
-  'briefing',
-  'instructions',
-  'chat',
-  'filler',
-  'intro',
-  'practice',
-  'comprehension',
-  'items',
-  'recall',
-  'background',
-  'debrief',
-  'done',
-] as const
-export type Part2Stage = (typeof PART2_STAGES)[number]
+export type Part = 2 | 3
 
-export function nextPart2Stage(stage: Part2Stage): Part2Stage {
-  const i = PART2_STAGES.indexOf(stage)
-  return PART2_STAGES[Math.min(i + 1, PART2_STAGES.length - 1)]
+const STAGES_BY_PART = {
+  2: ['device', 'briefing', 'instructions', 'chat', 'done'],
+  3: ['device', 'intro', 'practice', 'comprehension', 'items', 'recall', 'background', 'debrief', 'done'],
+} as const
+export type Part2Stage = (typeof STAGES_BY_PART)[Part][number]
+
+export function partStages(part: Part): readonly Part2Stage[] {
+  return STAGES_BY_PART[part]
+}
+
+export function nextPart2Stage(stage: Part2Stage, part: Part): Part2Stage {
+  const stages = partStages(part)
+  const i = stages.indexOf(stage)
+  return stages[Math.min(i + 1, stages.length - 1)]
 }
 
 /** One answered page of the questionnaire. */
@@ -76,12 +74,6 @@ export interface WrittenInstructions {
   ms: number
 }
 
-export interface FillerResult {
-  solved: number
-  attempted: number
-  ms: number
-}
-
 export interface Part2Doc extends EntryParams {
   appVersion: string
   stage: Part2Stage
@@ -103,7 +95,6 @@ export interface Part2Doc extends EntryParams {
   /** Set by the server; null until the chat starts. */
   arm: Arm | null
   interview: InterviewSummary | null
-  filler: FillerResult | null
   writtenInstructions: WrittenInstructions | null
   /** Ticked on the debrief page: the participant asks for their data to be removed. */
   withdrawRequested: boolean
@@ -132,10 +123,14 @@ export function newPart2Doc(params: EntryParams, now = new Date()): Part2Doc {
     background: null,
     arm: null,
     interview: null,
-    filler: null,
     writtenInstructions: null,
     withdrawRequested: false,
   }
 }
 
-export type Part2StartResult = { kind: 'new' | 'resumed'; doc: Part2Doc } | { kind: 'taken' } | { kind: 'pid_mismatch' }
+export type Part2StartResult =
+  | { kind: 'new' | 'resumed'; doc: Part2Doc }
+  | { kind: 'taken' }
+  | { kind: 'pid_mismatch' }
+  /** Part 3 only: the interviewer function hasn't marked this code's Part 2 chat as finished. */
+  | { kind: 'part2_not_done' }

@@ -1,15 +1,17 @@
 import { DEVICE_SKIP_ALLOWED } from '../study/entry'
 import type { DeviceInfo, EntryParams } from '../study/types'
 import { detectOs } from '../study/device'
-import type { Arm } from './types'
+import type { Arm, Part } from './types'
 
 export type Part2Mode = 'study' | 'pilot' | 'demo'
 
 export interface Part2Entry {
+  /** Which page: part2.html or part3.html. */
+  part: Part
   mode: Part2Mode
   params: EntryParams | null
   skipDeviceCheck?: boolean
-  /** Demo and pilot links only: &arm=open|structured|case picks the interview arm, to try each one. */
+  /** Part 2 demo and pilot links only: &arm=open|structured|case picks the interview arm, to try each one. */
   arm?: Arm
 }
 
@@ -21,16 +23,16 @@ function armParam(q: URLSearchParams): Arm | undefined {
 const SAFE_ID = /^[A-Za-z0-9_-]{1,64}$/
 
 /** Same links as Part 1: ?code= with the participant code; ?demo=1 saves nothing; &pilot=1 uses pilot_ collections. */
-export function parsePart2Entry(search: string, allowDeviceSkip = DEVICE_SKIP_ALLOWED): Part2Entry {
+export function parsePart2Entry(search: string, allowDeviceSkip = DEVICE_SKIP_ALLOWED, part: Part = 2): Part2Entry {
   const q = new URLSearchParams(search)
+  const arm = part === 2 ? armParam(q) : undefined
   if (q.get('demo') === '1') {
-    return { mode: 'demo', params: { participantCode: 'DEMO' }, skipDeviceCheck: true, arm: armParam(q) }
+    return { part, mode: 'demo', params: { participantCode: 'DEMO' }, skipDeviceCheck: true, arm }
   }
   const mode: Part2Mode = q.get('pilot') === '1' ? 'pilot' : 'study'
-  const arm = mode === 'pilot' ? armParam(q) : undefined
   const skipDeviceCheck = allowDeviceSkip && q.get('anydevice') === '1'
   const code = q.get('code') ?? ''
-  return { mode, skipDeviceCheck, arm, params: SAFE_ID.test(code) ? { participantCode: code } : null }
+  return { part, mode, skipDeviceCheck, arm: mode === 'pilot' ? arm : undefined, params: SAFE_ID.test(code) ? { participantCode: code } : null }
 }
 
 /**
