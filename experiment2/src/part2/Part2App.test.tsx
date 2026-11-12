@@ -16,9 +16,11 @@ import { ANAGRAMS } from './Wrapup'
 // Replies show at once in these tests; the streaming test below sets its own pace.
 beforeEach(() => {
   CHAT_TIMING.wordMs = 0
+  CHAT_TIMING.loadRetryMs = 0
 })
 afterEach(() => {
   CHAT_TIMING.wordMs = 33
+  CHAT_TIMING.loadRetryMs = 1500
 })
 
 const PAGES = BATTERY.length + REPEATED_ITEMS.length + ATTENTION_ITEMS.length
@@ -114,6 +116,21 @@ describe('Part 2', () => {
     expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled()
     expect(await screen.findByText('Is there anything else I should keep in mind?')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled()
+  })
+
+  it('tries opening the chat again before showing an error (the stage change may not be saved yet)', async () => {
+    const interviewer = new ScriptedInterviewer()
+    const real = interviewer.send.bind(interviewer)
+    let calls = 0
+    interviewer.send = async (message: string | null) => {
+      if (++calls === 1) throw new Error('failed-precondition')
+      return real(message)
+    }
+    const store = new MemoryPart2Store({ ...newPart2Doc(PARAMS), stage: 'chat' })
+    render(<Part2App entry={{ mode: 'study', params: PARAMS }} store={store} interviewer={interviewer} />)
+    expect(await screen.findByText(/grocery delivery app/)).toBeInTheDocument()
+    expect(calls).toBe(2)
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
   })
 
   it('asks for the message again if the assistant fails to reply', async () => {

@@ -203,7 +203,11 @@ export function apiMessages(s: InterviewState): { role: 'user' | 'assistant' | '
   for (const t of s.turns) {
     if (t.domain !== domain) {
       domain = t.domain
-      out.push({ role: 'system', content: domainNote(domain) })
+      // The API takes a system message only after a user turn. When the model's own wrap-up ended
+      // the first domain, the note goes before that wrap-up, after the participant's last message.
+      let at = out.length
+      while (out[at - 1].role !== 'user') at--
+      out.splice(at, 0, { role: 'system', content: domainNote(domain) })
     }
     out.push({ role: t.role === 'interviewer' ? 'assistant' : 'user', content: t.text })
   }

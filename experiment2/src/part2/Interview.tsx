@@ -31,7 +31,10 @@ type Status = 'loading' | 'ready' | 'waiting' | 'error'
  * New assistant messages appear a word at a time, as chat assistants stream their replies (about
  * 30 words a second). The text arrives whole; only its display is paced. 0 shows it at once (tests).
  */
-export const CHAT_TIMING = { wordMs: 33 }
+export const CHAT_TIMING = { wordMs: 33, loadRetryMs: 1500 }
+
+/** Tries at opening the chat before showing "Try again"; the first can arrive before the stage change is saved. */
+const LOAD_TRIES = 3
 
 const words = (text: string) => text.match(/\S+\s*/g) ?? []
 
@@ -60,7 +63,7 @@ export function Chat({ advance, interviewer }: Part2StageProps & { interviewer: 
   const log = useRef<HTMLDivElement>(null)
   const loaded = useRef(false)
 
-  const load = () => {
+  const load = (tries = LOAD_TRIES) => {
     setStatus('loading')
     interviewer.send(null, 0).then(
       (v) => {
@@ -72,7 +75,8 @@ export function Chat({ advance, interviewer }: Part2StageProps & { interviewer: 
       },
       (err) => {
         logEvent('error', { where: 'chat_load', message: String(err) })
-        setStatus('error')
+        if (tries > 1) setTimeout(() => load(tries - 1), CHAT_TIMING.loadRetryMs)
+        else setStatus('error')
       },
     )
   }
@@ -154,7 +158,7 @@ export function Chat({ advance, interviewer }: Part2StageProps & { interviewer: 
       <main className="page page-wide">
         <h1>Chat with the assistant</h1>
         <p className="notice">We couldn't connect to the assistant. Check your connection and try again.</p>
-        <button type="button" className="btn btn-study" onClick={load}>
+        <button type="button" className="btn btn-study" onClick={() => load()}>
           Try again
         </button>
       </main>

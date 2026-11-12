@@ -5,6 +5,13 @@ Every build participants see has a version (`appVersion` on each record). Bump `
 
 
 
+## 0.26.1 (2026-11-12)
+
+Two Part 2 chat fixes from an end-to-end test of all three arms against the real interviewer.
+
+- **The case arm (and the structured arm) can now finish the chat** (`functions/src/interview.ts`): when the model's own wrap-up ended the grocery app (the `[[NEXT]]` marker), the "now asking about the fitness app" operator note came right after that interviewer message, and the API rejects a system message there. The next model call (the fitness summary in the case arm) failed every time with "The assistant couldn't reply". The note now goes after the participant's last grocery message. Needs a functions deploy.
+- **The chat opens without a "Try again" screen** (`part2/Interview.tsx`): the chat page could ask for the conversation before the move to the chat stage was saved, and the function turned it away (a 400). The page now tries up to three times, 1.5 s apart, before showing the error.
+
 ## 0.26.0 (2026-11-09)
 
 Two fixes from the first phone pilot (Yaphet, Nov 9).

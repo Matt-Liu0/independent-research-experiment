@@ -140,6 +140,17 @@ describe('API messages and summary', () => {
     expect(msgs[note + 1]).toEqual({ role: 'assistant', content: OPENERS.open.health })
   })
 
+  it('puts the domain note after a user turn when the model ended the first domain', () => {
+    let s = startInterview('structured', T0)
+    s = exchange(s, 'a0')
+    s = exchange(s, 'a1', `Here is what I heard. ${NEXT_MARKER}`)
+    expect(s.domainIndex).toBe(1)
+    const msgs = apiMessages(s)
+    const note = msgs.findIndex((m) => m.role === 'system')
+    expect(msgs[note - 1]).toEqual({ role: 'user', content: 'a1' })
+    expect(msgs[note + 1]).toEqual({ role: 'assistant', content: 'Here is what I heard.' })
+  })
+
   it('summarizes turns and time', () => {
     let s = startInterview('open', T0)
     s = exchange(s, 'hello')
